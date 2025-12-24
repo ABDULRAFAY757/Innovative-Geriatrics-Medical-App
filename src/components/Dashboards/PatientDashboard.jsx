@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import { StatCard, Card, Table, Badge, Button, ProgressBar, Alert, Modal, Input } from '../shared/UIComponents';
+import { StatCard, Card, Table, Badge, Button, ProgressBar, Alert, Modal, Input, DoseIndicator } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
@@ -193,11 +193,11 @@ const InteractivePatientDashboard = ({ user }) => {
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{med.medication_name}</p>
                     <p className="text-sm text-gray-500">{med.dosage} - {med.frequency}</p>
-                    <div className="mt-1 w-32">
-                      <ProgressBar
-                        value={med.adherence_rate}
+                    <div className="mt-2">
+                      <DoseIndicator
+                        frequency={med.frequency}
+                        taken={med.taken_today || 0}
                         color={med.adherence_rate >= 80 ? 'green' : 'yellow'}
-                        showLabel={true}
                       />
                     </div>
                   </div>

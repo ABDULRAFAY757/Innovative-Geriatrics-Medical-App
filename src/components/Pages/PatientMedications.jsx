@@ -12,7 +12,7 @@ import {
   Search,
   TrendingUp
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, ProgressBar, Modal } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientMedications = ({ user }) => {
@@ -209,16 +209,16 @@ const PatientMedications = ({ user }) => {
                   </div>
                 </div>
 
-                {/* Adherence Progress */}
+                {/* Daily Dose Indicators */}
                 <div className="w-full md:w-48">
-                  <p className="text-xs text-gray-500 mb-1">Adherence Rate</p>
-                  <ProgressBar
-                    value={med.adherence_rate}
+                  <p className="text-xs text-gray-500 mb-2">Today's Doses</p>
+                  <DoseIndicator
+                    frequency={med.frequency}
+                    taken={med.taken_today || 0}
                     color={med.adherence_rate >= 80 ? 'green' : med.adherence_rate >= 50 ? 'yellow' : 'red'}
-                    showLabel={true}
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    {med.taken_count || 0} / {med.total_doses || med.taken_count || 0} doses taken
+                  <p className="text-xs text-gray-400 mt-2">
+                    {med.taken_today || 0} taken today
                   </p>
                 </div>
 

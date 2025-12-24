@@ -384,3 +384,57 @@ export const Tabs = ({ tabs, activeTab, onChange }) => {
     </div>
   );
 };
+
+// Helper function to parse medication frequency and determine daily dose count
+export const parseDailyDoses = (frequency) => {
+  if (!frequency) return 1;
+
+  const freq = frequency.toLowerCase();
+
+  // Match patterns like "twice daily", "2 times daily", "three times a day", etc.
+  if (freq.includes('once') || freq.includes('1 time')) return 1;
+  if (freq.includes('twice') || freq.includes('2 time') || freq.includes('two time')) return 2;
+  if (freq.includes('three') || freq.includes('3 time') || freq.includes('thrice')) return 3;
+  if (freq.includes('four') || freq.includes('4 time')) return 4;
+  if (freq.includes('five') || freq.includes('5 time')) return 5;
+  if (freq.includes('six') || freq.includes('6 time')) return 6;
+
+  // Try to extract number from pattern like "2x daily" or "3x/day"
+  const numberMatch = freq.match(/(\d+)\s*(?:x|times)/);
+  if (numberMatch) return parseInt(numberMatch[1]);
+
+  // Default to 1 if we can't determine
+  return 1;
+};
+
+// DoseIndicator Component - Shows small bars for each medication dose
+export const DoseIndicator = ({ frequency, taken = 0, color = 'blue' }) => {
+  const totalDoses = parseDailyDoses(frequency);
+  const takenDoses = Math.min(taken, totalDoses);
+
+  const colorClasses = {
+    blue: { filled: 'bg-blue-600', empty: 'bg-gray-200' },
+    green: { filled: 'bg-green-600', empty: 'bg-gray-200' },
+    yellow: { filled: 'bg-yellow-600', empty: 'bg-gray-200' },
+    red: { filled: 'bg-red-600', empty: 'bg-gray-200' },
+  };
+
+  const colors = colorClasses[color] || colorClasses.blue;
+
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: totalDoses }).map((_, index) => (
+        <div
+          key={index}
+          className={clsx(
+            'h-2 rounded-full transition-all',
+            index < takenDoses ? colors.filled : colors.empty,
+            // Adjust width based on number of doses to keep compact
+            totalDoses <= 2 ? 'w-8' : totalDoses <= 4 ? 'w-6' : 'w-4'
+          )}
+          title={`Dose ${index + 1}${index < takenDoses ? ' (taken)' : ' (pending)'}`}
+        />
+      ))}
+    </div>
+  );
+};

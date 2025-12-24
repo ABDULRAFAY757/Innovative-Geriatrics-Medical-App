@@ -13,7 +13,10 @@
       "Bash(ls:*)",
       "Bash(eslint:*)",
       "Bash(grep:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(cat:*)"
     ]
   }
 }
