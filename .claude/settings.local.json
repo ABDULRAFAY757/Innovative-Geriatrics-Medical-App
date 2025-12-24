@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)",
+      "Bash(dir:*)",
+      "Bash(timeout 5 npm run dev:*)",
+      "Bash(move DoctorDashboard.jsx DoctorDashboard.old.jsx)",
+      "Bash(move:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run lint)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(eslint:*)",
+      "Bash(grep:*)",
+      "Bash(npm run lint:*)"
+    ]
+  }
+}
