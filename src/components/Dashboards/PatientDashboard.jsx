@@ -10,7 +10,8 @@ import {
   Plus,
   Clipboard,
   Package,
-  Check
+  Check,
+  MapPin
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
@@ -239,21 +240,36 @@ const InteractivePatientDashboard = ({ user }) => {
         >
           <div className="space-y-4">
             {myAppointments.slice(0, 3).map((apt) => (
-              <div key={apt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
+              <div key={apt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="p-2 bg-green-100 rounded-lg">
                     <Calendar className="w-5 h-5 text-green-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium text-gray-900">{apt.doctor_name}</p>
                     <p className="text-sm text-gray-500">{apt.specialization}</p>
+                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-600">
+                      <MapPin className="w-3 h-3" />
+                      <span>{apt.location || 'Clinic'}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{formatDate(apt.date)}</p>
-                  <Badge variant={apt.status === 'Confirmed' ? 'success' : 'info'} size="sm">
-                    {apt.status}
-                  </Badge>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">{formatDate(apt.date)}</p>
+                    <Badge variant={apt.status === 'Confirmed' ? 'success' : 'info'} size="sm">
+                      {apt.status}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    icon={Phone}
+                    onClick={() => window.open(`tel:${apt.doctor_phone || ''}`, '_self')}
+                    title="Call Doctor"
+                    className="!p-2"
+                  >
+                  </Button>
                 </div>
               </div>
             ))}
