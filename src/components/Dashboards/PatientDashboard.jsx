@@ -16,7 +16,6 @@ import {
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { StatCard, Card, Badge, Button, Modal, Input, DoseIndicator } from '../shared/UIComponents';
-import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
 const InteractivePatientDashboard = ({ user }) => {
@@ -33,10 +32,8 @@ const InteractivePatientDashboard = ({ user }) => {
     addNotification,
   } = useApp();
 
-  const [showPayment, setShowPayment] = useState(false);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showNewEquipment, setShowNewEquipment] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState({ amount: 0, description: '' });
   const [newAppointment, setNewAppointment] = useState({
     doctor_name: '',
     type: 'Consultation',
@@ -46,9 +43,7 @@ const InteractivePatientDashboard = ({ user }) => {
   const [newEquipmentRequest, setNewEquipmentRequest] = useState({
     equipment_name: '',
     description: '',
-    urgency: 'Medium',
     category: 'Mobility',
-    estimated_cost: 0,
     medical_justification: '',
   });
 
@@ -169,16 +164,9 @@ const InteractivePatientDashboard = ({ user }) => {
     setNewEquipmentRequest({
       equipment_name: '',
       description: '',
-      urgency: 'Medium',
       category: 'Mobility',
-      estimated_cost: 0,
       medical_justification: '',
     });
-  };
-
-  const handlePayment = (amount, description) => {
-    setPaymentDetails({ amount, description });
-    setShowPayment(true);
   };
 
   if (!patient) {
@@ -395,30 +383,78 @@ const InteractivePatientDashboard = ({ user }) => {
         className="mb-8"
       >
         <div className="space-y-3">
-          {myEquipment.map((req) => (
-            <div key={req.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3 flex-1">
-                <Package className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="font-medium text-gray-900">{req.equipment_name}</p>
-                  <p className="text-sm text-gray-500">{req.description}</p>
+          {myEquipment.length > 0 ? (
+            myEquipment.map((req) => (
+              <div key={req.id} className="group relative overflow-hidden p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-300">
+                <div className="flex items-start gap-4">
+                  {/* Icon with category color */}
+                  <div className={clsx(
+                    'p-3 rounded-xl',
+                    req.category === 'Mobility' && 'bg-blue-100',
+                    req.category === 'Monitoring' && 'bg-green-100',
+                    req.category === 'Safety' && 'bg-orange-100',
+                    req.category === 'Home Care' && 'bg-purple-100',
+                    !req.category && 'bg-gray-100'
+                  )}>
+                    <Package className={clsx(
+                      'w-5 h-5',
+                      req.category === 'Mobility' && 'text-blue-600',
+                      req.category === 'Monitoring' && 'text-green-600',
+                      req.category === 'Safety' && 'text-orange-600',
+                      req.category === 'Home Care' && 'text-purple-600',
+                      !req.category && 'text-gray-600'
+                    )} />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{req.equipment_name}</h4>
+                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{req.description}</p>
+                      </div>
+                      <Badge
+                        variant={req.status === 'Fulfilled' ? 'success' : req.status === 'Approved' ? 'info' : 'warning'}
+                        className="flex-shrink-0"
+                      >
+                        {req.status === 'Pending' && '⏳'}
+                        {req.status === 'Approved' && '✓'}
+                        {req.status === 'Fulfilled' && '✓✓'}
+                        {' '}{req.status}
+                      </Badge>
+                    </div>
+
+                    {/* Category & Date */}
+                    <div className="flex items-center gap-3 mt-3">
+                      {req.category && (
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                          {req.category}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-400">
+                        Requested {new Date(req.request_date || Date.now()).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Badge variant={req.urgency === 'High' ? 'danger' : 'warning'}>{req.urgency}</Badge>
-                <Badge variant={req.status === 'Fulfilled' ? 'success' : 'info'}>{req.status}</Badge>
+
+                {/* Progress indicator for pending items */}
                 {req.status === 'Pending' && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handlePayment(req.estimated_cost, req.equipment_name)}
-                  >
-                    Pay {req.estimated_cost} SAR
-                  </Button>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
+                    <div className="h-full w-1/4 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-pulse"></div>
+                  </div>
                 )}
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 font-medium">No equipment requests yet</p>
+              <p className="text-sm text-gray-400 mt-1">Request medical equipment you need</p>
             </div>
-          ))}
+          )}
         </div>
       </Card>
 
@@ -481,53 +517,66 @@ const InteractivePatientDashboard = ({ user }) => {
       </Modal>
 
       <Modal isOpen={showNewEquipment} onClose={() => setShowNewEquipment(false)} title="Request Medical Equipment">
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Info banner */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+            <p className="text-sm text-blue-700">
+              Submit your equipment request and our team will review it. Approved requests may be fulfilled by generous donors.
+            </p>
+          </div>
+
           <Input
             label="Equipment Name"
             value={newEquipmentRequest.equipment_name}
             onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, equipment_name: e.target.value})}
-            placeholder="Wheelchair, Walker, etc."
+            placeholder="e.g., Wheelchair, Walking Frame, Blood Pressure Monitor"
           />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
+              value={newEquipmentRequest.category}
+              onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, category: e.target.value})}
+            >
+              <option value="Mobility">🦽 Mobility Aids</option>
+              <option value="Monitoring">📊 Health Monitoring</option>
+              <option value="Safety">🛡️ Safety Equipment</option>
+              <option value="Home Care">🏠 Home Care</option>
+            </select>
+          </div>
+
           <Input
             label="Description"
             value={newEquipmentRequest.description}
             onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, description: e.target.value})}
-            placeholder="Brief description..."
+            placeholder="Briefly describe your need..."
           />
-          <Input
-            label="Estimated Cost (SAR)"
-            type="number"
-            value={newEquipmentRequest.estimated_cost}
-            onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, estimated_cost: parseInt(e.target.value)})}
-          />
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Medical Justification</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Medical Reason</label>
             <textarea
               className="w-full h-24 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base resize-none"
-              rows="3"
               value={newEquipmentRequest.medical_justification}
               onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, medical_justification: e.target.value})}
-              placeholder="Why is this equipment needed?"
+              placeholder="Explain why you need this equipment..."
             />
           </div>
-          <div className="flex gap-3 pt-4">
+
+          <div className="flex gap-3 pt-2">
             <Button variant="secondary" onClick={() => setShowNewEquipment(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleCreateEquipment} className="flex-1">
+            <Button
+              onClick={handleCreateEquipment}
+              className="flex-1"
+              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.description}
+            >
               Submit Request
             </Button>
           </div>
         </div>
       </Modal>
-
-      <PaymentModal
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        amount={paymentDetails.amount}
-        description={paymentDetails.description}
-        onSuccess={() => setShowPayment(false)}
-      />
     </div>
   );
 };
