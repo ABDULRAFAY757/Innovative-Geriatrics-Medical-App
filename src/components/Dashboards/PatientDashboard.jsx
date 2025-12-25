@@ -8,7 +8,6 @@ import {
   Clock,
   ChevronRight,
   Plus,
-  Clipboard,
   Package,
   Check,
   MapPin
@@ -455,26 +454,61 @@ const InteractivePatientDashboard = ({ user }) => {
       {/* Emergency Contacts */}
       <Card title={t('emergency_contacts')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-4 p-4 bg-red-50 rounded-lg border border-red-200">
-            <div className="p-3 bg-red-100 rounded-full">
-              <Phone className="w-6 h-6 text-red-600" />
+          {/* Family Emergency Contact */}
+          <button
+            onClick={() => window.location.href = `tel:${patient.emergencyContact?.phone?.replace(/\s/g, '') || ''}`}
+            className="group relative overflow-hidden p-5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl text-white hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/25 text-left"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-white/20 rounded-xl">
+                  <Phone className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-purple-200 uppercase tracking-wide">{language === 'ar' ? 'جهة اتصال الطوارئ' : 'Family Contact'}</p>
+                  <p className="font-bold text-lg">{patient.emergencyContact?.name || 'Not Set'}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-purple-200">{patient.emergencyContact?.relationship || ''}</p>
+                  <p className="font-semibold mt-1">{patient.emergencyContact?.phone || ''}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
+                  <Phone className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-gray-900">{patient.emergencyContact.name}</p>
-              <p className="text-sm text-gray-600">{patient.emergencyContact.relationship}</p>
-              <p className="text-sm text-red-600 font-medium">{patient.emergencyContact.phone}</p>
+          </button>
+
+          {/* Ambulance Emergency */}
+          <button
+            onClick={() => window.location.href = 'tel:997'}
+            className="group relative overflow-hidden p-5 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl text-white hover:from-red-600 hover:to-red-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-red-500/25 text-left"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-white/20 rounded-xl">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-red-200 uppercase tracking-wide">{language === 'ar' ? 'طوارئ' : 'Emergency'}</p>
+                  <p className="font-bold text-lg">{language === 'ar' ? 'الإسعاف' : 'Ambulance'}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-red-200">{language === 'ar' ? 'استجابة فورية ٢٤/٧' : '24/7 Immediate Response'}</p>
+                  <p className="font-bold text-2xl mt-1">997</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors animate-pulse">
+                  <Phone className="w-5 h-5" />
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Clipboard className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">{t('insurance')}</p>
-              <p className="text-sm text-gray-600">{patient.insuranceProvider}</p>
-              <p className="text-sm text-blue-600 font-medium">{patient.insuranceNumber}</p>
-            </div>
-          </div>
+          </button>
         </div>
       </Card>
 
