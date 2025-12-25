@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   AlertTriangle,
@@ -19,7 +20,13 @@ import {
   TrendingDown,
   Thermometer,
   Droplets,
-  Scale
+  Scale,
+  DollarSign,
+  CreditCard,
+  Receipt,
+  ArrowRight,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
@@ -29,6 +36,7 @@ import { clsx } from 'clsx';
 
 const InteractiveFamilyDashboard = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
+  const navigate = useNavigate();
   const {
     patients,
     careTasks,
@@ -37,6 +45,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
     medicationReminders,
     familyMembers,
     doctors,
+    transactions,
     completeCareTask,
     addCareTask,
     deleteCareTask,
@@ -748,6 +757,191 @@ const InteractiveFamilyDashboard = ({ user }) => {
               </div>
             </div>
           ))}
+        </div>
+      </Card>
+
+      {/* Quick Navigation to Detail Pages */}
+      <Card className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <ArrowRight className="w-5 h-5 text-green-600" />
+            {language === 'ar' ? 'الوصول السريع' : 'Quick Access'}
+          </h3>
+          <p className="text-sm text-gray-500">
+            {language === 'ar' ? 'عرض التفاصيل الكاملة' : 'View full details'}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => navigate('/family/care-tasks')}
+            className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-blue-100 hover:border-blue-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                <CheckCircle className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'مهام الرعاية' : 'Care Tasks'}</p>
+                <p className="text-xs text-gray-500">{language === 'ar' ? 'إدارة جميع المهام' : 'Manage all tasks'}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+          </button>
+
+          <button
+            onClick={() => navigate('/family/alerts')}
+            className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-red-100 hover:border-red-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'تنبيهات السقوط' : 'Fall Alerts'}</p>
+                <p className="text-xs text-gray-500">{language === 'ar' ? 'عرض جميع التنبيهات' : 'View all alerts'}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-red-600 transition-colors" />
+          </button>
+
+          <button
+            onClick={() => navigate('/family/charity')}
+            className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-green-100 hover:border-green-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                <Heart className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'مركز التبرعات' : 'Charity Centre'}</p>
+                <p className="text-xs text-gray-500">{language === 'ar' ? 'طلبات المعدات والتبرعات' : 'Equipment & donations'}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" />
+          </button>
+        </div>
+      </Card>
+
+      {/* Care Expenses & Financial Summary */}
+      <Card className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-600" />
+            {language === 'ar' ? 'ملخص تكاليف الرعاية' : 'Care Cost Summary'}
+          </h3>
+          <Badge variant="info" size="sm">
+            {language === 'ar' ? 'هذا الشهر' : 'This Month'}
+          </Badge>
+        </div>
+
+        {/* Cost Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Stethoscope className="w-5 h-5 text-blue-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'الاستشارات الطبية' : 'Medical Consultations'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {transactions.filter(t => t.patient_id === patientId && t.transaction_type === 'Consultation').reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()} {t('sar')}
+            </p>
+            <p className="text-sm text-gray-500">
+              {transactions.filter(t => t.patient_id === patientId && t.transaction_type === 'Consultation').length} {language === 'ar' ? 'زيارات' : 'visits'}
+            </p>
+          </div>
+
+          <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Pill className="w-5 h-5 text-purple-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'تكلفة الأدوية' : 'Medications Cost'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {(myMedications.length * 75).toLocaleString()} {t('sar')}
+            </p>
+            <p className="text-sm text-gray-500">
+              {myMedications.length} {language === 'ar' ? 'أدوية نشطة' : 'active medications'}
+            </p>
+          </div>
+
+          <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <ShieldCheck className="w-5 h-5 text-green-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'تغطية التأمين' : 'Insurance Coverage'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">80%</p>
+            <p className="text-sm text-gray-500">
+              {language === 'ar' ? 'مغطى بالتأمين' : 'Covered by insurance'}
+            </p>
+          </div>
+
+          <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Receipt className="w-5 h-5 text-orange-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'إجمالي المصروفات' : 'Total Expenses'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {(transactions.filter(t => t.patient_id === patientId).reduce((sum, t) => sum + (t.amount || 0), 0) + myMedications.length * 75).toLocaleString()} {t('sar')}
+            </p>
+            <p className="text-sm text-gray-500">
+              {language === 'ar' ? 'هذا الشهر' : 'This month'}
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="border-t pt-4">
+          <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-gray-500" />
+            {language === 'ar' ? 'أحدث المعاملات' : 'Recent Transactions'}
+          </h4>
+          {transactions.filter(t => t.patient_id === patientId).length > 0 ? (
+            <div className="space-y-3">
+              {transactions.filter(t => t.patient_id === patientId).slice(0, 4).map((txn) => {
+                const txnDoctor = doctors?.find(d => d.id === txn.doctor_id);
+                return (
+                  <div key={txn.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={clsx(
+                        'p-2 rounded-lg',
+                        txn.transaction_type === 'Consultation' ? 'bg-blue-100' : 'bg-purple-100'
+                      )}>
+                        {txn.transaction_type === 'Consultation' ? (
+                          <Stethoscope className="w-4 h-4 text-blue-600" />
+                        ) : (
+                          <Pill className="w-4 h-4 text-purple-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{txn.transaction_type}</p>
+                        <p className="text-xs text-gray-500">
+                          {txnDoctor ? (language === 'ar' ? txnDoctor.name : txnDoctor.nameEn) : 'Doctor'} • {formatDate(txn.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{txn.amount} {t('sar')}</p>
+                      <Badge variant={txn.status === 'Completed' ? 'success' : 'warning'} size="sm">
+                        {txn.status}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>{language === 'ar' ? 'لا توجد معاملات مسجلة' : 'No transactions recorded'}</p>
+              <p className="text-sm">{language === 'ar' ? 'سيتم عرض تكاليف الرعاية هنا' : 'Care costs will appear here'}</p>
+            </div>
+          )}
         </div>
       </Card>
 

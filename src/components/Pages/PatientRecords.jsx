@@ -80,31 +80,8 @@ const PatientRecords = ({ user }) => {
     return variants[type] || 'default';
   };
 
-  // Helper to get patient info from record
-  const getPatientInfo = (record) => {
-    const recordPatient = patients.find(p => p.id === record.patient_id);
-    return recordPatient || { name: 'Unknown', p_no: 'N/A' };
-  };
 
   const columns = [
-    {
-      header: language === 'ar' ? 'رقم الملف' : 'Patient ID',
-      render: (row) => {
-        const p = getPatientInfo(row);
-        return (
-          <span className="text-sm font-mono text-blue-600">{p.p_no}</span>
-        );
-      }
-    },
-    {
-      header: language === 'ar' ? 'اسم المريض' : 'Patient Name',
-      render: (row) => {
-        const p = getPatientInfo(row);
-        return (
-          <span className="text-sm font-medium text-gray-900">{p.name}</span>
-        );
-      }
-    },
     {
       header: language === 'ar' ? 'التاريخ' : 'Date',
       render: (row) => (
@@ -126,14 +103,14 @@ const PatientRecords = ({ user }) => {
       )
     },
     {
+      header: language === 'ar' ? 'المستشفى' : 'Hospital',
+      render: (row) => <span className="text-sm truncate max-w-[150px]">{row.hospital}</span>
+    },
+    {
       header: language === 'ar' ? 'الطبيب' : 'Doctor',
       render: (row) => (
         <span className="text-sm">{row.doctor_name}</span>
       )
-    },
-    {
-      header: language === 'ar' ? 'المستشفى' : 'Hospital',
-      render: (row) => <span className="text-sm truncate max-w-[150px]">{row.hospital}</span>
     },
     {
       header: language === 'ar' ? 'الإجراء' : 'Action',

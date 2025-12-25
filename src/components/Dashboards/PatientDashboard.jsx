@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Pill,
   Calendar,
@@ -13,16 +14,21 @@ import {
   Heart,
   Thermometer,
   Droplets,
-  TrendingUp
+  TrendingUp,
+  Stethoscope,
+  Clock,
+  Star
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import { StatCard, Card, Badge, Button, Modal, Input } from '../shared/UIComponents';
+import { doctors } from '../../data/mockData';
+import { StatCard, Card, Badge, Button, Modal, Input, Avatar } from '../shared/UIComponents';
 import { LineChart, AreaChart, DonutChart, SparklineChart } from '../shared/Charts';
 import { clsx } from 'clsx';
 
 const InteractivePatientDashboard = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
+  const navigate = useNavigate();
   const {
     patients,
     medicationReminders,
@@ -405,6 +411,66 @@ const InteractivePatientDashboard = ({ user }) => {
           </p>
         </div>
       </div>
+
+      {/* Find a Doctor Section */}
+      <Card
+        title={language === 'ar' ? 'الأطباء المتاحون' : 'Available Doctors'}
+        className="mb-8"
+        action={
+          <Button variant="ghost" size="sm" onClick={() => navigate('/patient/appointments')}>
+            {language === 'ar' ? 'عرض الكل' : 'View All'} <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {doctors.slice(0, 3).map((doctor) => (
+            <div
+              key={doctor.id}
+              className="group p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all duration-300"
+            >
+              <div className="flex items-start gap-3">
+                <Avatar name={doctor.nameEn} size="lg" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-gray-900 truncate">
+                    {language === 'ar' ? doctor.name : doctor.nameEn}
+                  </h4>
+                  <p className="text-sm text-blue-600">{language === 'ar' ? doctor.specializationAr : doctor.specialization}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                    <span className="text-sm text-gray-600">{doctor.rating}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span className="truncate">{doctor.hospital}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{doctor.availability}</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <Stethoscope className="w-4 h-4 text-green-600" />
+                    <span className="text-lg font-bold text-green-600">{doctor.consultationFee}</span>
+                    <span className="text-xs text-gray-500">SAR</span>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate('/patient/appointments')}
+                  >
+                    {language === 'ar' ? 'حجز' : 'Book'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Medication Reminders - INTERACTIVE */}

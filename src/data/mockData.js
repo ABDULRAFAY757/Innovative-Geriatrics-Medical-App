@@ -70,39 +70,51 @@ export const patients = [
 export const doctors = [
   {
     id: "1",
-    name: " Dr. Lama Algaraini", // Dr. Lama Algaraini
+    name: "د. لمى الغريني",
+    nameEn: "Dr. Lama Algaraini",
     phone: "+966511234567",
     email: "lama.algaraini@hospital.com",
     specialization: "Geriatrics",
+    specializationAr: "طب الشيخوخة",
     availability: "Mon-Wed-Fri 9AM-5PM",
     plan: "Professional Plan",
     license: "MD-12345",
     experience: "8 years",
-    hospital: "King Saud Medical City"
+    hospital: "King Saud Medical City",
+    rating: 4.8,
+    consultationFee: 350
   },
   {
     id: "2",
-    name: "د. Mohamed Hassan", // Dr. Mohamed Hassan
-    phone: "+966512345678", 
+    name: "د. محمد حسن",
+    nameEn: "Dr. Mohamed Hassan",
+    phone: "+966512345678",
     email: "mohamed.hassan@hospital.com",
     specialization: "Internal Medicine",
+    specializationAr: "الطب الباطني",
     availability: "Tue-Thu-Sat 8AM-4PM",
     plan: "Professional Plan",
     license: "MD-67890",
     experience: "12 years",
-    hospital: "Riyadh Medical Complex"
+    hospital: "Riyadh Medical Complex",
+    rating: 4.9,
+    consultationFee: 400
   },
   {
     id: "3",
-    name: "د. Aisha Al-Saud", // Dr. Aisha Al-Saud
+    name: "د. عائشة آل سعود",
+    nameEn: "Dr. Aisha Al-Saud",
     phone: "+966513456789",
-    email: "aisha.alsaud@hospital.com", 
+    email: "aisha.alsaud@hospital.com",
     specialization: "Cardiology",
+    specializationAr: "أمراض القلب",
     availability: "Mon-Tue-Thu 10AM-6PM",
     plan: "Free Plan",
     license: "MD-54321",
     experience: "6 years",
-    hospital: "King Faisal Specialist Hospital"
+    hospital: "King Faisal Specialist Hospital",
+    rating: 4.7,
+    consultationFee: 450
   }
 ];
 

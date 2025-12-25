@@ -12,7 +12,11 @@ import {
   ChevronRight,
   Video,
   CheckCircle,
-  Stethoscope
+  Stethoscope,
+  Star,
+  Mail,
+  Award,
+  Building
 } from 'lucide-react';
 import { Card, Table, Badge, Button, Input, Modal, Avatar, Pagination, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
@@ -41,11 +45,11 @@ const PatientAppointments = ({ user }) => {
     notes: ''
   });
 
-  // Doctor options for dropdown
+  // Doctor options for dropdown with consultation fees
   const doctorOptions = useMemo(() =>
     doctors.map(doc => ({
       value: doc.id,
-      label: `${doc.nameEn} - ${doc.specialization}`,
+      label: `${doc.nameEn} - ${doc.specialization} (${doc.consultationFee} SAR)`,
     })), []);
 
   // Get selected doctor details
@@ -208,6 +212,107 @@ const PatientAppointments = ({ user }) => {
           </div>
         </Card>
       </div>
+
+      {/* Available Doctors - Detailed View */}
+      <Card
+        title={language === 'ar' ? 'الأطباء المتاحون - عرض تفصيلي' : 'Available Doctors - Detailed View'}
+        className="mb-6"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {doctors.map((doctor) => (
+            <div
+              key={doctor.id}
+              className="p-5 bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+            >
+              {/* Doctor Header */}
+              <div className="flex items-start gap-4 mb-4">
+                <Avatar name={doctor.nameEn} size="xl" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-gray-900">
+                    {language === 'ar' ? doctor.name : doctor.nameEn}
+                  </h3>
+                  <p className="text-blue-600 font-medium">
+                    {language === 'ar' ? doctor.specializationAr : doctor.specialization}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={clsx(
+                            'w-4 h-4',
+                            star <= Math.floor(doctor.rating)
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : 'text-gray-300'
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600">({doctor.rating})</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-green-600">{doctor.consultationFee}</p>
+                  <p className="text-xs text-gray-500">SAR / {language === 'ar' ? 'استشارة' : 'consultation'}</p>
+                </div>
+              </div>
+
+              {/* Doctor Details Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Building className="w-4 h-4 text-gray-400" />
+                  <span className="truncate">{doctor.hospital}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Award className="w-4 h-4 text-gray-400" />
+                  <span>{doctor.experience}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  <span>{doctor.availability}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Stethoscope className="w-4 h-4 text-gray-400" />
+                  <span>{doctor.license}</span>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="flex items-center gap-4 mb-4 p-3 bg-gray-100 rounded-lg">
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-blue-500" />
+                  <span className="text-gray-700">{doctor.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-blue-500" />
+                  <span className="text-gray-700 truncate">{doctor.email}</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedDoctorId(doctor.id);
+                    handleDoctorSelect({ target: { value: doctor.id } });
+                    setShowNewAppointment(true);
+                  }}
+                >
+                  {language === 'ar' ? 'حجز موعد' : 'Book Appointment'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(`tel:${doctor.phone}`, '_self')}
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Filters and Search */}
       <Card className="mb-6">

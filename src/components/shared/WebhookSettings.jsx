@@ -5,7 +5,6 @@ import {
   Trash2,
   Edit2,
   Check,
-  X,
   ExternalLink,
   RefreshCw,
   Shield,
@@ -30,7 +29,7 @@ import { clsx } from 'clsx';
  * Allows users to configure webhook endpoints for system events
  */
 const WebhookSettings = () => {
-  const { webhookService, WEBHOOK_EVENTS: events } = useApp();
+  const { webhookService } = useApp();
   const { language } = useLanguage();
   const [endpoints, setEndpoints] = useState([]);
   const [config, setConfig] = useState({});
@@ -49,16 +48,17 @@ const WebhookSettings = () => {
     enabled: true,
   });
 
-  // Load data on mount
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = () => {
     setEndpoints(webhookService.getEndpoints());
     setConfig(webhookService.getConfig());
     setEventHistory(webhookService.getEventHistory().slice(0, 20));
   };
+
+  // Load data on mount
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Event categories for grouping
   const eventCategories = {

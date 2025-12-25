@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   Calendar,
@@ -11,7 +12,13 @@ import {
   ChevronRight,
   CalendarDays,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  DollarSign,
+  CreditCard,
+  Receipt,
+  ArrowRight,
+  Clock,
+  CheckCircle
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
@@ -25,6 +32,7 @@ import { clsx } from 'clsx';
 
 const InteractiveDoctorDashboard = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
+  const navigate = useNavigate();
   const {
     appointments,
     transactions,
@@ -389,15 +397,6 @@ const InteractiveDoctorDashboard = ({ user }) => {
               <span>•</span>
               <span>License: {doctor.license}</span>
             </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-1 text-yellow-500">
-              {'★'.repeat(Math.floor(doctor.rating))}
-              <span className="text-gray-600 ml-1">{doctor.rating}</span>
-            </div>
-            <p className="text-lg font-bold text-gray-900">
-              {doctor.consultationFee} {t('sar')} <span className="text-sm font-normal text-gray-500">/ consultation</span>
-            </p>
           </div>
         </div>
       </Card>
@@ -778,55 +777,210 @@ const InteractiveDoctorDashboard = ({ user }) => {
         />
       </Card>
 
-      {/* Recent Transactions/Consultations */}
-      <Card title={t('clinical_notes')} className="mt-8">
-        {doctorTransactions.length > 0 ? (
-          <Table
-            columns={[
-              {
-                header: t('date'),
-                render: (row) => formatDate(row.created_at)
-              },
-              {
-                header: t('patient'),
-                render: (row) => {
-                  const patient = patients.find(p => p.id === row.patient_id);
-                  return language === 'ar' ? patient?.name : patient?.nameEn;
-                }
-              },
-              {
-                header: t('type'),
-                accessor: 'transaction_type'
-              },
-              {
-                header: t('chief_complaint'),
-                accessor: 'chief_complaint'
-              },
-              {
-                header: t('notes'),
-                render: (row) => (
-                  <p className="max-w-xs truncate">{row.clinical_notes}</p>
-                )
-              },
-              {
-                header: t('status'),
-                render: (row) => (
-                  <Badge variant={statusColors[row.status]}>{row.status}</Badge>
-                )
-              },
-              {
-                header: t('amount'),
-                render: (row) => `${row.amount} ${t('sar')}`
-              }
-            ]}
-            data={doctorTransactions}
-          />
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No clinical notes yet. Start by adding a consultation note!</p>
+      {/* Quick Navigation to Detail Pages */}
+      <Card className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <ArrowRight className="w-5 h-5 text-blue-600" />
+            {language === 'ar' ? 'الوصول السريع' : 'Quick Access'}
+          </h3>
+          <p className="text-sm text-gray-500">
+            {language === 'ar' ? 'عرض التفاصيل الكاملة' : 'View full details'}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            onClick={() => navigate('/doctor/patients')}
+            className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-blue-100 hover:border-blue-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                <Users className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'إدارة المرضى' : 'Patient Management'}</p>
+                <p className="text-xs text-gray-500">{language === 'ar' ? 'عرض السجلات الكاملة' : 'View full records & history'}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+          </button>
+
+          <button
+            onClick={() => navigate('/doctor/appointments')}
+            className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-green-100 hover:border-green-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                <Calendar className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'جميع المواعيد' : 'All Appointments'}</p>
+                <p className="text-xs text-gray-500">{language === 'ar' ? 'الجدول الكامل والتاريخ' : 'Full schedule & history'}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" />
+          </button>
+
+          <button
+            onClick={() => navigate('/doctor/records')}
+            className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-purple-100 hover:border-purple-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                <FileText className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'السجلات الطبية' : 'Medical Records'}</p>
+                <p className="text-xs text-gray-500">{language === 'ar' ? 'الملاحظات والتقارير' : 'Notes & reports'}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+          </button>
+        </div>
+      </Card>
+
+      {/* Business Transactions / Revenue Summary */}
+      <Card className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-600" />
+            {language === 'ar' ? 'ملخص الإيرادات' : 'Revenue Summary'}
+          </h3>
+          <Badge variant="success" size="sm">
+            {language === 'ar' ? 'هذا الشهر' : 'This Month'}
+          </Badge>
+        </div>
+
+        {/* Revenue Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-green-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {doctorTransactions.reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()} {t('sar')}
+            </p>
           </div>
-        )}
+
+          <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Stethoscope className="w-5 h-5 text-blue-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'الاستشارات' : 'Consultations'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {doctorTransactions.filter(t => t.transaction_type === 'Consultation').length}
+            </p>
+            <p className="text-sm text-gray-500">
+              {doctorTransactions.filter(t => t.transaction_type === 'Consultation').reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()} {t('sar')}
+            </p>
+          </div>
+
+          <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Pill className="w-5 h-5 text-purple-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'الوصفات' : 'Prescriptions'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {doctorTransactions.filter(t => t.transaction_type === 'Prescription').length}
+            </p>
+            <p className="text-sm text-gray-500">
+              {doctorTransactions.filter(t => t.transaction_type === 'Prescription').reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()} {t('sar')}
+            </p>
+          </div>
+
+          <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Receipt className="w-5 h-5 text-orange-600" />
+              </div>
+              <span className="text-sm text-gray-600">{language === 'ar' ? 'المعاملات' : 'Transactions'}</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{doctorTransactions.length}</p>
+            <p className="text-sm text-gray-500">
+              {language === 'ar' ? 'إجمالي السجلات' : 'Total records'}
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Transactions Table */}
+        <div className="border-t pt-4">
+          <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-gray-500" />
+            {language === 'ar' ? 'أحدث المعاملات' : 'Recent Transactions'}
+          </h4>
+          {doctorTransactions.length > 0 ? (
+            <Table
+              columns={[
+                {
+                  header: t('date'),
+                  render: (row) => formatDate(row.created_at)
+                },
+                {
+                  header: t('patient'),
+                  render: (row) => {
+                    const patient = patients.find(p => p.id === row.patient_id);
+                    return (
+                      <div className="flex items-center gap-2">
+                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <span>{language === 'ar' ? patient?.name : patient?.nameEn}</span>
+                      </div>
+                    );
+                  }
+                },
+                {
+                  header: t('type'),
+                  render: (row) => (
+                    <div className="flex items-center gap-2">
+                      {row.transaction_type === 'Consultation' ? (
+                        <Stethoscope className="w-4 h-4 text-blue-500" />
+                      ) : row.transaction_type === 'Prescription' ? (
+                        <Pill className="w-4 h-4 text-purple-500" />
+                      ) : (
+                        <FileText className="w-4 h-4 text-gray-500" />
+                      )}
+                      <span>{row.transaction_type}</span>
+                    </div>
+                  )
+                },
+                {
+                  header: t('chief_complaint'),
+                  render: (row) => (
+                    <p className="max-w-xs truncate">{row.chief_complaint}</p>
+                  )
+                },
+                {
+                  header: t('status'),
+                  render: (row) => (
+                    <div className="flex items-center gap-1">
+                      {row.status === 'Completed' && <CheckCircle className="w-4 h-4 text-green-500" />}
+                      <Badge variant={statusColors[row.status]}>{row.status}</Badge>
+                    </div>
+                  )
+                },
+                {
+                  header: t('amount'),
+                  render: (row) => (
+                    <span className="font-semibold text-green-600">{row.amount} {t('sar')}</span>
+                  )
+                }
+              ]}
+              data={doctorTransactions.slice(0, 5)}
+            />
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <CreditCard className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>{language === 'ar' ? 'لا توجد معاملات بعد' : 'No transactions yet'}</p>
+              <p className="text-sm">{language === 'ar' ? 'ابدأ بإضافة ملاحظة سريرية!' : 'Start by adding a clinical note!'}</p>
+            </div>
+          )}
+        </div>
       </Card>
 
       {/* Clinical Note Modal */}
