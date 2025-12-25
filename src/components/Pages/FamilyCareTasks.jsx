@@ -12,7 +12,7 @@ import {
   Search,
   Calendar
 } from 'lucide-react';
-import { Card, Badge, Button, Input, Modal, Pagination } from '../shared/UIComponents';
+import { Card, Badge, Button, Input, Modal, Pagination, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const FamilyCareTasks = ({ user }) => {
@@ -381,40 +381,32 @@ const FamilyCareTasks = ({ user }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                className="w-full h-11 px-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
-                style={{lineHeight: '2.75rem'}}
-                value={newTask.category}
-                onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-              >
-                <option value="Medication">💊 Medication</option>
-                <option value="Appointment">📅 Appointment</option>
-                <option value="Exercise">🏃 Exercise</option>
-                <option value="Nutrition">🥗 Nutrition</option>
-                <option value="Personal Care">🧴 Personal Care</option>
-                <option value="Other">📝 Other</option>
-              </select>
-            </div>
+            <Select
+              label={language === 'ar' ? 'الفئة' : 'Category'}
+              value={newTask.category}
+              onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+              options={[
+                { value: 'Medication', label: '💊 ' + (language === 'ar' ? 'الدواء' : 'Medication') },
+                { value: 'Appointment', label: '📅 ' + (language === 'ar' ? 'موعد' : 'Appointment') },
+                { value: 'Exercise', label: '🏃 ' + (language === 'ar' ? 'تمرين' : 'Exercise') },
+                { value: 'Nutrition', label: '🥗 ' + (language === 'ar' ? 'تغذية' : 'Nutrition') },
+                { value: 'Personal Care', label: '🧴 ' + (language === 'ar' ? 'العناية الشخصية' : 'Personal Care') },
+                { value: 'Other', label: '📝 ' + (language === 'ar' ? 'أخرى' : 'Other') },
+              ]}
+              placeholder=""
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Priority
-              </label>
-              <select
-                className="w-full h-11 px-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
-                style={{lineHeight: '2.75rem'}}
-                value={newTask.priority}
-                onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-              >
-                <option value="Low">🟢 Low</option>
-                <option value="Medium">🟡 Medium</option>
-                <option value="High">🔴 High</option>
-              </select>
-            </div>
+            <Select
+              label={language === 'ar' ? 'الأولوية' : 'Priority'}
+              value={newTask.priority}
+              onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+              options={[
+                { value: 'Low', label: '🟢 ' + (language === 'ar' ? 'منخفضة' : 'Low') },
+                { value: 'Medium', label: '🟡 ' + (language === 'ar' ? 'متوسطة' : 'Medium') },
+                { value: 'High', label: '🔴 ' + (language === 'ar' ? 'عالية' : 'High') },
+              ]}
+              placeholder=""
+            />
           </div>
 
           <Input

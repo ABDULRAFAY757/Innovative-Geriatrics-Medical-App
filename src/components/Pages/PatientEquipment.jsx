@@ -11,7 +11,7 @@ import {
   DollarSign,
   FileText
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Modal, Pagination } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Modal, Pagination, Select } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
@@ -453,36 +453,30 @@ const PatientEquipment = ({ user }) => {
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                value={newRequest.category}
-                onChange={(e) => setNewRequest({ ...newRequest, category: e.target.value })}
-              >
-                <option value="Mobility">Mobility</option>
-                <option value="Monitoring">Monitoring</option>
-                <option value="Safety">Safety</option>
-                <option value="Home Care">Home Care</option>
-              </select>
-            </div>
+            <Select
+              label={language === 'ar' ? 'الفئة' : 'Category'}
+              value={newRequest.category}
+              onChange={(e) => setNewRequest({ ...newRequest, category: e.target.value })}
+              options={[
+                { value: 'Mobility', label: language === 'ar' ? '🦽 التنقل' : '🦽 Mobility' },
+                { value: 'Monitoring', label: language === 'ar' ? '📊 المراقبة' : '📊 Monitoring' },
+                { value: 'Safety', label: language === 'ar' ? '🛡️ السلامة' : '🛡️ Safety' },
+                { value: 'Home Care', label: language === 'ar' ? '🏠 الرعاية المنزلية' : '🏠 Home Care' },
+              ]}
+              placeholder=""
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Urgency
-              </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                value={newRequest.urgency}
-                onChange={(e) => setNewRequest({ ...newRequest, urgency: e.target.value })}
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
+            <Select
+              label={language === 'ar' ? 'الإلحاح' : 'Urgency'}
+              value={newRequest.urgency}
+              onChange={(e) => setNewRequest({ ...newRequest, urgency: e.target.value })}
+              options={[
+                { value: 'Low', label: '🟢 ' + (language === 'ar' ? 'منخفض' : 'Low') },
+                { value: 'Medium', label: '🟡 ' + (language === 'ar' ? 'متوسط' : 'Medium') },
+                { value: 'High', label: '🔴 ' + (language === 'ar' ? 'عالي' : 'High') },
+              ]}
+              placeholder=""
+            />
           </div>
 
           <div>

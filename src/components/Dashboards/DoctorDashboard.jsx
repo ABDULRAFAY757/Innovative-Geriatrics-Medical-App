@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   Calendar,
@@ -7,21 +7,23 @@ import {
   Plus,
   Search,
   Stethoscope,
-  Activity
+  Activity,
+  ChevronRight,
+  CalendarDays
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
   patients,
-  getDoctorById,
-  appointments
+  getDoctorById
 } from '../../data/mockData';
-import { StatCard, Card, Table, Badge, Button, Input, Modal, Avatar } from '../shared/UIComponents';
+import { StatCard, Card, Table, Badge, Button, Input, Modal, Avatar, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const InteractiveDoctorDashboard = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
   const {
+    appointments,
     transactions,
     addClinicalNote,
     addPrescription,
@@ -34,6 +36,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showAllAppointmentsModal, setShowAllAppointmentsModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   // Clinical Note Form Data
@@ -67,10 +70,10 @@ const InteractiveDoctorDashboard = ({ user }) => {
 
     const doctorId = user?.id || '1';
 
-    // Filter appointments for this doctor
+    // Filter appointments for this doctor from global state
     const docAppointments = appointments.filter(a => a.doctor_id === doctorId);
     setDoctorAppointments(docAppointments);
-  }, [user]);
+  }, [user, appointments]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -105,6 +108,70 @@ const InteractiveDoctorDashboard = ({ user }) => {
     const today = new Date();
     return aptDate.toDateString() === today.toDateString();
   });
+
+  // Group appointments by Today, Tomorrow, and Later (only future/current appointments)
+  const groupedAppointments = useMemo(() => {
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
+    const todayApts = [];
+    const tomorrowApts = [];
+    const laterApts = [];
+
+    doctorAppointments.forEach(apt => {
+      const aptDateTime = new Date(apt.date);
+      const aptDate = new Date(apt.date);
+      aptDate.setHours(0, 0, 0, 0);
+
+      // Skip past appointments (before current time)
+      if (aptDateTime < now && aptDate.getTime() < today.getTime()) {
+        return;
+      }
+
+      if (aptDate.getTime() === today.getTime()) {
+        todayApts.push(apt);
+      } else if (aptDate.getTime() === tomorrow.getTime()) {
+        tomorrowApts.push(apt);
+      } else if (aptDate >= dayAfterTomorrow) {
+        laterApts.push(apt);
+      }
+    });
+
+    // Sort each group by time
+    const sortByTime = (a, b) => new Date(a.date) - new Date(b.date);
+    todayApts.sort(sortByTime);
+    tomorrowApts.sort(sortByTime);
+    laterApts.sort(sortByTime);
+
+    return { today: todayApts, tomorrow: tomorrowApts, later: laterApts };
+  }, [doctorAppointments]);
+
+  // Total count of upcoming appointments
+  const upcomingAppointmentsCount = groupedAppointments.today.length + groupedAppointments.tomorrow.length + groupedAppointments.later.length;
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatDayDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   // Get doctor's transactions from global state
   const doctorTransactions = transactions.filter(t => t.doctor_id === (user?.id || '1'));
@@ -317,47 +384,141 @@ const InteractiveDoctorDashboard = ({ user }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Today's Appointments */}
+        {/* Upcoming Appointments - Timeline View */}
         <Card
-          title={t('todays_appointments')}
+          title={language === 'ar' ? 'المواعيد القادمة' : 'Upcoming Appointments'}
           className="lg:col-span-2"
+          action={
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-sm font-medium">
+                <CalendarDays className="w-3.5 h-3.5" />
+                {upcomingAppointmentsCount}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllAppointmentsModal(true)}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                {language === 'ar' ? 'عرض الكل' : 'View All'}
+              </Button>
+            </div>
+          }
         >
-          {todaysAppointments.length > 0 ? (
-            <div className="space-y-4">
-              {todaysAppointments.map((apt) => {
-                const patient = patients.find(p => p.id === apt.patient_id);
-                return (
-                  <div key={apt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} />
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {language === 'ar' ? patient?.name : patient?.nameEn}
-                        </p>
-                        <p className="text-sm text-gray-500">{apt.type} - {apt.notes}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">{formatDate(apt.date)}</p>
-                        <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
-                      </div>
-                      <Button
-                        variant="primary"
-                        size="sm"
+          {(groupedAppointments.today.length > 0 || groupedAppointments.tomorrow.length > 0 || groupedAppointments.later.length > 0) ? (
+            <div className="divide-y divide-gray-100">
+              {/* Today's Appointments */}
+              {groupedAppointments.today.length > 0 && (
+                <>
+                  <div className="pb-2 mb-2">
+                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      {language === 'ar' ? 'اليوم' : 'Today'}
+                    </span>
+                  </div>
+                  {groupedAppointments.today.map((apt) => {
+                    const patient = patients.find(p => p.id === apt.patient_id);
+                    return (
+                      <div
+                        key={apt.id}
+                        className="flex items-center py-3 hover:bg-gray-50 -mx-4 px-4 cursor-pointer transition-colors duration-150"
                         onClick={() => handleAddClinicalNote(patient)}
                       >
-                        Start Consultation
-                      </Button>
-                    </div>
+                        <div className="w-14 flex-shrink-0">
+                          <span className="text-sm font-semibold text-gray-900">{formatTime(apt.date)}</span>
+                        </div>
+                        <div className="w-1 h-8 bg-green-500 rounded-full mx-3 flex-shrink-0" />
+                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {language === 'ar' ? patient?.name : patient?.nameEn}
+                          </p>
+                          <p className="text-xs text-gray-500">{apt.type}</p>
+                        </div>
+                        <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Tomorrow's Appointments */}
+              {groupedAppointments.tomorrow.length > 0 && (
+                <>
+                  <div className="py-2 mt-2">
+                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      {language === 'ar' ? 'غداً' : 'Tomorrow'}
+                    </span>
                   </div>
-                );
-              })}
+                  {groupedAppointments.tomorrow.map((apt) => {
+                    const patient = patients.find(p => p.id === apt.patient_id);
+                    return (
+                      <div
+                        key={apt.id}
+                        className="flex items-center py-3 hover:bg-gray-50 -mx-4 px-4 cursor-pointer transition-colors duration-150"
+                      >
+                        <div className="w-14 flex-shrink-0">
+                          <span className="text-sm font-semibold text-gray-900">{formatTime(apt.date)}</span>
+                        </div>
+                        <div className="w-1 h-8 bg-blue-500 rounded-full mx-3 flex-shrink-0" />
+                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {language === 'ar' ? patient?.name : patient?.nameEn}
+                          </p>
+                          <p className="text-xs text-gray-500">{apt.type}</p>
+                        </div>
+                        <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Later Appointments */}
+              {groupedAppointments.later.length > 0 && (
+                <>
+                  <div className="py-2 mt-2">
+                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      {language === 'ar' ? 'قادم' : 'Upcoming'}
+                    </span>
+                  </div>
+                  {groupedAppointments.later.slice(0, 4).map((apt) => {
+                    const patient = patients.find(p => p.id === apt.patient_id);
+                    return (
+                      <div
+                        key={apt.id}
+                        className="flex items-center py-3 hover:bg-gray-50 -mx-4 px-4 cursor-pointer transition-colors duration-150"
+                      >
+                        <div className="w-14 flex-shrink-0 text-center">
+                          <p className="text-xs text-gray-400">{formatDayDate(apt.date).split(' ')[0]}</p>
+                          <p className="text-sm font-semibold text-gray-900">{new Date(apt.date).getDate()}</p>
+                        </div>
+                        <div className="w-1 h-8 bg-gray-300 rounded-full mx-3 flex-shrink-0" />
+                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <div className="ml-3 flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {language === 'ar' ? patient?.name : patient?.nameEn}
+                          </p>
+                          <p className="text-xs text-gray-500">{apt.type} · {formatTime(apt.date)}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-300" />
+                      </div>
+                    );
+                  })}
+                  {groupedAppointments.later.length > 4 && (
+                    <div className="pt-3 text-center">
+                      <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        {language === 'ar' ? `عرض ${groupedAppointments.later.length - 4} المزيد` : `View ${groupedAppointments.later.length - 4} more`}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>No appointments scheduled for today</p>
+            <div className="text-center py-10">
+              <Calendar className="w-10 h-10 mx-auto text-gray-300 mb-3" />
+              <p className="text-sm text-gray-500">{language === 'ar' ? 'لا توجد مواعيد قادمة' : 'No upcoming appointments'}</p>
             </div>
           )}
         </Card>
@@ -707,21 +868,18 @@ const InteractiveDoctorDashboard = ({ user }) => {
               onChange={(e) => setAppointmentFormData(prev => ({ ...prev, time: e.target.value }))}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Appointment Type
-            </label>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              value={appointmentFormData.type}
-              onChange={(e) => setAppointmentFormData(prev => ({ ...prev, type: e.target.value }))}
-            >
-              <option value="Follow-up">Follow-up</option>
-              <option value="Consultation">Consultation</option>
-              <option value="Checkup">Checkup</option>
-              <option value="Lab Review">Lab Review</option>
-            </select>
-          </div>
+          <Select
+            label={language === 'ar' ? 'نوع الموعد' : 'Appointment Type'}
+            value={appointmentFormData.type}
+            onChange={(e) => setAppointmentFormData(prev => ({ ...prev, type: e.target.value }))}
+            options={[
+              { value: 'Follow-up', label: language === 'ar' ? 'متابعة' : 'Follow-up' },
+              { value: 'Consultation', label: language === 'ar' ? 'استشارة' : 'Consultation' },
+              { value: 'Checkup', label: language === 'ar' ? 'فحص' : 'Checkup' },
+              { value: 'Lab Review', label: language === 'ar' ? 'مراجعة المختبر' : 'Lab Review' },
+            ]}
+            placeholder=""
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Notes
@@ -744,6 +902,113 @@ const InteractiveDoctorDashboard = ({ user }) => {
               Schedule
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* All Appointments Modal */}
+      <Modal
+        isOpen={showAllAppointmentsModal}
+        onClose={() => setShowAllAppointmentsModal(false)}
+        title={language === 'ar' ? 'جميع المواعيد' : 'All Appointments'}
+        size="lg"
+      >
+        <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+          {/* Today */}
+          {groupedAppointments.today.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                {language === 'ar' ? 'اليوم' : 'Today'} ({groupedAppointments.today.length})
+              </h3>
+              <div className="space-y-2">
+                {groupedAppointments.today.map((apt) => {
+                  const patient = patients.find(p => p.id === apt.patient_id);
+                  return (
+                    <div key={apt.id} className="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+                      <div className="w-20 flex-shrink-0 text-center">
+                        <span className="text-sm font-bold text-green-700">{formatTime(apt.date)}</span>
+                      </div>
+                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{language === 'ar' ? patient?.name : patient?.nameEn}</p>
+                        <p className="text-xs text-gray-500 truncate">{apt.type} • {apt.notes}</p>
+                      </div>
+                      <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Tomorrow */}
+          {groupedAppointments.tomorrow.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                {language === 'ar' ? 'غداً' : 'Tomorrow'} ({groupedAppointments.tomorrow.length})
+              </h3>
+              <div className="space-y-2">
+                {groupedAppointments.tomorrow.map((apt) => {
+                  const patient = patients.find(p => p.id === apt.patient_id);
+                  return (
+                    <div key={apt.id} className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                      <div className="w-20 flex-shrink-0 text-center">
+                        <span className="text-sm font-bold text-blue-700">{formatTime(apt.date)}</span>
+                      </div>
+                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{language === 'ar' ? patient?.name : patient?.nameEn}</p>
+                        <p className="text-xs text-gray-500 truncate">{apt.type} • {apt.notes}</p>
+                      </div>
+                      <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming */}
+          {groupedAppointments.later.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                {language === 'ar' ? 'قادم' : 'Upcoming'} ({groupedAppointments.later.length})
+              </h3>
+              <div className="space-y-2">
+                {groupedAppointments.later.map((apt) => {
+                  const patient = patients.find(p => p.id === apt.patient_id);
+                  return (
+                    <div key={apt.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                      <div className="w-20 flex-shrink-0 text-center">
+                        <p className="text-[10px] text-gray-400 uppercase">{formatDayDate(apt.date)}</p>
+                        <span className="text-sm font-bold text-gray-700">{formatTime(apt.date)}</span>
+                      </div>
+                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{language === 'ar' ? patient?.name : patient?.nameEn}</p>
+                        <p className="text-xs text-gray-500 truncate">{apt.type} • {apt.notes}</p>
+                      </div>
+                      <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {upcomingAppointmentsCount === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>{language === 'ar' ? 'لا توجد مواعيد' : 'No upcoming appointments'}</p>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end pt-4 border-t mt-4">
+          <Button variant="secondary" onClick={() => setShowAllAppointmentsModal(false)}>
+            {language === 'ar' ? 'إغلاق' : 'Close'}
+          </Button>
         </div>
       </Modal>
     </div>
