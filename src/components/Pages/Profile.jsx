@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X } from 'lucide-react';
-import { Card, Button, Input, Badge, Avatar } from '../shared/UIComponents';
+import { Card, Button, Input, Badge } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const Profile = ({ user }) => {
-  const { t, isRTL, language } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',

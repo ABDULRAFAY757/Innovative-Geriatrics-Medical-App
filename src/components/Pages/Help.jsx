@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   HelpCircle,
@@ -18,7 +18,7 @@ import { Card, Button, Input, Badge } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const Help = ({ user }) => {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedFaq, setExpandedFaq] = useState(null);
 
@@ -233,7 +233,7 @@ const Help = ({ user }) => {
             </div>
             <div>
               <p className="font-medium text-gray-900">Email Support</p>
-              <p className="text-sm text-gray-600 mb-2">We'll respond within 24 hours</p>
+              <p className="text-sm text-gray-600 mb-2">We&apos;ll respond within 24 hours</p>
               <a href="mailto:algarainilama@gmail.com" className="text-green-600 hover:underline">
                 algarainilama@gmail.com
               </a>

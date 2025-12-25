@@ -70,7 +70,7 @@ export const patients = [
 export const doctors = [
   {
     id: "1",
-    name: "د. Lama Algaraini", // Dr. Lama Algaraini
+    name: " Dr. Lama Algaraini", // Dr. Lama Algaraini
     phone: "+966511234567",
     email: "lama.algaraini@hospital.com",
     specialization: "Geriatrics",

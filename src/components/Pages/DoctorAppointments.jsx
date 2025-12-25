@@ -1,23 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import { appointments as allAppointments, patients } from '../../data/mockData';
+import { patients } from '../../data/mockData';
 import {
   Calendar,
   Clock,
-  User,
   Phone,
   Video,
   CheckCircle,
-  AlertCircle,
-  Plus,
   Search
 } from 'lucide-react';
 import { Card, Table, Badge, Button, Input, Avatar } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const DoctorAppointments = ({ user }) => {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const { appointments } = useApp();
 
   const doctorId = user?.id || '1';

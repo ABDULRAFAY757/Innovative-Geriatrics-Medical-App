@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
   Heart,
   Search,
-  Filter,
   Package,
   TrendingUp
 } from 'lucide-react';

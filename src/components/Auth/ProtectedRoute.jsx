@@ -1,7 +1,6 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Shield, Lock, AlertTriangle } from 'lucide-react';
+import { Shield, AlertTriangle } from 'lucide-react';
 
 /**
  * Protected Route Component with RBAC & ABAC
@@ -12,8 +11,7 @@ const ProtectedRoute = ({
   requiredRole,
   requiredPermission,
   checkAbac,
-  redirectTo = '/login',
-  fallback = null
+  redirectTo = '/login'
 }) => {
   const { user, loading, canAccessRoute, hasPermission, checkAbacRule } = useAuth();
   const location = useLocation();

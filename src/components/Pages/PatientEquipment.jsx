@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
@@ -9,8 +9,7 @@ import {
   CheckCircle,
   AlertCircle,
   DollarSign,
-  FileText,
-  TrendingUp
+  FileText
 } from 'lucide-react';
 import { Card, Table, Badge, Button, Input, Modal } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';

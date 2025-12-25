@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { patients, doctors, donors, familyMembers } from '../data/mockData';
+import { createContext, useContext, useState, useEffect } from 'react';
 import {
   ROLE_PERMISSIONS,
   PERMISSIONS,
@@ -230,6 +229,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startSessionTimeout = (duration) => {
@@ -267,7 +267,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Create user session (remove sensitive data)
-      const { password: _, ...userData } = userRecord;
+      const { password: _password, ...userData } = userRecord;
+      void _password; // Mark as intentionally unused
 
       const expiresAt = Date.now() + SESSION_DURATION;
       const session = {
@@ -452,6 +453,7 @@ export const AuthProvider = ({ children }) => {
 /**
  * Custom hook to use auth context
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

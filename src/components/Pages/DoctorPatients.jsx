@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { patients as allPatients } from '../../data/mockData';
@@ -10,7 +10,6 @@ import {
   Calendar,
   Phone,
   Mail,
-  MapPin,
   Activity,
   AlertCircle,
   ChevronRight
@@ -19,13 +18,12 @@ import { Card, Table, Badge, Button, Input, Modal, Avatar } from '../shared/UICo
 import { clsx } from 'clsx';
 
 const DoctorPatients = ({ user }) => {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const {
     addClinicalNote,
     addPrescription,
     bookAppointment,
-    medicationReminders,
-    healthMetrics
+    medicationReminders
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');

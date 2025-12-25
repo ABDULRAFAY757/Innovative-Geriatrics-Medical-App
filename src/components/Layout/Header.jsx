@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Menu, 
-  X, 
-  Bell, 
-  Globe, 
-  LogOut, 
-  User, 
+import {
+  Menu,
+  X,
+  Bell,
+  Globe,
+  LogOut,
+  User,
   Home,
   Settings,
   HelpCircle,
   Stethoscope,
-  Heart,
-  Users,
   ChevronDown
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -26,21 +24,12 @@ const Header = ({ user, onLogout }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  const roleIcons = {
-    patient: User,
-    family: Users,
-    doctor: Stethoscope,
-    donor: Heart,
-  };
-
   const roleColors = {
     patient: 'bg-blue-600',
     family: 'bg-green-600',
     doctor: 'bg-purple-600',
     donor: 'bg-red-600',
   };
-
-  const RoleIcon = roleIcons[user?.role] || User;
 
   const getNavItems = () => {
     const baseItems = [

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import {
   patients as initialPatients,
   doctors as initialDoctors,
@@ -330,15 +330,49 @@ export const AppProvider = ({ children }) => {
 
   // ========== HEALTH METRICS ACTIONS ==========
 
-  const addHealthMetric = (metricData) => {
+  const addHealthMetric = (metricData, silent = false) => {
     const newMetric = {
       id: `hm_${Date.now()}`,
       ...metricData,
       recorded_at: new Date().toISOString(),
     };
     setHealthMetrics(prev => [...prev, newMetric]);
-    addNotification('success', 'Health metric recorded!');
+    if (!silent) {
+      addNotification('success', 'Health metric recorded!');
+    }
     return newMetric;
+  };
+
+  const updateHealthMetric = (metricData, silent = false) => {
+    setHealthMetrics(prev => {
+      // Find if metric of this type already exists for this patient
+      const existingIndex = prev.findIndex(
+        m => m.type === metricData.type && m.patient_id === metricData.patient_id
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing metric - completely replace it
+        const updated = [...prev];
+        updated[existingIndex] = {
+          id: updated[existingIndex].id, // Keep original ID
+          ...metricData,
+          recorded_at: new Date().toISOString(),
+        };
+        return updated;
+      } else {
+        // Add new metric if it doesn't exist
+        const newMetric = {
+          id: metricData.id || `hm_${Date.now()}`,
+          ...metricData,
+          recorded_at: new Date().toISOString(),
+        };
+        return [...prev, newMetric];
+      }
+    });
+
+    if (!silent) {
+      addNotification('success', 'Health metric updated!');
+    }
   };
 
   // ========== FALL ALERT ACTIONS ==========
@@ -473,6 +507,7 @@ export const AppProvider = ({ children }) => {
 
     // Health metrics actions
     addHealthMetric,
+    updateHealthMetric,
 
     // Fall alert actions
     createFallAlert,
@@ -493,6 +528,7 @@ export const AppProvider = ({ children }) => {
 /**
  * Custom hook to use the app context
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) {

@@ -1,21 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {
   Bell,
   Globe,
-  Moon,
   Shield,
-  Smartphone,
   Volume2,
   Eye,
   Lock,
-  Database,
-  Mail
+  Database
 } from 'lucide-react';
-import { Card, Button, Badge } from '../shared/UIComponents';
+import { Card, Button } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
-const Settings = ({ user }) => {
+const Settings = () => {
   const { t, isRTL, language, toggleLanguage } = useLanguage();
 
   const [settings, setSettings] = useState({

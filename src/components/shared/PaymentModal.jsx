@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CreditCard, Smartphone, Building } from 'lucide-react';
+import { useState } from 'react';
+import { CreditCard, Smartphone } from 'lucide-react';
 import { Modal, Button, Input } from './UIComponents';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { clsx } from 'clsx';

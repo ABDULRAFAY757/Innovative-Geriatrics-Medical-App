@@ -1,25 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Heart,
   Package,
-  TrendingUp,
   Users,
   DollarSign,
-  ChevronRight,
-  Gift,
   Clock,
   CheckCircle,
-  AlertCircle,
-  Search,
-  Filter
+  Search
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import {
-  getDonorById,
-  getDonationsByDonor,
-  patients
-} from '../../data/mockData';
+import { getDonorById } from '../../data/mockData';
 import { StatCard, Card, Table, Badge, Button, Input, Tabs, Alert } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
@@ -265,7 +256,6 @@ const DonorDashboard = ({ user }) => {
             {/* Equipment Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRequests.map((request) => {
-                const patient = patients.find(p => p.id === request.patient_id);
                 return (
                   <Card key={request.id} className="hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-4">

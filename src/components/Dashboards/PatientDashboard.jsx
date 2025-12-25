@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Pill,
   Calendar,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import { StatCard, Card, Table, Badge, Button, ProgressBar, Alert, Modal, Input, DoseIndicator } from '../shared/UIComponents';
+import { StatCard, Card, Badge, Button, Modal, Input, DoseIndicator } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
@@ -27,17 +27,15 @@ const InteractivePatientDashboard = ({ user }) => {
     appointments,
     equipmentRequests,
     fallAlerts,
-    healthMetrics,
     takeMedication,
     bookAppointment,
     createEquipmentRequest,
-    addHealthMetric,
+    addNotification,
   } = useApp();
 
   const [showPayment, setShowPayment] = useState(false);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showNewEquipment, setShowNewEquipment] = useState(false);
-  const [showAddMetric, setShowAddMetric] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState({ amount: 0, description: '' });
   const [newAppointment, setNewAppointment] = useState({
     doctor_name: '',
@@ -53,12 +51,84 @@ const InteractivePatientDashboard = ({ user }) => {
     estimated_cost: 0,
     medical_justification: '',
   });
-  const [newMetric, setNewMetric] = useState({
-    type: 'Blood Pressure',
-    value: '',
-    unit: 'mmHg',
-    status: 'Normal',
+
+  // Local state for current readings to force immediate UI updates
+  const [currentReadings, setCurrentReadings] = useState({
+    'Blood Pressure': { value: '132/82', unit: 'mmHg', status: 'Normal' },
+    'Heart Rate': { value: '72', unit: 'bpm', status: 'Normal' },
+    'Temperature': { value: '37.0', unit: '°C', status: 'Normal' },
+    'Blood Oxygen': { value: '95', unit: '%', status: 'Normal' },
   });
+
+  // Track when the last reading was taken
+  const [lastReadingTime, setLastReadingTime] = useState(null);
+  const [timeSinceReading, setTimeSinceReading] = useState(null);
+  const [isReadingCooldown, setIsReadingCooldown] = useState(false);
+
+  // Update the time since last reading every second
+  useEffect(() => {
+    if (!lastReadingTime) return;
+
+    const updateTimeSince = () => {
+      const now = new Date();
+      const diffMs = now - lastReadingTime;
+      const diffSec = Math.floor(diffMs / 1000);
+      const diffMin = Math.floor(diffSec / 60);
+
+      if (diffMin >= 1) {
+        setTimeSinceReading(`${diffMin}m ago`);
+      } else {
+        setTimeSinceReading(`${diffSec}s ago`);
+      }
+    };
+
+    updateTimeSince();
+    const interval = setInterval(updateTimeSince, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastReadingTime]);
+
+  const generateSensorReading = () => {
+    // Prevent rapid clicking - only allow one reading per 3 seconds
+    if (isReadingCooldown) return;
+
+    // Generate new random values
+    const newReadings = {
+      'Blood Pressure': {
+        value: `${Math.floor(Math.random() * 30) + 110}/${Math.floor(Math.random() * 20) + 70}`,
+        unit: 'mmHg',
+        status: Math.random() > 0.7 ? 'High' : 'Normal',
+      },
+      'Heart Rate': {
+        value: `${Math.floor(Math.random() * 40) + 60}`,
+        unit: 'bpm',
+        status: Math.random() > 0.8 ? 'High' : 'Normal',
+      },
+      'Temperature': {
+        value: `${(Math.random() * 1.5 + 36.5).toFixed(1)}`,
+        unit: '°C',
+        status: Math.random() > 0.9 ? 'High' : 'Normal',
+      },
+      'Blood Oxygen': {
+        value: `${Math.floor(Math.random() * 5) + 95}`,
+        unit: '%',
+        status: Math.random() > 0.85 ? 'Low' : 'Normal',
+      },
+    };
+
+    // Update local state immediately for instant UI update
+    setCurrentReadings(newReadings);
+
+    // Record the time of this reading
+    setLastReadingTime(new Date());
+
+    // Set cooldown to prevent spam
+    setIsReadingCooldown(true);
+    setTimeout(() => setIsReadingCooldown(false), 3000);
+
+    // Show notification
+    addNotification('success', 'Vital signs recorded successfully!');
+  };
 
   const patient = patients.find(p => p.id === (user?.id || '1'));
   const patientId = user?.id || '1';
@@ -67,7 +137,6 @@ const InteractivePatientDashboard = ({ user }) => {
   const myAppointments = appointments.filter(a => a.patient_id === patientId);
   const myEquipment = equipmentRequests.filter(e => e.patient_id === patientId);
   const myAlerts = fallAlerts.filter(a => a.patient_id === patientId);
-  const myMetrics = healthMetrics.filter(m => m.patient_id === patientId);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -77,10 +146,6 @@ const InteractivePatientDashboard = ({ user }) => {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const handleTakeMedication = (medicationId) => {
-    takeMedication(medicationId);
   };
 
   const handleBookAppointment = () => {
@@ -109,15 +174,6 @@ const InteractivePatientDashboard = ({ user }) => {
       estimated_cost: 0,
       medical_justification: '',
     });
-  };
-
-  const handleAddMetric = () => {
-    addHealthMetric({
-      ...newMetric,
-      patient_id: patientId,
-    });
-    setShowAddMetric(false);
-    setNewMetric({ type: 'Blood Pressure', value: '', unit: 'mmHg', status: 'Normal' });
   };
 
   const handlePayment = (amount, description) => {
@@ -214,7 +270,7 @@ const InteractivePatientDashboard = ({ user }) => {
                     variant="success"
                     size="sm"
                     icon={Check}
-                    onClick={() => handleTakeMedication(med.id)}
+                    onClick={() => takeMedication(med.id)}
                   >
                     Take
                   </Button>
@@ -285,32 +341,41 @@ const InteractivePatientDashboard = ({ user }) => {
         title={t('health_metrics')}
         className="mb-8"
         action={
-          <Button
-            variant="primary"
-            size="sm"
-            icon={Plus}
-            onClick={() => setShowAddMetric(true)}
-          >
-            Add Metric
-          </Button>
+          <div className="flex items-center gap-2">
+            {timeSinceReading && (
+              <span className="text-sm text-gray-500">{timeSinceReading}</span>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Activity}
+              onClick={generateSensorReading}
+              disabled={isReadingCooldown}
+            >
+              {isReadingCooldown ? 'Reading...' : 'Last Reading'}
+            </Button>
+          </div>
         }
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {myMetrics.slice(-4).map((metric) => (
-            <div key={metric.id} className="p-4 bg-gray-50 rounded-lg text-center hover:bg-gray-100 transition-colors cursor-pointer">
-              <Activity className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">{metric.type}</p>
-              <p className="text-xl font-bold text-gray-900">{metric.value}</p>
-              <p className="text-xs text-gray-400">{metric.unit}</p>
-              <Badge
-                variant={metric.status === 'Normal' ? 'success' : 'warning'}
-                size="sm"
-                className="mt-2"
-              >
-                {metric.status}
-              </Badge>
-            </div>
-          ))}
+          {Object.keys(currentReadings).map((type) => {
+            const reading = currentReadings[type];
+            return (
+              <div key={type} className="p-4 bg-gray-50 rounded-lg text-center hover:bg-gray-100 transition-colors cursor-pointer">
+                <Activity className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">{type}</p>
+                <p className="text-xl font-bold text-gray-900">{reading.value}</p>
+                <p className="text-xs text-gray-400">{reading.unit}</p>
+                <Badge
+                  variant={reading.status === 'Normal' ? 'success' : 'warning'}
+                  size="sm"
+                  className="mt-2"
+                >
+                  {reading.status}
+                </Badge>
+              </div>
+            );
+          })}
         </div>
       </Card>
 
@@ -451,45 +516,6 @@ const InteractivePatientDashboard = ({ user }) => {
             </Button>
             <Button onClick={handleCreateEquipment} className="flex-1">
               Submit Request
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal isOpen={showAddMetric} onClose={() => setShowAddMetric(false)} title="Add Health Metric">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Metric Type</label>
-            <select
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              value={newMetric.type}
-              onChange={(e) => setNewMetric({...newMetric, type: e.target.value})}
-            >
-              <option>Blood Pressure</option>
-              <option>Blood Sugar</option>
-              <option>Heart Rate</option>
-              <option>Weight</option>
-              <option>Temperature</option>
-            </select>
-          </div>
-          <Input
-            label="Value"
-            value={newMetric.value}
-            onChange={(e) => setNewMetric({...newMetric, value: e.target.value})}
-            placeholder="e.g., 120/80, 98, 72"
-          />
-          <Input
-            label="Unit"
-            value={newMetric.unit}
-            onChange={(e) => setNewMetric({...newMetric, unit: e.target.value})}
-            placeholder="mmHg, mg/dL, bpm, kg, °C"
-          />
-          <div className="flex gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setShowAddMetric(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={handleAddMetric} className="flex-1">
-              Add Metric
             </Button>
           </div>
         </div>

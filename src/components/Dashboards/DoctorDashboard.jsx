@@ -1,28 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Users,
   Calendar,
   FileText,
   Pill,
-  Clock,
-  ChevronRight,
   Plus,
   Search,
   Stethoscope,
-  Activity,
-  AlertCircle,
-  Check
+  Activity
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
   patients,
   getDoctorById,
-  getDoctorTransactions,
   appointments
 } from '../../data/mockData';
 import { StatCard, Card, Table, Badge, Button, Input, Modal, Avatar } from '../shared/UIComponents';
-import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
 const InteractiveDoctorDashboard = ({ user }) => {
@@ -31,8 +25,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
     transactions,
     addClinicalNote,
     addPrescription,
-    bookAppointment,
-    medicationReminders
+    bookAppointment
   } = useApp();
 
   const [doctor, setDoctor] = useState(null);
@@ -42,8 +35,6 @@ const InteractiveDoctorDashboard = ({ user }) => {
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [showPayment, setShowPayment] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState({ amount: 0, description: '' });
 
   // Clinical Note Form Data
   const [noteFormData, setNoteFormData] = useState({
@@ -233,11 +224,6 @@ const InteractiveDoctorDashboard = ({ user }) => {
       type: 'Follow-up',
       notes: ''
     });
-  };
-
-  const handlePayment = (amount, description) => {
-    setPaymentDetails({ amount, description });
-    setShowPayment(true);
   };
 
   const statusColors = {
@@ -760,15 +746,6 @@ const InteractiveDoctorDashboard = ({ user }) => {
           </div>
         </div>
       </Modal>
-
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        amount={paymentDetails.amount}
-        description={paymentDetails.description}
-        onSuccess={() => setShowPayment(false)}
-      />
     </div>
   );
 };

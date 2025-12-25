@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
@@ -8,7 +8,6 @@ import {
   CheckCircle,
   Clock,
   MapPin,
-  X,
   Search
 } from 'lucide-react';
 import { Card, Badge, Button, Input, Modal } from '../shared/UIComponents';
@@ -18,7 +17,6 @@ const FamilyAlerts = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
   const { fallAlerts, respondToFallAlert } = useApp();
 
-  const familyId = user?.id || 'f1';
   const patientId = user?.patientId || '1';
   const myAlerts = fallAlerts.filter(alert => alert.patient_id === patientId);
 

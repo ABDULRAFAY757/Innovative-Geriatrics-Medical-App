@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
   Pill,
   Clock,
   Check,
-  Calendar,
   AlertCircle,
   Plus,
-  Filter,
   Search,
   TrendingUp
 } from 'lucide-react';
@@ -16,7 +14,7 @@ import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator } 
 import { clsx } from 'clsx';
 
 const PatientMedications = ({ user }) => {
-  const { t, isRTL, language } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const { medicationReminders, takeMedication, addMedication } = useApp();
 
   const patientId = user?.id || '1';
@@ -211,7 +209,7 @@ const PatientMedications = ({ user }) => {
 
                 {/* Daily Dose Indicators */}
                 <div className="w-full md:w-48">
-                  <p className="text-xs text-gray-500 mb-2">Today's Doses</p>
+                  <p className="text-xs text-gray-500 mb-2">Today&apos;s Doses</p>
                   <DoseIndicator
                     frequency={med.frequency}
                     taken={med.taken_today || 0}

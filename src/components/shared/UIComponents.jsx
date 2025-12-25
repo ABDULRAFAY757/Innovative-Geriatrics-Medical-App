@@ -326,6 +326,7 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('keydown', handleTab);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -386,6 +387,7 @@ export const Tabs = ({ tabs, activeTab, onChange }) => {
 };
 
 // Helper function to parse medication frequency and determine daily dose count
+// eslint-disable-next-line react-refresh/only-export-components
 export const parseDailyDoses = (frequency) => {
   if (!frequency) return 1;
 

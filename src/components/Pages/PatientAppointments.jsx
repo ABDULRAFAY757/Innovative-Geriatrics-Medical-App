@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
   Calendar,
   Clock,
   MapPin,
-  User,
   Phone,
   Plus,
   Search,
-  Filter,
   ChevronRight,
   Video,
-  CheckCircle,
-  XCircle
+  CheckCircle
 } from 'lucide-react';
 import { Card, Table, Badge, Button, Input, Modal, Avatar } from '../shared/UIComponents';
 import { clsx } from 'clsx';

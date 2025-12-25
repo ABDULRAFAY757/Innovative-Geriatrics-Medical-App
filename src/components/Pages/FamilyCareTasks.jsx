@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
@@ -80,11 +80,6 @@ const FamilyCareTasks = ({ user }) => {
     High: 'danger',
     Medium: 'warning',
     Low: 'success',
-  };
-
-  const statusColors = {
-    Pending: 'warning',
-    Completed: 'success',
   };
 
   const categoryIcons = {
