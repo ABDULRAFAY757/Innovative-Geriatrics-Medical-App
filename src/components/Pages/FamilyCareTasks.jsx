@@ -12,7 +12,7 @@ import {
   Search,
   Calendar
 } from 'lucide-react';
-import { Card, Badge, Button, Input, Modal } from '../shared/UIComponents';
+import { Card, Badge, Button, Input, Modal, Pagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const FamilyCareTasks = ({ user }) => {
@@ -24,6 +24,8 @@ const FamilyCareTasks = ({ user }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -41,6 +43,29 @@ const FamilyCareTasks = ({ user }) => {
       (filterStatus === 'completed' && task.status === 'Completed');
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredTasks.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedTasks = filteredTasks.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const pendingCount = myCareTasks.filter(t => t.status === 'Pending').length;
   const completedCount = myCareTasks.filter(t => t.status === 'Completed').length;
@@ -165,7 +190,7 @@ const FamilyCareTasks = ({ user }) => {
             <Input
               placeholder="Search tasks..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -173,21 +198,21 @@ const FamilyCareTasks = ({ user }) => {
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
             </Button>
             <Button
               variant={filterStatus === 'pending' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('pending')}
+              onClick={() => handleFilterChange('pending')}
             >
               Pending
             </Button>
             <Button
               variant={filterStatus === 'completed' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('completed')}
+              onClick={() => handleFilterChange('completed')}
             >
               Completed
             </Button>
@@ -205,8 +230,9 @@ const FamilyCareTasks = ({ user }) => {
       {/* Tasks List */}
       <Card title="Care Tasks">
         {filteredTasks.length > 0 ? (
+          <>
           <div className="space-y-3">
-            {filteredTasks.map((task) => (
+            {paginatedTasks.map((task) => (
               <div
                 key={task.id}
                 className={clsx(
@@ -291,6 +317,25 @@ const FamilyCareTasks = ({ user }) => {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredTasks.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Clipboard className="w-16 h-16 mx-auto mb-4 text-gray-300" />

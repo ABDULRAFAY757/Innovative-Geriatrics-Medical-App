@@ -10,7 +10,7 @@ import {
   CheckCircle,
   Search
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Avatar } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Avatar, Pagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const DoctorAppointments = ({ user }) => {
@@ -22,6 +22,8 @@ const DoctorAppointments = ({ user }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('today');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -65,6 +67,29 @@ const DoctorAppointments = ({ user }) => {
     }
     return matchesSearch;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAppointments.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedAppointments = filteredAppointments.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const statusColors = {
     Confirmed: 'success',
@@ -128,7 +153,7 @@ const DoctorAppointments = ({ user }) => {
             <Input
               placeholder="Search by patient name..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -136,14 +161,14 @@ const DoctorAppointments = ({ user }) => {
             <Button
               variant={filterStatus === 'today' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('today')}
+              onClick={() => handleFilterChange('today')}
             >
               Today
             </Button>
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
             </Button>
@@ -154,8 +179,9 @@ const DoctorAppointments = ({ user }) => {
       {/* Appointments List */}
       <Card title="Appointment Schedule">
         {filteredAppointments.length > 0 ? (
+          <>
           <div className="space-y-4">
-            {filteredAppointments.map((apt) => {
+            {paginatedAppointments.map((apt) => {
               const patient = patients.find(p => p.id === apt.patient_id);
               return (
                 <div
@@ -218,6 +244,25 @@ const DoctorAppointments = ({ user }) => {
               );
             })}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredAppointments.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -286,7 +331,25 @@ const DoctorAppointments = ({ user }) => {
                 )
               }
             ]}
-            data={filteredAppointments}
+            data={paginatedAppointments}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredAppointments.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
           />
         </Card>
       )}

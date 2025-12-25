@@ -26,6 +26,7 @@ import Help from './components/Pages/Help';
 import PatientMedications from './components/Pages/PatientMedications';
 import PatientAppointments from './components/Pages/PatientAppointments';
 import PatientEquipment from './components/Pages/PatientEquipment';
+import PatientRecords from './components/Pages/PatientRecords';
 
 // Doctor Pages
 import DoctorPatients from './components/Pages/DoctorPatients';
@@ -104,6 +105,7 @@ function AppRoutes() {
                 <Route path="medications" element={<PatientMedications user={user} />} />
                 <Route path="appointments" element={<PatientAppointments user={user} />} />
                 <Route path="equipment" element={<PatientEquipment user={user} />} />
+                <Route path="records" element={<PatientRecords user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />
                 <Route path="help" element={<Help user={user} />} />

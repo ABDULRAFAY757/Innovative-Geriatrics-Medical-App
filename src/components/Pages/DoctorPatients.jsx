@@ -14,7 +14,7 @@ import {
   AlertCircle,
   ChevronRight
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Modal, Avatar } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Modal, Avatar, Pagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const DoctorPatients = ({ user }) => {
@@ -27,6 +27,8 @@ const DoctorPatients = ({ user }) => {
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showPatientDetails, setShowPatientDetails] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -60,6 +62,23 @@ const DoctorPatients = ({ user }) => {
     patient.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.p_no.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredPatients.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedPatients = filteredPatients.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+
+  // Reset page when search changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -247,7 +266,7 @@ const DoctorPatients = ({ user }) => {
         <Input
           placeholder="Search patients by name or patient number..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           icon={Search}
         />
       </Card>
@@ -356,7 +375,25 @@ const DoctorPatients = ({ user }) => {
               )
             }
           ]}
-          data={filteredPatients}
+          data={paginatedPatients}
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredPatients.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          isRTL={isRTL}
+          labels={language === 'ar' ? {
+            show: 'عرض',
+            perPage: 'لكل صفحة',
+            of: 'من',
+            first: 'الأولى',
+            previous: 'السابقة',
+            next: 'التالية',
+            last: 'الأخيرة'
+          } : {}}
         />
       </Card>
 

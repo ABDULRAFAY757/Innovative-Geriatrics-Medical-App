@@ -11,7 +11,7 @@ import {
   DollarSign,
   FileText
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Modal } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Modal, Pagination } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
@@ -25,6 +25,8 @@ const PatientEquipment = ({ user }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, pending, fulfilled, in-progress
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [showNewRequest, setShowNewRequest] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -46,6 +48,29 @@ const PatientEquipment = ({ user }) => {
       (filterStatus === 'in-progress' && req.status === 'In Progress');
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRequests.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedRequests = filteredRequests.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const pendingCount = myEquipment.filter(e => e.status === 'Pending').length;
   const fulfilledCount = myEquipment.filter(e => e.status === 'Fulfilled').length;
@@ -166,7 +191,7 @@ const PatientEquipment = ({ user }) => {
             <Input
               placeholder="Search equipment requests..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -174,21 +199,21 @@ const PatientEquipment = ({ user }) => {
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
             </Button>
             <Button
               variant={filterStatus === 'pending' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('pending')}
+              onClick={() => handleFilterChange('pending')}
             >
               Pending
             </Button>
             <Button
               variant={filterStatus === 'fulfilled' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('fulfilled')}
+              onClick={() => handleFilterChange('fulfilled')}
             >
               Fulfilled
             </Button>
@@ -206,8 +231,9 @@ const PatientEquipment = ({ user }) => {
       {/* Equipment Requests List */}
       <Card title="Your Equipment Requests">
         {filteredRequests.length > 0 ? (
+          <>
           <div className="space-y-4">
-            {filteredRequests.map((req) => (
+            {paginatedRequests.map((req) => (
               <div
                 key={req.id}
                 className="flex flex-col md:flex-row items-start md:items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
@@ -266,6 +292,25 @@ const PatientEquipment = ({ user }) => {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredRequests.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -352,7 +397,25 @@ const PatientEquipment = ({ user }) => {
                 )
               }
             ]}
-            data={filteredRequests}
+            data={paginatedRequests}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredRequests.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
           />
         </Card>
       )}

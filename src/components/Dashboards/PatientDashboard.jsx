@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   Activity,
   Phone,
-  Clock,
   ChevronRight,
   Plus,
   Package,
@@ -14,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import { StatCard, Card, Badge, Button, Modal, Input, DoseIndicator } from '../shared/UIComponents';
+import { StatCard, Card, Badge, Button, Modal, Input } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const InteractivePatientDashboard = ({ user }) => {
@@ -227,43 +226,77 @@ const InteractivePatientDashboard = ({ user }) => {
             </Button>
           }
         >
-          <div className="space-y-4">
-            {myMedications.slice(0, 3).map((med) => (
-              <div key={med.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Pill className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{med.medication_name}</p>
-                    <p className="text-sm text-gray-500">{med.dosage} - {med.frequency}</p>
-                    <div className="mt-2">
-                      <DoseIndicator
-                        frequency={med.frequency}
-                        taken={med.taken_today || 0}
-                        color={med.adherence_rate >= 80 ? 'green' : 'yellow'}
-                      />
+          <div className="space-y-3">
+            {myMedications.slice(0, 3).map((med) => {
+              // Parse frequency to get doses per day
+              const freq = med.frequency?.toLowerCase() || '';
+              let dosesPerDay = 1;
+              if (freq.includes('twice') || freq.includes('مرتين')) dosesPerDay = 2;
+              else if (freq.includes('three') || freq.includes('ثلاث')) dosesPerDay = 3;
+
+              const takenToday = med.taken_today || 0;
+              const isCompleted = takenToday >= dosesPerDay;
+
+              return (
+                <div key={med.id} className={clsx(
+                  "flex items-center justify-between p-3 rounded-xl transition-colors",
+                  isCompleted ? "bg-green-50 border border-green-100" : "bg-gray-50 hover:bg-gray-100"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <div className={clsx(
+                      "p-2 rounded-lg",
+                      isCompleted ? "bg-green-100" : "bg-blue-100"
+                    )}>
+                      <Pill className={clsx("w-5 h-5", isCompleted ? "text-green-600" : "text-blue-600")} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{med.medication_name}</p>
+                      <p className="text-sm text-gray-500">{med.dosage} - {med.frequency}</p>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right mr-2">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      {med.time}
+                  <div className="flex items-center gap-3">
+                    {/* Progress indicator */}
+                    <div className="text-right">
+                      <p className={clsx(
+                        "text-xs font-medium",
+                        isCompleted ? "text-green-600" : "text-gray-500"
+                      )}>
+                        {takenToday}/{dosesPerDay}
+                      </p>
+                      <div className="flex gap-1 mt-1">
+                        {Array.from({ length: dosesPerDay }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={clsx(
+                              "w-2 h-2 rounded-full",
+                              i < takenToday ? "bg-green-500" : "bg-gray-300"
+                            )}
+                          />
+                        ))}
+                      </div>
                     </div>
+                    {/* Action */}
+                    {!isCompleted ? (
+                      <Button
+                        variant="success"
+                        size="sm"
+                        icon={Check}
+                        onClick={() => takeMedication(med.id)}
+                      >
+                        {language === 'ar' ? 'تناول' : 'Take'}
+                      </Button>
+                    ) : (
+                      <div className="px-3 py-1.5 bg-green-100 rounded-lg">
+                        <Check className="w-5 h-5 text-green-600" />
+                      </div>
+                    )}
                   </div>
-                  <Button
-                    variant="success"
-                    size="sm"
-                    icon={Check}
-                    onClick={() => takeMedication(med.id)}
-                  >
-                    Take
-                  </Button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+            {myMedications.length === 0 && (
+              <p className="text-center text-gray-500 py-4">{t('no_medications')}</p>
+            )}
           </div>
         </Card>
 

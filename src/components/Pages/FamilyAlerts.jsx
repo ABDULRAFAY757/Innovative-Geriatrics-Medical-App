@@ -10,7 +10,7 @@ import {
   MapPin,
   Search
 } from 'lucide-react';
-import { Card, Badge, Button, Input, Modal } from '../shared/UIComponents';
+import { Card, Badge, Button, Input, Modal, Pagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const FamilyAlerts = ({ user }) => {
@@ -22,6 +22,8 @@ const FamilyAlerts = ({ user }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [responseAction, setResponseAction] = useState('');
@@ -33,6 +35,29 @@ const FamilyAlerts = ({ user }) => {
       (filterStatus === 'resolved' && alert.status === 'Resolved');
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAlerts.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedAlerts = filteredAlerts.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const pendingCount = myAlerts.filter(a => a.status === 'Pending').length;
   const resolvedCount = myAlerts.filter(a => a.status === 'Resolved').length;
@@ -143,7 +168,7 @@ const FamilyAlerts = ({ user }) => {
             <Input
               placeholder="Search by location..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -151,21 +176,21 @@ const FamilyAlerts = ({ user }) => {
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
             </Button>
             <Button
               variant={filterStatus === 'pending' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('pending')}
+              onClick={() => handleFilterChange('pending')}
             >
               Pending
             </Button>
             <Button
               variant={filterStatus === 'resolved' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('resolved')}
+              onClick={() => handleFilterChange('resolved')}
             >
               Resolved
             </Button>
@@ -176,8 +201,9 @@ const FamilyAlerts = ({ user }) => {
       {/* Alerts List */}
       <Card title="Fall Detection Alerts">
         {filteredAlerts.length > 0 ? (
+          <>
           <div className="space-y-4">
-            {filteredAlerts.map((alert) => (
+            {paginatedAlerts.map((alert) => (
               <div
                 key={alert.id}
                 className={clsx(
@@ -271,6 +297,25 @@ const FamilyAlerts = ({ user }) => {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredAlerts.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Bell className="w-16 h-16 mx-auto mb-4 text-gray-300" />

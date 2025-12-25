@@ -10,7 +10,7 @@ import {
   TrendingUp,
   DollarSign
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Pagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const DonorDonations = ({ user }) => {
@@ -22,6 +22,8 @@ const DonorDonations = ({ user }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const filteredDonations = myDonations.filter(donation => {
     const request = equipmentRequests.find(r => r.id === donation.equipment_request_id);
@@ -32,6 +34,29 @@ const DonorDonations = ({ user }) => {
       (filterStatus === 'processing' && donation.status === 'Processing');
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredDonations.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedDonations = filteredDonations.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const totalDonated = myDonations.reduce((acc, d) => acc + d.amount, 0);
   const completedCount = myDonations.filter(d => d.status === 'Completed').length;
@@ -122,7 +147,7 @@ const DonorDonations = ({ user }) => {
             <Input
               placeholder="Search donations..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -130,21 +155,21 @@ const DonorDonations = ({ user }) => {
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
             </Button>
             <Button
               variant={filterStatus === 'completed' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('completed')}
+              onClick={() => handleFilterChange('completed')}
             >
               Completed
             </Button>
             <Button
               variant={filterStatus === 'processing' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('processing')}
+              onClick={() => handleFilterChange('processing')}
             >
               Processing
             </Button>
@@ -155,6 +180,7 @@ const DonorDonations = ({ user }) => {
       {/* Donations Table */}
       <Card title="Donation History">
         {filteredDonations.length > 0 ? (
+          <>
           <Table
             columns={[
               {
@@ -202,8 +228,27 @@ const DonorDonations = ({ user }) => {
                 )
               }
             ]}
-            data={filteredDonations}
+            data={paginatedDonations}
           />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredDonations.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -217,7 +262,7 @@ const DonorDonations = ({ user }) => {
       {filteredDonations.length > 0 && (
         <Card title="Recent Donation Activity" className="mt-6">
           <div className="space-y-4">
-            {filteredDonations.slice(0, 5).map((donation) => {
+            {paginatedDonations.slice(0, 5).map((donation) => {
               const request = equipmentRequests.find(r => r.id === donation.equipment_request_id);
               return (
                 <div

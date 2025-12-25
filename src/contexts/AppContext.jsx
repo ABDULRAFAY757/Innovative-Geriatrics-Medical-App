@@ -140,19 +140,67 @@ export const AppProvider = ({ children }) => {
 
   // ========== MEDICATION ACTIONS ==========
 
+  // Reset taken_today at midnight or when date changes
+  useEffect(() => {
+    const checkAndResetDaily = () => {
+      const today = new Date().toDateString();
+      const lastReset = safeLocalStorage.getItem('app_lastMedReset', '');
+
+      if (lastReset !== today) {
+        // Reset taken_today for all medications
+        setMedicationReminders(prev =>
+          prev.map(med => ({ ...med, taken_today: 0 }))
+        );
+        safeLocalStorage.setItem('app_lastMedReset', today);
+      }
+    };
+
+    checkAndResetDaily();
+    // Check every minute for date change
+    const interval = setInterval(checkAndResetDaily, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const takeMedication = (medicationId) => {
+    let doseTaken = false;
+    let medName = '';
+
     setMedicationReminders(prev =>
-      prev.map(med =>
-        med.id === medicationId
-          ? {
-              ...med,
-              last_taken: new Date().toISOString(),
-              adherence_rate: Math.min(100, med.adherence_rate + 2),
-            }
-          : med
-      )
+      prev.map(med => {
+        if (med.id !== medicationId) return med;
+
+        // Parse frequency to get max doses per day
+        const frequency = med.frequency?.toLowerCase() || '';
+        let dosesPerDay = 1;
+        if (frequency.includes('twice') || frequency.includes('مرتين')) dosesPerDay = 2;
+        else if (frequency.includes('three') || frequency.includes('ثلاث')) dosesPerDay = 3;
+        else if (frequency.includes('four') || frequency.includes('أربع')) dosesPerDay = 4;
+
+        const currentTaken = med.taken_today || 0;
+        medName = med.medication_name;
+
+        // Don't allow taking more than daily doses
+        if (currentTaken >= dosesPerDay) {
+          return med;
+        }
+
+        doseTaken = true;
+        const newTaken = currentTaken + 1;
+
+        return {
+          ...med,
+          last_taken: new Date().toISOString(),
+          taken_today: newTaken,
+          adherence_rate: Math.min(100, med.adherence_rate + 2),
+        };
+      })
     );
-    addNotification('success', 'Medication taken successfully!');
+
+    if (doseTaken) {
+      addNotification('success', `${medName} dose recorded!`);
+    } else {
+      addNotification('info', `All ${medName} doses completed for today`);
+    }
   };
 
   const addMedication = (patientId, medicationData) => {

@@ -806,6 +806,246 @@ donations.forEach(donation => {
   donation.receipt_number = `RCP${Date.now()}${Math.random().toString(36).substring(7).toUpperCase()}`;
 });
 
+// Medical Records - Comprehensive consultation and hospital history
+export const medicalRecords = [
+  {
+    id: "rec1",
+    patient_id: "1",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    hospital: "King Saud Medical City",
+    record_type: "Consultation",
+    visit_date: "2024-12-10T10:30:00Z",
+    chief_complaint: "High blood pressure and dizziness",
+    diagnosis: "Hypertension - Stage 2",
+    diagnosis_code: "I10",
+    clinical_notes: "Patient reports increased dizziness over the past week. Blood pressure elevated at 160/95. Adjusted medication dosage. Recommended lifestyle modifications including reduced sodium intake.",
+    vitals: {
+      blood_pressure: "160/95",
+      heart_rate: "78",
+      temperature: "36.8",
+      weight: "78",
+      oxygen_saturation: "97"
+    },
+    prescriptions: [
+      { medication: "Lisinopril", dosage: "20mg", frequency: "Once daily", duration: "30 days" },
+      { medication: "Amlodipine", dosage: "5mg", frequency: "Once daily", duration: "30 days" }
+    ],
+    lab_orders: ["Complete Blood Count", "Kidney Function Test"],
+    follow_up_date: "2024-12-25T09:00:00Z",
+    admission_required: false,
+    status: "Completed"
+  },
+  {
+    id: "rec2",
+    patient_id: "1",
+    doctor_id: "3",
+    doctor_name: "Dr. Aisha Al-Saud",
+    specialization: "Cardiology",
+    hospital: "King Faisal Specialist Hospital",
+    record_type: "Specialist Consultation",
+    visit_date: "2024-12-01T11:20:00Z",
+    chief_complaint: "Chest pain and shortness of breath",
+    diagnosis: "Anxiety-related chest discomfort",
+    diagnosis_code: "R07.9",
+    clinical_notes: "Cardiac evaluation completed. ECG normal. Echo shows normal ejection fraction (60%). Symptoms likely related to anxiety. Recommended stress management and follow-up in 3 months.",
+    vitals: {
+      blood_pressure: "145/88",
+      heart_rate: "82",
+      temperature: "36.9",
+      weight: "78",
+      oxygen_saturation: "98"
+    },
+    prescriptions: [],
+    lab_orders: ["Lipid Panel", "Cardiac Enzymes"],
+    follow_up_date: "2025-03-01T11:00:00Z",
+    admission_required: false,
+    status: "Completed"
+  },
+  {
+    id: "rec3",
+    patient_id: "1",
+    doctor_id: "2",
+    doctor_name: "Dr. Mohamed Hassan",
+    specialization: "Internal Medicine",
+    hospital: "Riyadh Medical Complex",
+    record_type: "Annual Checkup",
+    visit_date: "2024-10-15T09:00:00Z",
+    chief_complaint: "Annual health checkup",
+    diagnosis: "Diabetes Type 2 - Well controlled",
+    diagnosis_code: "E11.9",
+    clinical_notes: "Annual comprehensive health assessment. Diabetes well controlled with current medication. HbA1c at 6.8%. Continue current treatment plan. Recommended annual ophthalmology exam.",
+    vitals: {
+      blood_pressure: "138/85",
+      heart_rate: "72",
+      temperature: "36.7",
+      weight: "79",
+      oxygen_saturation: "98"
+    },
+    prescriptions: [
+      { medication: "Metformin", dosage: "500mg", frequency: "Twice daily", duration: "90 days" }
+    ],
+    lab_orders: ["HbA1c", "Fasting Glucose", "Complete Metabolic Panel"],
+    follow_up_date: "2025-01-15T09:00:00Z",
+    admission_required: false,
+    status: "Completed"
+  },
+  {
+    id: "rec4",
+    patient_id: "1",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    hospital: "King Saud Medical City",
+    record_type: "Emergency",
+    visit_date: "2024-08-20T14:30:00Z",
+    chief_complaint: "Severe dizziness and near syncope",
+    diagnosis: "Orthostatic hypotension",
+    diagnosis_code: "I95.1",
+    clinical_notes: "Patient experienced near fainting episode. Blood pressure drops significantly on standing. Dehydration suspected. IV fluids administered. Medication review performed.",
+    vitals: {
+      blood_pressure: "100/60",
+      heart_rate: "92",
+      temperature: "36.6",
+      weight: "77",
+      oxygen_saturation: "96"
+    },
+    prescriptions: [
+      { medication: "Oral Rehydration Salts", dosage: "1 sachet", frequency: "Twice daily", duration: "7 days" }
+    ],
+    lab_orders: ["Electrolyte Panel", "Complete Blood Count"],
+    follow_up_date: "2024-08-27T10:00:00Z",
+    admission_required: false,
+    status: "Completed"
+  },
+  {
+    id: "rec5",
+    patient_id: "1",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    hospital: "King Saud Medical City",
+    record_type: "Hospital Admission",
+    visit_date: "2024-06-05T08:00:00Z",
+    discharge_date: "2024-06-08T14:00:00Z",
+    chief_complaint: "Severe pneumonia with respiratory distress",
+    diagnosis: "Community-acquired pneumonia",
+    diagnosis_code: "J18.9",
+    clinical_notes: "Patient admitted with high fever, productive cough, and low oxygen saturation. Chest X-ray confirmed bilateral pneumonia. Started on IV antibiotics. Significant improvement by day 3. Discharged with oral antibiotics.",
+    vitals: {
+      blood_pressure: "130/80",
+      heart_rate: "98",
+      temperature: "39.2",
+      weight: "76",
+      oxygen_saturation: "89"
+    },
+    prescriptions: [
+      { medication: "Azithromycin", dosage: "500mg", frequency: "Once daily", duration: "5 days" },
+      { medication: "Paracetamol", dosage: "500mg", frequency: "Every 6 hours", duration: "As needed" }
+    ],
+    lab_orders: ["Chest X-Ray", "Sputum Culture", "Complete Blood Count"],
+    follow_up_date: "2024-06-15T09:00:00Z",
+    admission_required: true,
+    hospital_days: 3,
+    ward: "Internal Medicine Ward - Room 302",
+    status: "Completed"
+  },
+  {
+    id: "rec6",
+    patient_id: "2",
+    doctor_id: "2",
+    doctor_name: "Dr. Mohamed Hassan",
+    specialization: "Internal Medicine",
+    hospital: "Riyadh Medical Complex",
+    record_type: "Follow-up",
+    visit_date: "2024-12-08T14:15:00Z",
+    chief_complaint: "Joint pain and mobility issues",
+    diagnosis: "Osteoporosis with pathological fracture risk",
+    diagnosis_code: "M81.0",
+    clinical_notes: "Osteoporosis management review. DEXA scan shows T-score of -2.8. Patient experiencing increased joint pain. Recommended physical therapy and supplementation. Discussed fall prevention strategies.",
+    vitals: {
+      blood_pressure: "135/82",
+      heart_rate: "70",
+      temperature: "36.7",
+      weight: "62",
+      oxygen_saturation: "98"
+    },
+    prescriptions: [
+      { medication: "Calcium + Vitamin D", dosage: "600mg/400IU", frequency: "Twice daily", duration: "90 days" },
+      { medication: "Alendronate", dosage: "70mg", frequency: "Once weekly", duration: "12 weeks" }
+    ],
+    lab_orders: ["DEXA Scan", "Vitamin D Level"],
+    follow_up_date: "2025-01-08T14:00:00Z",
+    admission_required: false,
+    status: "Completed"
+  },
+  {
+    id: "rec7",
+    patient_id: "3",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    hospital: "King Saud Medical City",
+    record_type: "Emergency",
+    visit_date: "2024-12-05T08:45:00Z",
+    discharge_date: "2024-12-07T11:00:00Z",
+    chief_complaint: "Fall at home, head injury",
+    diagnosis: "Mild concussion with scalp laceration",
+    diagnosis_code: "S06.0",
+    clinical_notes: "Patient fell at home, hit head on table edge. No loss of consciousness. CT scan shows no intracranial bleeding. 3cm scalp laceration sutured. Mild concussion suspected. Recommended 48-hour observation.",
+    vitals: {
+      blood_pressure: "155/92",
+      heart_rate: "88",
+      temperature: "36.8",
+      weight: "72",
+      oxygen_saturation: "97"
+    },
+    prescriptions: [
+      { medication: "Paracetamol", dosage: "500mg", frequency: "Every 6 hours", duration: "As needed" }
+    ],
+    lab_orders: ["CT Head", "Complete Blood Count", "Coagulation Profile"],
+    follow_up_date: "2024-12-12T10:00:00Z",
+    admission_required: true,
+    hospital_days: 2,
+    ward: "Observation Unit - Room 105",
+    status: "Completed"
+  },
+  {
+    id: "rec8",
+    patient_id: "3",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    hospital: "King Saud Medical City",
+    record_type: "Follow-up",
+    visit_date: "2024-11-20T10:00:00Z",
+    chief_complaint: "Stroke recovery assessment",
+    diagnosis: "Post-stroke rehabilitation - Improving",
+    diagnosis_code: "I69.3",
+    clinical_notes: "3-month post-stroke follow-up. Patient showing good recovery. Mild residual left-sided weakness improving with physical therapy. Speech therapy no longer needed. Continue current rehabilitation plan.",
+    vitals: {
+      blood_pressure: "142/88",
+      heart_rate: "74",
+      temperature: "36.7",
+      weight: "73",
+      oxygen_saturation: "98"
+    },
+    prescriptions: [
+      { medication: "Clopidogrel", dosage: "75mg", frequency: "Once daily", duration: "Ongoing" },
+      { medication: "Atorvastatin", dosage: "40mg", frequency: "Once daily", duration: "Ongoing" }
+    ],
+    lab_orders: ["Lipid Panel", "Liver Function Test"],
+    follow_up_date: "2025-02-20T10:00:00Z",
+    admission_required: false,
+    status: "Completed"
+  }
+];
+
+// Helper function to get patient medical records
+export const getPatientMedicalRecords = (patientId) =>
+  medicalRecords.filter(r => r.patient_id === patientId);
+
 // Helper functions for fetching data
 export const getUpcomingAppointments = (patientId) =>
   appointments.filter(a => a.patient_id === patientId && new Date(a.date) >= new Date());

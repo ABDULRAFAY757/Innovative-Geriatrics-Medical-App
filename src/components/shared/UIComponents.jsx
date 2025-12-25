@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { clsx } from 'clsx';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 // StatCard Component
 export const StatCard = ({ title, value, icon: Icon, color = 'blue', subtitle }) => {
@@ -439,4 +440,189 @@ export const DoseIndicator = ({ frequency, taken = 0, color = 'blue' }) => {
       ))}
     </div>
   );
+};
+
+// Pagination Component - Reusable pagination controls
+export const Pagination = ({
+  currentPage,
+  totalPages,
+  totalItems,
+  rowsPerPage,
+  onPageChange,
+  onRowsPerPageChange,
+  rowsPerPageOptions = [5, 10, 25, 50],
+  // eslint-disable-next-line no-unused-vars
+  isRTL = false,
+  labels = {}
+}) => {
+  const defaultLabels = {
+    show: 'Show',
+    perPage: 'per page',
+    of: 'of',
+    first: 'First',
+    previous: 'Previous',
+    next: 'Next',
+    last: 'Last',
+  };
+  const t = { ...defaultLabels, ...labels };
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+
+  const goToFirstPage = () => onPageChange(1);
+  const goToLastPage = () => onPageChange(totalPages);
+  const goToPrevPage = () => onPageChange(Math.max(currentPage - 1, 1));
+  const goToNextPage = () => onPageChange(Math.min(currentPage + 1, totalPages));
+
+  if (totalItems === 0) return null;
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
+      {/* Rows per page selector */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">{t.show}</span>
+        <select
+          value={rowsPerPage}
+          onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
+          className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {rowsPerPageOptions.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        <span className="text-sm text-gray-600">{t.perPage}</span>
+      </div>
+
+      {/* Page info */}
+      <div className="text-sm text-gray-600">
+        {startIndex + 1}-{endIndex} {t.of} {totalItems}
+      </div>
+
+      {/* Navigation buttons */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={goToFirstPage}
+          disabled={currentPage === 1}
+          className={clsx(
+            "p-2 rounded-lg transition-colors",
+            currentPage === 1
+              ? "text-gray-300 cursor-not-allowed"
+              : "text-gray-600 hover:bg-gray-100"
+          )}
+          title={t.first}
+        >
+          <ChevronsLeft className="w-4 h-4" />
+        </button>
+        <button
+          onClick={goToPrevPage}
+          disabled={currentPage === 1}
+          className={clsx(
+            "p-2 rounded-lg transition-colors",
+            currentPage === 1
+              ? "text-gray-300 cursor-not-allowed"
+              : "text-gray-600 hover:bg-gray-100"
+          )}
+          title={t.previous}
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        {/* Page numbers */}
+        <div className="flex items-center gap-1 mx-2">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+            return (
+              <button
+                key={pageNum}
+                onClick={() => onPageChange(pageNum)}
+                className={clsx(
+                  "w-8 h-8 rounded-lg text-sm font-medium transition-colors",
+                  currentPage === pageNum
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                )}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={goToNextPage}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className={clsx(
+            "p-2 rounded-lg transition-colors",
+            currentPage === totalPages || totalPages === 0
+              ? "text-gray-300 cursor-not-allowed"
+              : "text-gray-600 hover:bg-gray-100"
+          )}
+          title={t.next}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+        <button
+          onClick={goToLastPage}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className={clsx(
+            "p-2 rounded-lg transition-colors",
+            currentPage === totalPages || totalPages === 0
+              ? "text-gray-300 cursor-not-allowed"
+              : "text-gray-600 hover:bg-gray-100"
+          )}
+          title={t.last}
+        >
+          <ChevronsRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Custom hook for pagination logic
+// eslint-disable-next-line react-refresh/only-export-components
+export const usePagination = (data, initialRowsPerPage = 5) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage);
+
+  const totalItems = data.length;
+  const totalPages = Math.ceil(totalItems / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+
+  const paginatedData = useMemo(() =>
+    data.slice(startIndex, endIndex),
+    [data, startIndex, endIndex]
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const handleRowsPerPageChange = (newRowsPerPage) => {
+    setRowsPerPage(newRowsPerPage);
+    setCurrentPage(1);
+  };
+
+  const resetPage = () => setCurrentPage(1);
+
+  return {
+    currentPage,
+    rowsPerPage,
+    totalPages,
+    totalItems,
+    paginatedData,
+    handlePageChange,
+    handleRowsPerPageChange,
+    resetPage,
+  };
 };

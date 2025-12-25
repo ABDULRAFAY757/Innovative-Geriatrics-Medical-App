@@ -10,11 +10,11 @@ import {
   Search,
   TrendingUp
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator, Pagination, usePagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientMedications = ({ user }) => {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const { medicationReminders, takeMedication, addMedication } = useApp();
 
   const patientId = user?.id || '1';
@@ -37,6 +37,29 @@ const PatientMedications = ({ user }) => {
       (filterStatus === 'taken' && med.adherence_rate === 100);
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const {
+    currentPage,
+    rowsPerPage,
+    totalPages,
+    totalItems,
+    paginatedData: paginatedMedications,
+    handlePageChange,
+    handleRowsPerPageChange,
+    resetPage
+  } = usePagination(filteredMedications, 5);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const handleTakeMedication = (medicationId) => {
     takeMedication(medicationId);
@@ -139,9 +162,9 @@ const PatientMedications = ({ user }) => {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Search medications..."
+              placeholder={language === 'ar' ? 'بحث عن الأدوية...' : 'Search medications...'}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -149,23 +172,23 @@ const PatientMedications = ({ user }) => {
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
-              All
+              {language === 'ar' ? 'الكل' : 'All'}
             </Button>
             <Button
               variant={filterStatus === 'active' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('active')}
+              onClick={() => handleFilterChange('active')}
             >
-              Active
+              {language === 'ar' ? 'نشط' : 'Active'}
             </Button>
             <Button
               variant={filterStatus === 'taken' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('taken')}
+              onClick={() => handleFilterChange('taken')}
             >
-              Taken
+              {language === 'ar' ? 'تم تناوله' : 'Taken'}
             </Button>
           </div>
           <Button
@@ -179,10 +202,11 @@ const PatientMedications = ({ user }) => {
       </Card>
 
       {/* Medications List */}
-      <Card title="Medication Schedule">
+      <Card title={language === 'ar' ? 'جدول الأدوية' : 'Medication Schedule'}>
         {filteredMedications.length > 0 ? (
+          <>
           <div className="space-y-4">
-            {filteredMedications.map((med) => (
+            {paginatedMedications.map((med) => (
               <div
                 key={med.id}
                 className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -241,18 +265,36 @@ const PatientMedications = ({ user }) => {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Pill className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <p className="text-lg">No medications found</p>
-            <p className="text-sm">Add your first medication to get started</p>
+            <p className="text-lg">{language === 'ar' ? 'لا توجد أدوية' : 'No medications found'}</p>
+            <p className="text-sm">{language === 'ar' ? 'أضف دواءك الأول للبدء' : 'Add your first medication to get started'}</p>
             <Button
               variant="primary"
               icon={Plus}
               className="mt-4"
               onClick={() => setShowAddMedication(true)}
             >
-              Add Medication
+              {language === 'ar' ? 'إضافة دواء' : 'Add Medication'}
             </Button>
           </div>
         )}
@@ -260,27 +302,27 @@ const PatientMedications = ({ user }) => {
 
       {/* Medication History Table */}
       {filteredMedications.length > 0 && (
-        <Card title="Medication History" className="mt-6">
+        <Card title={language === 'ar' ? 'سجل الأدوية' : 'Medication History'} className="mt-6">
           <Table
             columns={[
               {
-                header: 'Medication',
+                header: language === 'ar' ? 'الدواء' : 'Medication',
                 accessor: 'medication_name'
               },
               {
-                header: 'Dosage',
+                header: language === 'ar' ? 'الجرعة' : 'Dosage',
                 accessor: 'dosage'
               },
               {
-                header: 'Frequency',
+                header: language === 'ar' ? 'التكرار' : 'Frequency',
                 accessor: 'frequency'
               },
               {
-                header: 'Time',
+                header: language === 'ar' ? 'الوقت' : 'Time',
                 accessor: 'time'
               },
               {
-                header: 'Adherence',
+                header: language === 'ar' ? 'الالتزام' : 'Adherence',
                 render: (row) => (
                   <div className="flex items-center gap-2">
                     <div className="w-24">
@@ -295,7 +337,7 @@ const PatientMedications = ({ user }) => {
                 )
               },
               {
-                header: 'Status',
+                header: language === 'ar' ? 'الحالة' : 'Status',
                 render: (row) => (
                   <Badge variant={statusColors[row.status] || 'info'}>
                     {row.status || 'Active'}
@@ -303,7 +345,7 @@ const PatientMedications = ({ user }) => {
                 )
               },
               {
-                header: 'Actions',
+                header: language === 'ar' ? 'الإجراءات' : 'Actions',
                 render: (row) => (
                   <Button
                     variant="success"
@@ -311,12 +353,29 @@ const PatientMedications = ({ user }) => {
                     icon={Check}
                     onClick={() => handleTakeMedication(row.id)}
                   >
-                    Take
+                    {language === 'ar' ? 'تناول' : 'Take'}
                   </Button>
                 )
               }
             ]}
-            data={filteredMedications}
+            data={paginatedMedications}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
           />
         </Card>
       )}

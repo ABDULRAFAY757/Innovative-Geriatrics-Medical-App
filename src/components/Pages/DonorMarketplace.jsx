@@ -7,7 +7,7 @@ import {
   Package,
   TrendingUp
 } from 'lucide-react';
-import { Card, Badge, Button, Input } from '../shared/UIComponents';
+import { Card, Badge, Button, Input, Pagination } from '../shared/UIComponents';
 import PaymentModal from '../shared/PaymentModal';
 import { clsx } from 'clsx';
 
@@ -19,6 +19,8 @@ const DonorMarketplace = ({ user }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [urgencyFilter, setUrgencyFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
@@ -34,6 +36,34 @@ const DonorMarketplace = ({ user }) => {
     const matchesUrgency = urgencyFilter === 'all' || r.urgency === urgencyFilter;
     return matchesSearch && matchesCategory && matchesUrgency;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredRequests.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedRequests = filteredRequests.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleCategoryChange = (category) => {
+    setCategoryFilter(category);
+    resetPage();
+  };
+
+  const handleUrgencyChange = (urgency) => {
+    setUrgencyFilter(urgency);
+    resetPage();
+  };
 
   const categories = ['all', 'Mobility', 'Monitoring', 'Safety', 'Home Care'];
   const urgencies = ['all', 'High', 'Medium', 'Low'];
@@ -130,7 +160,7 @@ const DonorMarketplace = ({ user }) => {
           <Input
             placeholder="Search equipment..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             icon={Search}
           />
 
@@ -143,7 +173,7 @@ const DonorMarketplace = ({ user }) => {
                     key={category}
                     variant={categoryFilter === category ? 'primary' : 'outline'}
                     size="sm"
-                    onClick={() => setCategoryFilter(category)}
+                    onClick={() => handleCategoryChange(category)}
                   >
                     {category === 'all' ? 'All' : category}
                   </Button>
@@ -159,7 +189,7 @@ const DonorMarketplace = ({ user }) => {
                     key={urgency}
                     variant={urgencyFilter === urgency ? 'primary' : 'outline'}
                     size="sm"
-                    onClick={() => setUrgencyFilter(urgency)}
+                    onClick={() => handleUrgencyChange(urgency)}
                   >
                     {urgency === 'all' ? 'All' : urgency}
                   </Button>
@@ -173,7 +203,7 @@ const DonorMarketplace = ({ user }) => {
       {/* Equipment Requests Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRequests.length > 0 ? (
-          filteredRequests.map((request) => (
+          paginatedRequests.map((request) => (
             <Card key={request.id} className="hover:shadow-xl transition-shadow">
               <div className="flex items-start gap-2 mb-3">
                 <span className="text-3xl">{categoryIcons[request.category] || '📦'}</span>
@@ -218,6 +248,31 @@ const DonorMarketplace = ({ user }) => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {filteredRequests.length > 0 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredRequests.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            rowsPerPageOptions={[6, 9, 12, 18]}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+        </div>
+      )}
 
       {/* Payment Modal */}
       <PaymentModal

@@ -12,7 +12,7 @@ import {
   Video,
   CheckCircle
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Modal, Avatar } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Modal, Avatar, Pagination } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientAppointments = ({ user }) => {
@@ -24,6 +24,8 @@ const PatientAppointments = ({ user }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, upcoming, completed, cancelled
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [newAppointment, setNewAppointment] = useState({
     doctor_name: '',
@@ -62,6 +64,29 @@ const PatientAppointments = ({ user }) => {
       (filterStatus === 'cancelled' && apt.status === 'Cancelled');
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAppointments.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedAppointments = filteredAppointments.slice(startIndex, startIndex + rowsPerPage);
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleRowsPerPageChange = (rows) => {
+    setRowsPerPage(rows);
+    setCurrentPage(1);
+  };
+  const resetPage = () => setCurrentPage(1);
+
+  // Reset page when search/filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    resetPage();
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    resetPage();
+  };
 
   const upcomingCount = myAppointments.filter(a => a.status === 'Confirmed').length;
   const completedCount = myAppointments.filter(a => a.status === 'Completed').length;
@@ -158,7 +183,7 @@ const PatientAppointments = ({ user }) => {
             <Input
               placeholder="Search by doctor or specialization..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               icon={Search}
             />
           </div>
@@ -166,21 +191,21 @@ const PatientAppointments = ({ user }) => {
             <Button
               variant={filterStatus === 'all' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('all')}
+              onClick={() => handleFilterChange('all')}
             >
               All
             </Button>
             <Button
               variant={filterStatus === 'upcoming' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('upcoming')}
+              onClick={() => handleFilterChange('upcoming')}
             >
               Upcoming
             </Button>
             <Button
               variant={filterStatus === 'completed' ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setFilterStatus('completed')}
+              onClick={() => handleFilterChange('completed')}
             >
               Completed
             </Button>
@@ -198,8 +223,9 @@ const PatientAppointments = ({ user }) => {
       {/* Appointments List */}
       <Card title="Your Appointments">
         {filteredAppointments.length > 0 ? (
+          <>
           <div className="space-y-4">
-            {filteredAppointments.map((apt) => (
+            {paginatedAppointments.map((apt) => (
               <div
                 key={apt.id}
                 className="flex flex-col md:flex-row items-start md:items-center gap-4 p-5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
@@ -263,6 +289,25 @@ const PatientAppointments = ({ user }) => {
               </div>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredAppointments.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
+          />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -348,7 +393,25 @@ const PatientAppointments = ({ user }) => {
                 )
               }
             ]}
-            data={filteredAppointments}
+            data={paginatedAppointments}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredAppointments.length}
+            rowsPerPage={rowsPerPage}
+            onPageChange={handlePageChange}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            isRTL={isRTL}
+            labels={language === 'ar' ? {
+              show: 'عرض',
+              perPage: 'لكل صفحة',
+              of: 'من',
+              first: 'الأولى',
+              previous: 'السابقة',
+              next: 'التالية',
+              last: 'الأخيرة'
+            } : {}}
           />
         </Card>
       )}

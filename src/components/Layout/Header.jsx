@@ -42,6 +42,7 @@ const Header = ({ user, onLogout }) => {
           ...baseItems,
           { path: '/patient/medications', label: t('my_medications') },
           { path: '/patient/appointments', label: t('my_appointments') },
+          { path: '/patient/records', label: t('medical_records') },
           { path: '/patient/equipment', label: t('equipment_requests') },
         ];
       case 'family':
