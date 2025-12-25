@@ -9,7 +9,9 @@ import {
   Stethoscope,
   Activity,
   ChevronRight,
-  CalendarDays
+  CalendarDays,
+  TrendingUp,
+  AlertTriangle
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
@@ -18,6 +20,7 @@ import {
   getDoctorById
 } from '../../data/mockData';
 import { StatCard, Card, Table, Badge, Button, Input, Modal, Avatar, Select } from '../shared/UIComponents';
+import { DonutChart, AreaChart, RadialBarChart } from '../shared/Charts';
 import { clsx } from 'clsx';
 
 const InteractiveDoctorDashboard = ({ user }) => {
@@ -155,6 +158,54 @@ const InteractiveDoctorDashboard = ({ user }) => {
 
   // Total count of upcoming appointments
   const upcomingAppointmentsCount = groupedAppointments.today.length + groupedAppointments.tomorrow.length + groupedAppointments.later.length;
+
+  // Patient demographics for chart
+  const patientDemographics = useMemo(() => {
+    const male = patients.filter(p => p.gender === 'Male').length;
+    const female = patients.filter(p => p.gender === 'Female').length;
+    return {
+      series: [male, female],
+      labels: [language === 'ar' ? 'ذكور' : 'Male', language === 'ar' ? 'إناث' : 'Female']
+    };
+  }, [language]);
+
+  // Fall risk distribution
+  const fallRiskDistribution = useMemo(() => {
+    const high = patients.filter(p => p.fallRisk === 'High').length;
+    const medium = patients.filter(p => p.fallRisk === 'Medium').length;
+    const low = patients.filter(p => p.fallRisk === 'Low').length;
+    return {
+      series: [high, medium, low],
+      labels: [
+        language === 'ar' ? 'عالي' : 'High Risk',
+        language === 'ar' ? 'متوسط' : 'Medium Risk',
+        language === 'ar' ? 'منخفض' : 'Low Risk'
+      ]
+    };
+  }, [language]);
+
+  // Weekly consultation stats (mock data)
+  const weeklyConsultations = useMemo(() => ({
+    series: [{
+      name: language === 'ar' ? 'الاستشارات' : 'Consultations',
+      data: [8, 12, 10, 15, 9, 6, 4]
+    }],
+    categories: language === 'ar'
+      ? ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  }), [language]);
+
+  // Appointment types distribution
+  const appointmentTypes = useMemo(() => {
+    const types = {};
+    doctorAppointments.forEach(apt => {
+      types[apt.type] = (types[apt.type] || 0) + 1;
+    });
+    return {
+      series: Object.values(types).length > 0 ? Object.values(types) : [3, 2, 1],
+      labels: Object.keys(types).length > 0 ? Object.keys(types) : ['Follow-up', 'Consultation', 'Checkup']
+    };
+  }, [doctorAppointments]);
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
@@ -383,6 +434,60 @@ const InteractiveDoctorDashboard = ({ user }) => {
         />
       </div>
 
+      {/* Analytics Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Weekly Consultations Chart */}
+        <Card className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-blue-500" />
+              {language === 'ar' ? 'الاستشارات الأسبوعية' : 'Weekly Consultations'}
+            </h3>
+            <span className="text-sm text-gray-500">
+              {language === 'ar' ? 'آخر 7 أيام' : 'Last 7 days'}
+            </span>
+          </div>
+          <AreaChart
+            series={weeklyConsultations.series}
+            categories={weeklyConsultations.categories}
+            height={180}
+            colors={['#3b82f6']}
+          />
+        </Card>
+
+        {/* Patient Demographics */}
+        <Card>
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4 text-purple-500" />
+            {language === 'ar' ? 'توزيع المرضى' : 'Patient Demographics'}
+          </h3>
+          <DonutChart
+            series={patientDemographics.series}
+            labels={patientDemographics.labels}
+            height={160}
+            colors={['#3b82f6', '#ec4899']}
+            centerText={{
+              label: language === 'ar' ? 'المجموع' : 'Total',
+              value: patients.length.toString()
+            }}
+          />
+        </Card>
+
+        {/* Fall Risk Distribution */}
+        <Card>
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-orange-500" />
+            {language === 'ar' ? 'مخاطر السقوط' : 'Fall Risk'}
+          </h3>
+          <RadialBarChart
+            series={fallRiskDistribution.series.map(v => Math.round((v / patients.length) * 100))}
+            labels={fallRiskDistribution.labels}
+            height={160}
+            colors={['#ef4444', '#f59e0b', '#22c55e']}
+          />
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Upcoming Appointments - Timeline View */}
         <Card
@@ -523,9 +628,9 @@ const InteractiveDoctorDashboard = ({ user }) => {
           )}
         </Card>
 
-        {/* Quick Actions */}
-        <Card title="Quick Actions">
-          <div className="space-y-3">
+        {/* Quick Actions & Appointment Types */}
+        <Card title={language === 'ar' ? 'إجراءات سريعة' : 'Quick Actions'}>
+          <div className="space-y-3 mb-6">
             <Button
               variant="outline"
               className="w-full justify-start"
@@ -548,15 +653,29 @@ const InteractiveDoctorDashboard = ({ user }) => {
               icon={Calendar}
               onClick={() => handleScheduleAppointment(patients[0])}
             >
-              Schedule Appointment
+              {language === 'ar' ? 'جدولة موعد' : 'Schedule Appointment'}
             </Button>
             <Button
               variant="outline"
               className="w-full justify-start"
               icon={Activity}
             >
-              View Reports
+              {language === 'ar' ? 'عرض التقارير' : 'View Reports'}
             </Button>
+          </div>
+
+          {/* Appointment Types Distribution */}
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-green-500" />
+              {language === 'ar' ? 'أنواع المواعيد' : 'Appointment Types'}
+            </h4>
+            <DonutChart
+              series={appointmentTypes.series}
+              labels={appointmentTypes.labels}
+              height={140}
+              colors={['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6']}
+            />
           </div>
         </Card>
       </div>

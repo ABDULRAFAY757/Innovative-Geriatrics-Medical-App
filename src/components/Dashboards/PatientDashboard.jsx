@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Pill,
   Calendar,
@@ -9,11 +9,16 @@ import {
   Plus,
   Package,
   Check,
-  MapPin
+  MapPin,
+  Heart,
+  Thermometer,
+  Droplets,
+  TrendingUp
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { StatCard, Card, Badge, Button, Modal, Input } from '../shared/UIComponents';
+import { LineChart, AreaChart, DonutChart, SparklineChart } from '../shared/Charts';
 import { clsx } from 'clsx';
 
 const InteractivePatientDashboard = ({ user }) => {
@@ -58,6 +63,15 @@ const InteractivePatientDashboard = ({ user }) => {
   const [timeSinceReading, setTimeSinceReading] = useState(null);
   const [isReadingCooldown, setIsReadingCooldown] = useState(false);
 
+  // Historical readings for charts
+  const [readingsHistory, setReadingsHistory] = useState({
+    bloodPressure: { systolic: [128, 132, 130, 135, 129, 132], diastolic: [82, 85, 80, 88, 83, 82] },
+    heartRate: [70, 72, 68, 75, 71, 72],
+    temperature: [36.8, 37.0, 36.9, 37.1, 36.8, 37.0],
+    oxygen: [96, 95, 97, 94, 96, 95],
+  });
+  const [historyLabels] = useState(['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', 'Now']);
+
   // Update the time since last reading every second
   useEffect(() => {
     if (!lastReadingTime) return;
@@ -86,31 +100,48 @@ const InteractivePatientDashboard = ({ user }) => {
     if (isReadingCooldown) return;
 
     // Generate new random values
+    const newSystolic = Math.floor(Math.random() * 30) + 110;
+    const newDiastolic = Math.floor(Math.random() * 20) + 70;
+    const newHeartRate = Math.floor(Math.random() * 40) + 60;
+    const newTemp = parseFloat((Math.random() * 1.5 + 36.5).toFixed(1));
+    const newOxygen = Math.floor(Math.random() * 5) + 95;
+
     const newReadings = {
       'Blood Pressure': {
-        value: `${Math.floor(Math.random() * 30) + 110}/${Math.floor(Math.random() * 20) + 70}`,
+        value: `${newSystolic}/${newDiastolic}`,
         unit: 'mmHg',
-        status: Math.random() > 0.7 ? 'High' : 'Normal',
+        status: newSystolic > 130 ? 'High' : 'Normal',
       },
       'Heart Rate': {
-        value: `${Math.floor(Math.random() * 40) + 60}`,
+        value: `${newHeartRate}`,
         unit: 'bpm',
-        status: Math.random() > 0.8 ? 'High' : 'Normal',
+        status: newHeartRate > 90 ? 'High' : 'Normal',
       },
       'Temperature': {
-        value: `${(Math.random() * 1.5 + 36.5).toFixed(1)}`,
+        value: `${newTemp}`,
         unit: '°C',
-        status: Math.random() > 0.9 ? 'High' : 'Normal',
+        status: newTemp > 37.5 ? 'High' : 'Normal',
       },
       'Blood Oxygen': {
-        value: `${Math.floor(Math.random() * 5) + 95}`,
+        value: `${newOxygen}`,
         unit: '%',
-        status: Math.random() > 0.85 ? 'Low' : 'Normal',
+        status: newOxygen < 95 ? 'Low' : 'Normal',
       },
     };
 
     // Update local state immediately for instant UI update
     setCurrentReadings(newReadings);
+
+    // Update history for charts
+    setReadingsHistory(prev => ({
+      bloodPressure: {
+        systolic: [...prev.bloodPressure.systolic.slice(1), newSystolic],
+        diastolic: [...prev.bloodPressure.diastolic.slice(1), newDiastolic],
+      },
+      heartRate: [...prev.heartRate.slice(1), newHeartRate],
+      temperature: [...prev.temperature.slice(1), newTemp],
+      oxygen: [...prev.oxygen.slice(1), newOxygen],
+    }));
 
     // Record the time of this reading
     setLastReadingTime(new Date());
@@ -130,6 +161,12 @@ const InteractivePatientDashboard = ({ user }) => {
   const myAppointments = appointments.filter(a => a.patient_id === patientId);
   const myEquipment = equipmentRequests.filter(e => e.patient_id === patientId);
   const myAlerts = fallAlerts.filter(a => a.patient_id === patientId);
+
+  // Calculate medication adherence
+  const avgAdherence = useMemo(() => {
+    if (myMedications.length === 0) return 100;
+    return Math.round(myMedications.reduce((acc, m) => acc + m.adherence_rate, 0) / myMedications.length);
+  }, [myMedications]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -170,6 +207,27 @@ const InteractivePatientDashboard = ({ user }) => {
   if (!patient) {
     return <div className="p-8 text-center">{t('loading')}</div>;
   }
+
+  const vitalIcons = {
+    'Blood Pressure': Heart,
+    'Heart Rate': Activity,
+    'Temperature': Thermometer,
+    'Blood Oxygen': Droplets,
+  };
+
+  const vitalColors = {
+    'Blood Pressure': { bg: 'bg-red-50', icon: 'text-red-500', chart: '#ef4444' },
+    'Heart Rate': { bg: 'bg-pink-50', icon: 'text-pink-500', chart: '#ec4899' },
+    'Temperature': { bg: 'bg-cyan-50', icon: 'text-cyan-500', chart: '#06b6d4' },
+    'Blood Oxygen': { bg: 'bg-blue-50', icon: 'text-blue-500', chart: '#3b82f6' },
+  };
+
+  const vitalSparklineData = {
+    'Blood Pressure': readingsHistory.bloodPressure.systolic,
+    'Heart Rate': readingsHistory.heartRate,
+    'Temperature': readingsHistory.temperature,
+    'Blood Oxygen': readingsHistory.oxygen,
+  };
 
   return (
     <div
@@ -214,6 +272,138 @@ const InteractivePatientDashboard = ({ user }) => {
           color="orange"
           subtitle={`${myAlerts.filter(a => a.status === 'Resolved').length} resolved`}
         />
+      </div>
+
+      {/* Health Metrics with Charts */}
+      <Card
+        title={t('health_metrics')}
+        className="mb-8"
+        action={
+          <div className="flex items-center gap-2">
+            {timeSinceReading && (
+              <span className="text-sm text-gray-500">{timeSinceReading}</span>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Activity}
+              onClick={generateSensorReading}
+              disabled={isReadingCooldown}
+            >
+              {isReadingCooldown ? 'Reading...' : 'Take Reading'}
+            </Button>
+          </div>
+        }
+      >
+        {/* Vitals Grid with Sparklines */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {Object.keys(currentReadings).map((type) => {
+            const reading = currentReadings[type];
+            const Icon = vitalIcons[type];
+            const colors = vitalColors[type];
+            const sparkData = vitalSparklineData[type];
+
+            return (
+              <div key={type} className={clsx('p-4 rounded-xl transition-all', colors.bg)}>
+                <div className="flex items-center justify-between mb-2">
+                  <Icon className={clsx('w-5 h-5', colors.icon)} />
+                  <SparklineChart data={sparkData} height={30} color={colors.chart} />
+                </div>
+                <p className="text-xs text-gray-500">{type}</p>
+                <p className="text-xl font-bold text-gray-900">{reading.value}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-xs text-gray-400">{reading.unit}</span>
+                  <Badge
+                    variant={reading.status === 'Normal' ? 'success' : 'warning'}
+                    size="sm"
+                  >
+                    {reading.status === 'Normal' ? (
+                      <>{reading.status}</>
+                    ) : (
+                      <><TrendingUp className="w-3 h-3 mr-1" />{reading.status}</>
+                    )}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+      </Card>
+
+      {/* Charts Row - Blood Pressure, Adherence, Activity */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Blood Pressure Trend Chart */}
+        <Card className="md:col-span-2">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-500" />
+            {language === 'ar' ? 'اتجاه ضغط الدم' : 'Blood Pressure Trend'}
+          </h4>
+          <LineChart
+            series={[
+              { name: language === 'ar' ? 'الانقباضي' : 'Systolic', data: readingsHistory.bloodPressure.systolic },
+              { name: language === 'ar' ? 'الانبساطي' : 'Diastolic', data: readingsHistory.bloodPressure.diastolic },
+            ]}
+            categories={historyLabels}
+            height={160}
+            colors={['#ef4444', '#3b82f6']}
+          />
+        </Card>
+
+        {/* Medication Adherence - Dynamic based on actual data */}
+        <Card>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <Pill className="w-4 h-4 text-green-500" />
+            {language === 'ar' ? 'الالتزام بالأدوية' : 'Med Adherence'}
+          </h4>
+          <DonutChart
+            series={[avgAdherence, 100 - avgAdherence]}
+            labels={[language === 'ar' ? 'تم تناوله' : 'Taken', language === 'ar' ? 'فائت' : 'Missed']}
+            height={140}
+            colors={['#22c55e', '#ef4444']}
+            centerText={{
+              label: language === 'ar' ? 'الالتزام' : 'Adherence',
+              value: `${avgAdherence}%`
+            }}
+          />
+        </Card>
+      </div>
+
+      {/* Health Tips Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Droplets className="w-5 h-5 text-blue-600" />
+            <h4 className="font-semibold text-blue-900">{language === 'ar' ? 'نصيحة اليوم' : 'Daily Tip'}</h4>
+          </div>
+          <p className="text-sm text-blue-800">
+            {language === 'ar'
+              ? 'اشرب 8 أكواب من الماء يومياً للحفاظ على صحتك'
+              : 'Drink 8 glasses of water daily to stay hydrated and maintain good health.'}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="w-5 h-5 text-green-600" />
+            <h4 className="font-semibold text-green-900">{language === 'ar' ? 'النشاط البدني' : 'Stay Active'}</h4>
+          </div>
+          <p className="text-sm text-green-800">
+            {language === 'ar'
+              ? 'المشي لمدة 30 دقيقة يومياً يحسن صحة القلب'
+              : 'Walk for 30 minutes daily to improve heart health and circulation.'}
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Heart className="w-5 h-5 text-purple-600" />
+            <h4 className="font-semibold text-purple-900">{language === 'ar' ? 'صحة القلب' : 'Heart Health'}</h4>
+          </div>
+          <p className="text-sm text-purple-800">
+            {language === 'ar'
+              ? 'قلل من الملح للحفاظ على ضغط دم صحي'
+              : 'Reduce salt intake to maintain healthy blood pressure levels.'}
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -298,6 +488,44 @@ const InteractivePatientDashboard = ({ user }) => {
               <p className="text-center text-gray-500 py-4">{t('no_medications')}</p>
             )}
           </div>
+
+          {/* Medication Adherence Chart - Bar Chart for individual medication adherence */}
+          {myMedications.length > 0 && (
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  {language === 'ar' ? 'معدل الالتزام لكل دواء' : 'Adherence by Medication'}
+                </h4>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  {language === 'ar' ? 'المتوسط' : 'Avg'}: {avgAdherence}%
+                </span>
+              </div>
+              <div className="space-y-3">
+                {myMedications.map((med) => (
+                  <div key={med.id} className="flex items-center gap-3">
+                    <div className="w-24 truncate text-sm text-gray-600">{med.medication_name}</div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className={clsx(
+                          "h-full rounded-full transition-all duration-500",
+                          med.adherence_rate >= 90 ? "bg-green-500" :
+                          med.adherence_rate >= 70 ? "bg-yellow-500" : "bg-red-500"
+                        )}
+                        style={{ width: `${med.adherence_rate}%` }}
+                      />
+                    </div>
+                    <div className={clsx(
+                      "text-sm font-medium w-12 text-right",
+                      med.adherence_rate >= 90 ? "text-green-600" :
+                      med.adherence_rate >= 70 ? "text-yellow-600" : "text-red-600"
+                    )}>
+                      {med.adherence_rate}%
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Upcoming Appointments - INTERACTIVE */}
@@ -353,51 +581,21 @@ const InteractivePatientDashboard = ({ user }) => {
               <p className="text-center text-gray-500 py-4">{t('no_appointments')}</p>
             )}
           </div>
+
+          {/* Weekly Activity Chart */}
+          <div className="mt-6 pt-4 border-t">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              {language === 'ar' ? 'نشاط الأسبوع' : 'Weekly Activity'}
+            </h4>
+            <AreaChart
+              series={[{ name: language === 'ar' ? 'درجة النشاط' : 'Activity', data: [45, 62, 78, 55, 82, 68, 75] }]}
+              categories={['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
+              height={140}
+              colors={['#8b5cf6']}
+            />
+          </div>
         </Card>
       </div>
-
-      {/* Health Metrics - INTERACTIVE */}
-      <Card
-        title={t('health_metrics')}
-        className="mb-8"
-        action={
-          <div className="flex items-center gap-2">
-            {timeSinceReading && (
-              <span className="text-sm text-gray-500">{timeSinceReading}</span>
-            )}
-            <Button
-              variant="primary"
-              size="sm"
-              icon={Activity}
-              onClick={generateSensorReading}
-              disabled={isReadingCooldown}
-            >
-              {isReadingCooldown ? 'Reading...' : 'Last Reading'}
-            </Button>
-          </div>
-        }
-      >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Object.keys(currentReadings).map((type) => {
-            const reading = currentReadings[type];
-            return (
-              <div key={type} className="p-4 bg-gray-50 rounded-lg text-center hover:bg-gray-100 transition-colors cursor-pointer">
-                <Activity className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">{type}</p>
-                <p className="text-xl font-bold text-gray-900">{reading.value}</p>
-                <p className="text-xs text-gray-400">{reading.unit}</p>
-                <Badge
-                  variant={reading.status === 'Normal' ? 'success' : 'warning'}
-                  size="sm"
-                  className="mt-2"
-                >
-                  {reading.status}
-                </Badge>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
 
       {/* Equipment Requests - INTERACTIVE */}
       <Card

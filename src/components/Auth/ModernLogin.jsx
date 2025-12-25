@@ -10,9 +10,9 @@ import {
   AlertCircle,
   CheckCircle,
   Heart,
-  Shield,
   Users,
-  Activity
+  Activity,
+  Shield
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -32,12 +32,11 @@ const ModernLogin = () => {
   const [error, setError] = useState('');
   const [selectedRole, setSelectedRole] = useState('patient');
 
-  // Demo credentials for easy testing
+  // Demo credentials for easy testing (3 roles: Patient, Doctor, Family)
   const demoCredentials = {
     patient: { email: 'patient1@elderly.sa', password: 'patient123' },
     doctor: { email: 'doctor1@kfmc.sa', password: 'doctor123' },
-    family: { email: 'family1@gmail.com', password: 'family123' },
-    donor: { email: 'donor1@charity.sa', password: 'donor123' }
+    family: { email: 'family1@gmail.com', password: 'family123' }
   };
 
   const handleSubmit = async (e) => {
@@ -49,13 +48,12 @@ const ModernLogin = () => {
       const result = await login(formData.email, formData.password, formData.rememberMe);
 
       if (result.success) {
-        // Redirect based on role
+        // Redirect based on role (3 main roles: Patient, Doctor, Family)
         const roleRoutes = {
           patient: '/patient',
           doctor: '/doctor',
           family: '/family',
-          donor: '/donor',
-          admin: '/patient' // Admin can access all dashboards
+          admin: '/doctor' // Admin can access all dashboards
         };
 
         navigate(roleRoutes[result.user.role] || '/');
@@ -79,6 +77,7 @@ const ModernLogin = () => {
     setSelectedRole(role);
   };
 
+  // 3 main role cards for the app
   const roleCards = [
     {
       role: 'patient',
@@ -100,13 +99,6 @@ const ModernLogin = () => {
       icon: Heart,
       color: 'purple',
       description: language === 'ar' ? 'مراقبة الأحباء' : 'Monitor loved ones'
-    },
-    {
-      role: 'donor',
-      title: language === 'ar' ? 'متبرع' : 'Donor',
-      icon: Shield,
-      color: 'orange',
-      description: language === 'ar' ? 'دعم المجتمع' : 'Support community'
     }
   ];
 
