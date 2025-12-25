@@ -149,6 +149,57 @@ export const Input = ({
   );
 };
 
+// Select Component with smooth transitions
+export const Select = ({
+  label,
+  value,
+  onChange,
+  options = [],
+  placeholder = 'Select an option',
+  className,
+  error,
+  disabled = false,
+}) => {
+  return (
+    <div className={className}>
+      {label && <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>}
+      <div className="relative">
+        <select
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={clsx(
+            'w-full h-11 px-4 pr-10 border-2 rounded-xl appearance-none cursor-pointer',
+            'bg-white text-gray-900 text-base',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+            'transition-all duration-200 ease-in-out',
+            'hover:border-gray-400',
+            error ? 'border-red-500' : 'border-gray-200',
+            disabled && 'opacity-50 cursor-not-allowed bg-gray-100'
+          )}
+        >
+          {placeholder && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+    </div>
+  );
+};
+
 // Table Component
 export const Table = ({ columns, data, emptyMessage = 'No data available' }) => {
   if (data.length === 0) {

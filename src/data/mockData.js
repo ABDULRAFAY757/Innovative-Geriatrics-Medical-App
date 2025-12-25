@@ -543,6 +543,14 @@ export const getDonationsByRequest = (requestId) =>
 
 // Additional data for comprehensive dashboards
 
+// Helper to create dates relative to today
+const getRelativeDate = (daysOffset, hours = 9, minutes = 0) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+};
+
 export const appointments = [
   {
     id: "apt1",
@@ -550,7 +558,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
-    date: "2024-12-25T09:00:00Z",
+    date: getRelativeDate(0, 9, 0), // Today 9:00 AM
     type: "Consultation",
     status: "Confirmed",
     notes: "Regular checkup and medication review"
@@ -558,10 +566,10 @@ export const appointments = [
   {
     id: "apt2",
     patient_id: "2",
-    doctor_id: "2",
-    doctor_name: "Dr. Mohamed Hassan",
-    specialization: "Internal Medicine",
-    date: "2024-12-26T10:30:00Z",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    date: getRelativeDate(0, 11, 30), // Today 11:30 AM
     type: "Follow-up",
     status: "Confirmed",
     notes: "Post-treatment follow-up"
@@ -572,21 +580,65 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
-    date: "2024-12-24T14:00:00Z",
+    date: getRelativeDate(1, 10, 0), // Tomorrow 10:00 AM
     type: "Consultation",
-    status: "Confirmed",
+    status: "Scheduled",
     notes: "Stroke recovery assessment"
   },
   {
     id: "apt4",
     patient_id: "1",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    date: getRelativeDate(1, 14, 30), // Tomorrow 2:30 PM
+    type: "Checkup",
+    status: "Scheduled",
+    notes: "Blood pressure monitoring"
+  },
+  {
+    id: "apt5",
+    patient_id: "2",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    date: getRelativeDate(3, 9, 0), // 3 days later
+    type: "Lab Review",
+    status: "Scheduled",
+    notes: "Review blood test results"
+  },
+  {
+    id: "apt6",
+    patient_id: "3",
+    doctor_id: "1",
+    doctor_name: "Dr. Lama Algaraini",
+    specialization: "Geriatrics",
+    date: getRelativeDate(5, 11, 0), // 5 days later
+    type: "Follow-up",
+    status: "Scheduled",
+    notes: "Physical therapy progress check"
+  },
+  {
+    id: "apt7",
+    patient_id: "1",
     doctor_id: "3",
     doctor_name: "Dr. Aisha Al-Saud",
     specialization: "Cardiology",
-    date: "2024-12-27T11:00:00Z",
+    date: getRelativeDate(7, 10, 0), // 7 days later
     type: "Specialist Consultation",
     status: "Scheduled",
     notes: "Heart health evaluation"
+  },
+  {
+    id: "apt8",
+    patient_id: "2",
+    doctor_id: "2",
+    doctor_name: "Dr. Mohamed Hassan",
+    specialization: "Internal Medicine",
+    date: getRelativeDate(2, 14, 0), // 2 days later
+    type: "Consultation",
+    status: "Scheduled",
+    notes: "General health assessment"
   }
 ];
 

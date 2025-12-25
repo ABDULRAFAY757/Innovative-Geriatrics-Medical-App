@@ -367,7 +367,13 @@ export const ROLE_PERMISSIONS = {
 
       // Financial
       PERMISSIONS.GENERATE_INVOICES.id,
-      PERMISSIONS.VIEW_BILLING.id
+      PERMISSIONS.VIEW_BILLING.id,
+
+      // Charity Centre (Donations)
+      PERMISSIONS.VIEW_MARKETPLACE.id,
+      PERMISSIONS.MAKE_DONATIONS.id,
+      PERMISSIONS.VIEW_DONATION_HISTORY.id,
+      PERMISSIONS.PROCESS_PAYMENTS.id
     ],
     routes: ['/doctor/*'],
     dashboards: ['doctor']
@@ -399,34 +405,16 @@ export const ROLE_PERMISSIONS = {
 
       // Limited Clinical Access
       PERMISSIONS.VIEW_CLINICAL_NOTES.id,
-      PERMISSIONS.VIEW_TEST_RESULTS.id
-    ],
-    routes: ['/family/*'],
-    dashboards: ['family']
-  },
+      PERMISSIONS.VIEW_TEST_RESULTS.id,
 
-  donor: {
-    name: 'Donor',
-    description: 'Community donor supporting patients',
-    level: 1,
-    permissions: [
-      // Data Access
-      PERMISSIONS.VIEW_OWN_DATA.id,
-
-      // Data Modification
-      PERMISSIONS.EDIT_OWN_PROFILE.id,
-
-      // Marketplace
+      // Charity Centre (Donations)
       PERMISSIONS.VIEW_MARKETPLACE.id,
       PERMISSIONS.MAKE_DONATIONS.id,
       PERMISSIONS.VIEW_DONATION_HISTORY.id,
-
-      // Financial
-      PERMISSIONS.PROCESS_PAYMENTS.id,
-      PERMISSIONS.VIEW_BILLING.id // Own donations
+      PERMISSIONS.PROCESS_PAYMENTS.id
     ],
-    routes: ['/donor/*'],
-    dashboards: ['donor']
+    routes: ['/family/*'],
+    dashboards: ['family']
   },
 
   admin: {
@@ -435,7 +423,7 @@ export const ROLE_PERMISSIONS = {
     level: 5,
     permissions: Object.keys(PERMISSIONS).map(key => PERMISSIONS[key].id),
     routes: ['*'],
-    dashboards: ['patient', 'doctor', 'family', 'donor', 'admin']
+    dashboards: ['patient', 'doctor', 'family', 'admin']
   }
 };
 
@@ -449,7 +437,6 @@ export const FEATURE_PERMISSIONS = {
     patient: true,
     doctor: true,
     family: true,
-    donor: true,
     admin: true
   },
 

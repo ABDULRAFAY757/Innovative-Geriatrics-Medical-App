@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
+import { doctors } from '../../data/mockData';
 import {
   Calendar,
   Clock,
@@ -10,9 +11,10 @@ import {
   Search,
   ChevronRight,
   Video,
-  CheckCircle
+  CheckCircle,
+  Stethoscope
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Modal, Avatar, Pagination } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Modal, Avatar, Pagination, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientAppointments = ({ user }) => {
@@ -27,15 +29,44 @@ const PatientAppointments = ({ user }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const [newAppointment, setNewAppointment] = useState({
+    doctor_id: '',
     doctor_name: '',
-    specialization: 'General',
+    specialization: '',
     type: 'Consultation',
     date: '',
     time: '',
-    location: 'King Fahad Medical City',
+    location: '',
     notes: ''
   });
+
+  // Doctor options for dropdown
+  const doctorOptions = useMemo(() =>
+    doctors.map(doc => ({
+      value: doc.id,
+      label: `${doc.nameEn} - ${doc.specialization}`,
+    })), []);
+
+  // Get selected doctor details
+  const selectedDoctor = useMemo(() =>
+    doctors.find(d => d.id === selectedDoctorId), [selectedDoctorId]);
+
+  // Update appointment when doctor is selected
+  const handleDoctorSelect = (e) => {
+    const doctorId = e.target.value;
+    setSelectedDoctorId(doctorId);
+    const doctor = doctors.find(d => d.id === doctorId);
+    if (doctor) {
+      setNewAppointment(prev => ({
+        ...prev,
+        doctor_id: doctor.id,
+        doctor_name: doctor.nameEn,
+        specialization: doctor.specialization,
+        location: doctor.hospital
+      }));
+    }
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -92,13 +123,13 @@ const PatientAppointments = ({ user }) => {
   const completedCount = myAppointments.filter(a => a.status === 'Completed').length;
 
   const handleBookAppointment = () => {
-    if (!newAppointment.doctor_name || !newAppointment.date || !newAppointment.time) {
+    if (!selectedDoctorId || !newAppointment.date || !newAppointment.time) {
       return;
     }
 
     const appointmentData = {
       patient_id: patientId,
-      doctor_id: '1',
+      doctor_id: newAppointment.doctor_id,
       doctor_name: newAppointment.doctor_name,
       specialization: newAppointment.specialization,
       type: newAppointment.type,
@@ -109,13 +140,15 @@ const PatientAppointments = ({ user }) => {
 
     bookAppointment(appointmentData);
     setShowNewAppointment(false);
+    setSelectedDoctorId('');
     setNewAppointment({
+      doctor_id: '',
       doctor_name: '',
-      specialization: 'General',
+      specialization: '',
       type: 'Consultation',
       date: '',
       time: '',
-      location: 'King Fahad Medical City',
+      location: '',
       notes: ''
     });
   };
@@ -420,100 +453,131 @@ const PatientAppointments = ({ user }) => {
       <Modal
         isOpen={showNewAppointment}
         onClose={() => setShowNewAppointment(false)}
-        title="Book New Appointment"
+        title={language === 'ar' ? 'حجز موعد جديد' : 'Book New Appointment'}
         size="lg"
       >
         <div className="space-y-4">
-          <Input
-            label="Doctor Name"
-            placeholder="e.g., Dr. Ahmed Hassan"
-            value={newAppointment.doctor_name}
-            onChange={(e) => setNewAppointment({ ...newAppointment, doctor_name: e.target.value })}
+          {/* Doctor Selection Dropdown */}
+          <Select
+            label={language === 'ar' ? 'اختر الطبيب' : 'Select Doctor'}
+            value={selectedDoctorId}
+            onChange={handleDoctorSelect}
+            options={doctorOptions}
+            placeholder={language === 'ar' ? 'اختر طبيباً...' : 'Choose a doctor...'}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Specialization
-              </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                value={newAppointment.specialization}
-                onChange={(e) => setNewAppointment({ ...newAppointment, specialization: e.target.value })}
-              >
-                <option value="General">General Medicine</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Orthopedics">Orthopedics</option>
-                <option value="Geriatrics">Geriatrics</option>
-              </select>
+          {/* Selected Doctor Info Card */}
+          {selectedDoctor && (
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100 animate-fadeIn transition-all duration-300">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white rounded-full shadow-sm">
+                  <Stethoscope className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900">{selectedDoctor.nameEn}</h4>
+                  <p className="text-sm text-gray-600">{selectedDoctor.specialization}</p>
+                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {selectedDoctor.hospital}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {selectedDoctor.availability}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-1 text-yellow-500">
+                    {'★'.repeat(Math.floor(selectedDoctor.rating || 4))}
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 mt-1">
+                    {selectedDoctor.consultationFee} SAR
+                  </p>
+                </div>
+              </div>
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Appointment Type
-              </label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                value={newAppointment.type}
-                onChange={(e) => setNewAppointment({ ...newAppointment, type: e.target.value })}
-              >
-                <option value="Consultation">Consultation</option>
-                <option value="Follow-up">Follow-up</option>
-                <option value="Checkup">Checkup</option>
-                <option value="Lab Review">Lab Review</option>
-              </select>
-            </div>
-          </div>
+          {/* Appointment Type */}
+          <Select
+            label={language === 'ar' ? 'نوع الموعد' : 'Appointment Type'}
+            value={newAppointment.type}
+            onChange={(e) => setNewAppointment({ ...newAppointment, type: e.target.value })}
+            options={[
+              { value: 'Consultation', label: language === 'ar' ? 'استشارة' : 'Consultation' },
+              { value: 'Follow-up', label: language === 'ar' ? 'متابعة' : 'Follow-up' },
+              { value: 'Checkup', label: language === 'ar' ? 'فحص' : 'Checkup' },
+              { value: 'Lab Review', label: language === 'ar' ? 'مراجعة المختبر' : 'Lab Review' },
+            ]}
+            placeholder=""
+          />
 
+          {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <Input
               type="date"
-              label="Date"
+              label={language === 'ar' ? 'التاريخ' : 'Date'}
               value={newAppointment.date}
               onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })}
             />
             <Input
               type="time"
-              label="Time"
+              label={language === 'ar' ? 'الوقت' : 'Time'}
               value={newAppointment.time}
               onChange={(e) => setNewAppointment({ ...newAppointment, time: e.target.value })}
             />
           </div>
 
+          {/* Location (auto-filled from doctor) */}
           <Input
-            label="Location"
-            placeholder="Hospital or Clinic"
+            label={language === 'ar' ? 'الموقع' : 'Location'}
+            placeholder={language === 'ar' ? 'المستشفى أو العيادة' : 'Hospital or Clinic'}
             value={newAppointment.location}
             onChange={(e) => setNewAppointment({ ...newAppointment, location: e.target.value })}
           />
 
+          {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes / Reason for Visit
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {language === 'ar' ? 'ملاحظات / سبب الزيارة' : 'Notes / Reason for Visit'}
             </label>
             <textarea
               className="w-full h-24 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base resize-none"
-              placeholder="Describe the reason for your appointment..."
+              placeholder={language === 'ar' ? 'صف سبب موعدك...' : 'Describe the reason for your appointment...'}
               value={newAppointment.notes}
               onChange={(e) => setNewAppointment({ ...newAppointment, notes: e.target.value })}
             />
           </div>
 
+          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button
               variant="secondary"
-              onClick={() => setShowNewAppointment(false)}
+              onClick={() => {
+                setShowNewAppointment(false);
+                setSelectedDoctorId('');
+                setNewAppointment({
+                  doctor_id: '',
+                  doctor_name: '',
+                  specialization: '',
+                  type: 'Consultation',
+                  date: '',
+                  time: '',
+                  location: '',
+                  notes: ''
+                });
+              }}
               className="flex-1"
             >
-              Cancel
+              {language === 'ar' ? 'إلغاء' : 'Cancel'}
             </Button>
             <Button
               onClick={handleBookAppointment}
               className="flex-1"
-              disabled={!newAppointment.doctor_name || !newAppointment.date || !newAppointment.time}
+              disabled={!selectedDoctorId || !newAppointment.date || !newAppointment.time}
             >
-              Book Appointment
+              {language === 'ar' ? 'حجز الموعد' : 'Book Appointment'}
             </Button>
           </div>
         </div>

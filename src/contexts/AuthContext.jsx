@@ -171,18 +171,6 @@ const USER_DATABASE = {
     twoFactorEnabled: false
   },
 
-  // Donors
-  'donor1@charity.sa': {
-    id: 'd1',
-    email: 'donor1@charity.sa',
-    password: 'donor123',
-    role: 'donor',
-    name: 'مؤسسة الرياض الخيرية',
-    nameEn: 'Riyadh Charity Foundation',
-    verified: true,
-    twoFactorEnabled: false
-  },
-
   // Admin
   'admin@elderly.sa': {
     id: 'admin1',

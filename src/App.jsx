@@ -11,11 +11,10 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 // Layout
 import Header from './components/Layout/Header';
 
-// Dashboards
+// Dashboards (3 main roles: Patient, Doctor, Family)
 import PatientDashboard from './components/Dashboards/PatientDashboard';
 import FamilyDashboard from './components/Dashboards/FamilyDashboard';
 import DoctorDashboard from './components/Dashboards/DoctorDashboard';
-import DonorDashboard from './components/Dashboards/DonorDashboard';
 
 // Common Pages
 import Profile from './components/Pages/Profile';
@@ -31,14 +30,14 @@ import PatientRecords from './components/Pages/PatientRecords';
 // Doctor Pages
 import DoctorPatients from './components/Pages/DoctorPatients';
 import DoctorAppointments from './components/Pages/DoctorAppointments';
+import DoctorMedicalRecords from './components/Pages/DoctorMedicalRecords';
 
 // Family Pages
 import FamilyCareTasks from './components/Pages/FamilyCareTasks';
 import FamilyAlerts from './components/Pages/FamilyAlerts';
 
-// Donor Pages
-import DonorMarketplace from './components/Pages/DonorMarketplace';
-import DonorDonations from './components/Pages/DonorDonations';
+// Charity Centre - accessible by Doctor and Family roles
+import CharityCentre from './components/Pages/CharityCentre';
 
 /**
  * Dashboard Layout Wrapper with Header and Toast Notifications
@@ -125,6 +124,8 @@ function AppRoutes() {
                 <Route index element={<DoctorDashboard user={user} />} />
                 <Route path="patients" element={<DoctorPatients user={user} />} />
                 <Route path="appointments" element={<DoctorAppointments user={user} />} />
+                <Route path="records" element={<DoctorMedicalRecords user={user} />} />
+                <Route path="charity" element={<CharityCentre user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />
                 <Route path="help" element={<Help user={user} />} />
@@ -144,25 +145,7 @@ function AppRoutes() {
                 <Route index element={<FamilyDashboard user={user} />} />
                 <Route path="care-tasks" element={<FamilyCareTasks user={user} />} />
                 <Route path="alerts" element={<FamilyAlerts user={user} />} />
-                <Route path="profile" element={<Profile user={user} />} />
-                <Route path="settings" element={<Settings user={user} />} />
-                <Route path="help" element={<Help user={user} />} />
-              </Routes>
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Donor Routes - RBAC Protected */}
-      <Route
-        path="/donor/*"
-        element={
-          <ProtectedRoute requiredRole="donor">
-            <DashboardLayout>
-              <Routes>
-                <Route index element={<DonorDashboard user={user} />} />
-                <Route path="marketplace" element={<DonorMarketplace user={user} />} />
-                <Route path="donations" element={<DonorDonations user={user} />} />
+                <Route path="charity" element={<CharityCentre user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />
                 <Route path="help" element={<Help user={user} />} />

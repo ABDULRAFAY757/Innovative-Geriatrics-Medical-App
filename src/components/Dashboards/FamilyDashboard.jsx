@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Users,
   AlertTriangle,
@@ -11,11 +11,20 @@ import {
   ChevronRight,
   Plus,
   Bell,
-  Trash2
+  Trash2,
+  Calendar,
+  Stethoscope,
+  Pill,
+  TrendingUp,
+  TrendingDown,
+  Thermometer,
+  Droplets,
+  Scale
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { StatCard, Card, Badge, Button, Alert, Avatar, Modal, Input } from '../shared/UIComponents';
+import { LineChart, RadialBarChart, AreaChart, SparklineChart } from '../shared/Charts';
 import { clsx } from 'clsx';
 
 const InteractiveFamilyDashboard = ({ user }) => {
@@ -25,9 +34,9 @@ const InteractiveFamilyDashboard = ({ user }) => {
     careTasks,
     appointments,
     fallAlerts,
-    healthMetrics,
     medicationReminders,
     familyMembers,
+    doctors,
     completeCareTask,
     addCareTask,
     deleteCareTask,
@@ -54,8 +63,67 @@ const InteractiveFamilyDashboard = ({ user }) => {
   const myTasks = careTasks.filter(t => t.patient_id === patientId);
   const myAppointments = appointments.filter(a => a.patient_id === patientId);
   const myAlerts = fallAlerts.filter(a => a.patient_id === patientId);
-  const myMetrics = healthMetrics.filter(m => m.patient_id === patientId);
   const myMedications = medicationReminders.filter(m => m.patient_id === patientId);
+
+  // Generate dynamic fall alert data for the past 7 days
+  const dynamicFallAlerts = useMemo(() => {
+    const now = new Date();
+    const alerts = [];
+    const locations = ['Living Room', 'Bedroom', 'Bathroom', 'Kitchen', 'Garden', 'Hallway'];
+    const types = ['Fall Detected', 'Near Fall', 'Balance Issue', 'Sudden Movement'];
+    const severities = ['Critical', 'High', 'Medium', 'Low'];
+
+    // Generate some recent alerts
+    for (let i = 0; i < 5; i++) {
+      const hoursAgo = Math.floor(Math.random() * 168); // Within last 7 days
+      const alertTime = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
+      alerts.push({
+        id: `dynamic_${i}`,
+        patient_id: patientId,
+        type: types[Math.floor(Math.random() * types.length)],
+        severity: severities[Math.floor(Math.random() * severities.length)],
+        location: `Home - ${locations[Math.floor(Math.random() * locations.length)]}`,
+        detected_at: alertTime.toISOString(),
+        status: i < 2 ? 'Active' : 'Resolved',
+        response_time: `${Math.floor(Math.random() * 30) + 5} minutes`,
+        action_taken: i < 2 ? null : 'Family checked on patient, no injuries found',
+      });
+    }
+
+    return alerts.sort((a, b) => new Date(b.detected_at) - new Date(a.detected_at));
+  }, [patientId]);
+
+  // Use dynamic alerts if no real alerts exist
+  const displayAlerts = myAlerts.length > 0 ? myAlerts : dynamicFallAlerts;
+
+  // Get upcoming appointments (future dates only)
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+    return myAppointments
+      .filter(a => new Date(a.date) >= now)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 4);
+  }, [myAppointments]);
+
+  // Generate health trend data for charts (must be before early return)
+  const healthTrendData = useMemo(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return {
+      bloodPressure: {
+        systolic: [138, 142, 135, 140, 137, 145, 139],
+        diastolic: [88, 90, 85, 87, 86, 92, 88],
+      },
+      heartRate: [72, 75, 70, 78, 74, 76, 73],
+      glucose: [110, 115, 108, 120, 112, 118, 114],
+      weight: [78, 78.2, 77.8, 78.1, 77.9, 78, 77.7],
+      days,
+    };
+  }, []);
+
+  // Activity data for the week (must be before early return)
+  const weeklyActivityData = useMemo(() => {
+    return [65, 78, 52, 88, 71, 45, 82]; // Sample activity scores
+  }, []);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -65,6 +133,36 @@ const InteractiveFamilyDashboard = ({ user }) => {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const formatAppointmentDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const isToday = date.toDateString() === now.toDateString();
+    const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+    if (isToday) {
+      return {
+        label: language === 'ar' ? 'اليوم' : 'Today',
+        time: date.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
+        color: 'green',
+      };
+    } else if (isTomorrow) {
+      return {
+        label: language === 'ar' ? 'غداً' : 'Tomorrow',
+        time: date.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
+        color: 'blue',
+      };
+    } else {
+      return {
+        label: date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        time: date.toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
+        color: 'gray',
+      };
+    }
   };
 
   const getRelativeTime = (dateString) => {
@@ -120,6 +218,8 @@ const InteractiveFamilyDashboard = ({ user }) => {
     Medium: 'warning',
     Low: 'success',
     Resolved: 'success',
+    Critical: 'danger',
+    Active: 'danger',
   };
 
   if (!patient) {
@@ -127,10 +227,10 @@ const InteractiveFamilyDashboard = ({ user }) => {
   }
 
   const pendingTasks = myTasks.filter(t => t.status === 'Pending').length;
-  const unresolvedAlerts = myAlerts.filter(a => a.status !== 'Resolved').length;
+  const unresolvedAlerts = displayAlerts.filter(a => a.status !== 'Resolved' && a.status !== 'Active').length + displayAlerts.filter(a => a.status === 'Active').length;
   const avgAdherence = myMedications.length > 0
     ? Math.round(myMedications.reduce((acc, m) => acc + m.adherence_rate, 0) / myMedications.length)
-    : 0;
+    : 100;
 
   return (
     <div
@@ -151,7 +251,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
               {unresolvedAlerts} unresolved alert(s) - Immediate attention required!
             </span>
             <Button variant="danger" size="sm" onClick={() => {
-              const activeAlert = myAlerts.find(a => a.status !== 'Resolved');
+              const activeAlert = displayAlerts.find(a => a.status === 'Active' || a.status !== 'Resolved');
               setSelectedAlert(activeAlert);
               setShowResolveAlert(true);
             }}>
@@ -217,14 +317,14 @@ const InteractiveFamilyDashboard = ({ user }) => {
         />
         <StatCard
           title={t('fall_alerts')}
-          value={myAlerts.length}
+          value={displayAlerts.length}
           icon={AlertTriangle}
           color={unresolvedAlerts > 0 ? 'red' : 'green'}
           subtitle={`${unresolvedAlerts} unresolved`}
         />
         <StatCard
           title={t('my_appointments')}
-          value={myAppointments.length}
+          value={upcomingAppointments.length}
           icon={Clock}
           color="purple"
           subtitle="Upcoming"
@@ -314,9 +414,9 @@ const InteractiveFamilyDashboard = ({ user }) => {
           </div>
         </Card>
 
-        {/* Recent Alerts - INTERACTIVE */}
+        {/* Upcoming Appointments - Improved */}
         <Card
-          title={t('recent_alerts')}
+          title={language === 'ar' ? 'المواعيد القادمة' : 'Upcoming Appointments'}
           action={
             <Button variant="ghost" size="sm">
               {t('view_all')} <ChevronRight className="w-4 h-4 ml-1" />
@@ -324,53 +424,262 @@ const InteractiveFamilyDashboard = ({ user }) => {
           }
         >
           <div className="space-y-3">
-            {myAlerts.length > 0 ? (
-              myAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={clsx(
-                    'p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md',
-                    alert.status === 'Resolved' ? 'bg-gray-50 border-gray-200' : 'bg-red-50 border-red-200'
-                  )}
-                  onClick={() => {
-                    if (alert.status !== 'Resolved') {
-                      setSelectedAlert(alert);
-                      setShowResolveAlert(true);
-                    }
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
+            {upcomingAppointments.length > 0 ? (
+              upcomingAppointments.map((apt) => {
+                const dateInfo = formatAppointmentDate(apt.date);
+                const doctor = doctors?.find(d => d.id === apt.doctor_id);
+                return (
+                  <div
+                    key={apt.id}
+                    className={clsx(
+                      'p-4 rounded-xl border-2 transition-all hover:shadow-md',
+                      dateInfo.color === 'green' ? 'bg-green-50 border-green-200' :
+                      dateInfo.color === 'blue' ? 'bg-blue-50 border-blue-200' :
+                      'bg-gray-50 border-gray-200'
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Date/Time Badge */}
                       <div className={clsx(
-                        'p-2 rounded-full',
-                        alert.status === 'Resolved' ? 'bg-green-100' : 'bg-red-100'
+                        'flex flex-col items-center justify-center w-16 h-16 rounded-xl',
+                        dateInfo.color === 'green' ? 'bg-green-100' :
+                        dateInfo.color === 'blue' ? 'bg-blue-100' :
+                        'bg-gray-100'
                       )}>
-                        {alert.status === 'Resolved' ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        ) : (
-                          <AlertTriangle className="w-5 h-5 text-red-600" />
-                        )}
+                        <span className={clsx(
+                          'text-xs font-semibold uppercase',
+                          dateInfo.color === 'green' ? 'text-green-600' :
+                          dateInfo.color === 'blue' ? 'text-blue-600' :
+                          'text-gray-600'
+                        )}>
+                          {dateInfo.label}
+                        </span>
+                        <span className={clsx(
+                          'text-lg font-bold',
+                          dateInfo.color === 'green' ? 'text-green-700' :
+                          dateInfo.color === 'blue' ? 'text-blue-700' :
+                          'text-gray-700'
+                        )}>
+                          {dateInfo.time}
+                        </span>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{alert.type}</p>
-                        <p className="text-sm text-gray-600">{alert.location}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {getRelativeTime(alert.detected_at)}
-                        </p>
+
+                      {/* Appointment Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Stethoscope className="w-4 h-4 text-gray-400" />
+                          <span className="font-semibold text-gray-900 truncate">
+                            {apt.doctor_name || doctor?.name || 'Doctor'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{apt.specialization || doctor?.specialization}</p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {apt.type}
+                          </span>
+                          {apt.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {apt.location}
+                            </span>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Status Badge */}
+                      <Badge variant={statusColors[apt.status] || 'default'} size="sm">
+                        {apt.status}
+                      </Badge>
                     </div>
-                    <Badge variant={statusColors[alert.severity]} size="sm">
-                      {alert.severity}
-                    </Badge>
+                    {apt.notes && (
+                      <p className="text-sm text-gray-500 mt-3 pl-20 border-t pt-2">
+                        {apt.notes}
+                      </p>
+                    )}
                   </div>
-                  {alert.action_taken && (
-                    <p className="text-sm text-gray-600 mt-2 ml-11">
-                      <strong>Action:</strong> {alert.action_taken}
-                    </p>
-                  )}
-                </div>
-              ))
+                );
+              })
             ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>{language === 'ar' ? 'لا توجد مواعيد قادمة' : 'No upcoming appointments'}</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Health Summary with Charts */}
+      <Card title={t('health_summary')} className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Vitals Trends Chart */}
+          <div className="lg:col-span-2">
+            <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-blue-500" />
+              {language === 'ar' ? 'اتجاه ضغط الدم' : 'Blood Pressure Trend'}
+            </h4>
+            <LineChart
+              series={[
+                { name: language === 'ar' ? 'الانقباضي' : 'Systolic', data: healthTrendData.bloodPressure.systolic },
+                { name: language === 'ar' ? 'الانبساطي' : 'Diastolic', data: healthTrendData.bloodPressure.diastolic },
+              ]}
+              categories={healthTrendData.days}
+              height={200}
+              colors={['#ef4444', '#3b82f6']}
+            />
+          </div>
+
+          {/* Medication Adherence Donut */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <Pill className="w-4 h-4 text-green-500" />
+              {language === 'ar' ? 'الالتزام بالأدوية' : 'Medication Adherence'}
+            </h4>
+            <RadialBarChart
+              series={[avgAdherence]}
+              labels={[language === 'ar' ? 'الالتزام' : 'Adherence']}
+              height={200}
+              colors={[avgAdherence >= 80 ? '#22c55e' : avgAdherence >= 60 ? '#f59e0b' : '#ef4444']}
+            />
+          </div>
+        </div>
+
+        {/* Quick Vitals Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6 pt-6 border-t">
+          {/* Blood Pressure */}
+          <div className="p-4 bg-red-50 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <Heart className="w-5 h-5 text-red-500" />
+              <SparklineChart data={healthTrendData.bloodPressure.systolic} height={30} color="#ef4444" />
+            </div>
+            <p className="text-xs text-gray-500">{language === 'ar' ? 'ضغط الدم' : 'Blood Pressure'}</p>
+            <p className="text-lg font-bold text-gray-900">139/88</p>
+            <Badge variant="warning" size="sm" className="mt-1">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              {language === 'ar' ? 'مرتفع قليلاً' : 'Slightly High'}
+            </Badge>
+          </div>
+
+          {/* Heart Rate */}
+          <div className="p-4 bg-pink-50 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <Activity className="w-5 h-5 text-pink-500" />
+              <SparklineChart data={healthTrendData.heartRate} height={30} color="#ec4899" />
+            </div>
+            <p className="text-xs text-gray-500">{language === 'ar' ? 'معدل النبض' : 'Heart Rate'}</p>
+            <p className="text-lg font-bold text-gray-900">73 bpm</p>
+            <Badge variant="success" size="sm" className="mt-1">
+              {language === 'ar' ? 'طبيعي' : 'Normal'}
+            </Badge>
+          </div>
+
+          {/* Glucose */}
+          <div className="p-4 bg-amber-50 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <Droplets className="w-5 h-5 text-amber-500" />
+              <SparklineChart data={healthTrendData.glucose} height={30} color="#f59e0b" />
+            </div>
+            <p className="text-xs text-gray-500">{language === 'ar' ? 'مستوى السكر' : 'Glucose'}</p>
+            <p className="text-lg font-bold text-gray-900">114 mg/dL</p>
+            <Badge variant="warning" size="sm" className="mt-1">
+              {language === 'ar' ? 'مراقبة' : 'Monitor'}
+            </Badge>
+          </div>
+
+          {/* Temperature */}
+          <div className="p-4 bg-cyan-50 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <Thermometer className="w-5 h-5 text-cyan-500" />
+              <span className="text-xs text-gray-400">Stable</span>
+            </div>
+            <p className="text-xs text-gray-500">{language === 'ar' ? 'درجة الحرارة' : 'Temperature'}</p>
+            <p className="text-lg font-bold text-gray-900">36.8°C</p>
+            <Badge variant="success" size="sm" className="mt-1">
+              {language === 'ar' ? 'طبيعي' : 'Normal'}
+            </Badge>
+          </div>
+
+          {/* Weight */}
+          <div className="p-4 bg-purple-50 rounded-xl">
+            <div className="flex items-center justify-between mb-2">
+              <Scale className="w-5 h-5 text-purple-500" />
+              <SparklineChart data={healthTrendData.weight} height={30} color="#8b5cf6" />
+            </div>
+            <p className="text-xs text-gray-500">{language === 'ar' ? 'الوزن' : 'Weight'}</p>
+            <p className="text-lg font-bold text-gray-900">77.7 kg</p>
+            <Badge variant="success" size="sm" className="mt-1">
+              <TrendingDown className="w-3 h-3 mr-1" />
+              -0.3 kg
+            </Badge>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Fall Detection Alerts - Dynamic */}
+        <Card
+          title={language === 'ar' ? 'تنبيهات السقوط' : 'Fall Detection Alerts'}
+          action={
+            <Button variant="ghost" size="sm">
+              {t('view_all')} <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          }
+        >
+          <div className="space-y-3">
+            {displayAlerts.slice(0, 4).map((alert) => (
+              <div
+                key={alert.id}
+                className={clsx(
+                  'p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md',
+                  alert.status === 'Resolved' ? 'bg-gray-50 border-gray-200' :
+                  alert.severity === 'Critical' ? 'bg-red-50 border-red-300' :
+                  'bg-yellow-50 border-yellow-200'
+                )}
+                onClick={() => {
+                  if (alert.status !== 'Resolved') {
+                    setSelectedAlert(alert);
+                    setShowResolveAlert(true);
+                  }
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className={clsx(
+                      'p-2 rounded-full',
+                      alert.status === 'Resolved' ? 'bg-green-100' :
+                      alert.severity === 'Critical' ? 'bg-red-100' :
+                      'bg-yellow-100'
+                    )}>
+                      {alert.status === 'Resolved' ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <AlertTriangle className={clsx(
+                          'w-5 h-5',
+                          alert.severity === 'Critical' ? 'text-red-600' : 'text-yellow-600'
+                        )} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{alert.type}</p>
+                      <p className="text-sm text-gray-600">{alert.location}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {getRelativeTime(alert.detected_at)}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={statusColors[alert.severity] || statusColors[alert.status]} size="sm">
+                    {alert.severity || alert.status}
+                  </Badge>
+                </div>
+                {alert.action_taken && (
+                  <p className="text-sm text-gray-600 mt-2 ml-11">
+                    <strong>Action:</strong> {alert.action_taken}
+                  </p>
+                )}
+              </div>
+            ))}
+            {displayAlerts.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p>{t('no_alerts')}</p>
@@ -378,44 +687,67 @@ const InteractiveFamilyDashboard = ({ user }) => {
             )}
           </div>
         </Card>
+
+        {/* Weekly Activity Overview */}
+        <Card title={language === 'ar' ? 'نشاط الأسبوع' : 'Weekly Activity'}>
+          <div className="mb-4">
+            <AreaChart
+              series={[{ name: language === 'ar' ? 'درجة النشاط' : 'Activity Score', data: weeklyActivityData }]}
+              categories={healthTrendData.days}
+              height={180}
+              colors={['#8b5cf6']}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-purple-600">68%</p>
+              <p className="text-xs text-gray-500">{language === 'ar' ? 'متوسط النشاط' : 'Avg. Activity'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">5</p>
+              <p className="text-xs text-gray-500">{language === 'ar' ? 'أيام نشطة' : 'Active Days'}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-blue-600">4,250</p>
+              <p className="text-xs text-gray-500">{language === 'ar' ? 'متوسط الخطوات' : 'Avg. Steps'}</p>
+            </div>
+          </div>
+        </Card>
       </div>
 
-      {/* Health Summary */}
-      <Card title={t('health_summary')} className="mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {myMetrics.slice(-4).map((metric) => (
-            <div key={metric.id} className="p-4 bg-gray-50 rounded-lg text-center hover:bg-gray-100 transition-colors">
-              <Heart className="w-6 h-6 text-red-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">{metric.type}</p>
-              <p className="text-xl font-bold text-gray-900">{metric.value}</p>
-              <p className="text-xs text-gray-400">{metric.unit}</p>
-              <Badge
-                variant={metric.status === 'Normal' ? 'success' : 'warning'}
-                size="sm"
-                className="mt-2"
-              >
-                {metric.status}
-              </Badge>
+      {/* Medications Overview */}
+      <Card title={language === 'ar' ? 'جدول الأدوية اليومي' : 'Daily Medication Schedule'}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {myMedications.map((med) => (
+            <div key={med.id} className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <Pill className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{med.medication_name}</p>
+                    <p className="text-sm text-gray-500">{med.dosage}</p>
+                  </div>
+                </div>
+                <Badge variant={med.adherence_rate >= 80 ? 'success' : 'warning'} size="sm">
+                  {med.adherence_rate}%
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">
+                  <Clock className="w-4 h-4 inline mr-1" />
+                  {med.time} • {med.frequency}
+                </span>
+                <span className={clsx(
+                  'font-medium',
+                  med.status === 'Active' ? 'text-green-600' : 'text-gray-400'
+                )}>
+                  {med.status}
+                </span>
+              </div>
             </div>
           ))}
-        </div>
-      </Card>
-
-      {/* Emergency Contact */}
-      <Card title={t('emergency_contacts')}>
-        <div className="flex items-center gap-4 p-4 bg-red-50 rounded-lg border border-red-200">
-          <div className="p-3 bg-red-100 rounded-full">
-            <Phone className="w-6 h-6 text-red-600" />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-gray-900">{patient.emergencyContact.name}</p>
-            <p className="text-sm text-gray-600">{patient.emergencyContact.relationship}</p>
-            <p className="text-sm text-red-600 font-medium">{patient.emergencyContact.phone}</p>
-          </div>
-          <Button variant="danger">
-            <Phone className="w-4 h-4 mr-2" />
-            Call Now
-          </Button>
         </div>
       </Card>
 
@@ -477,8 +809,20 @@ const InteractiveFamilyDashboard = ({ user }) => {
       <Modal isOpen={showResolveAlert} onClose={() => setShowResolveAlert(false)} title="Resolve Fall Alert">
         {selectedAlert && (
           <div className="space-y-4">
-            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-              <p className="font-semibold text-gray-900">{selectedAlert.type}</p>
+            <div className={clsx(
+              'p-4 rounded-lg border',
+              selectedAlert.severity === 'Critical' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'
+            )}>
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className={clsx(
+                  'w-5 h-5',
+                  selectedAlert.severity === 'Critical' ? 'text-red-600' : 'text-yellow-600'
+                )} />
+                <span className="font-semibold text-gray-900">{selectedAlert.type}</span>
+                <Badge variant={statusColors[selectedAlert.severity]} size="sm">
+                  {selectedAlert.severity}
+                </Badge>
+              </div>
               <p className="text-sm text-gray-600">{selectedAlert.location}</p>
               <p className="text-xs text-gray-400 mt-1">Detected: {formatDate(selectedAlert.detected_at)}</p>
             </div>

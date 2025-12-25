@@ -24,11 +24,11 @@ const Header = ({ user, onLogout }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
+  // 3 main roles: Patient, Doctor, Family
   const roleColors = {
     patient: 'bg-blue-600',
     family: 'bg-green-600',
     doctor: 'bg-purple-600',
-    donor: 'bg-red-600',
   };
 
   const getNavItems = () => {
@@ -50,18 +50,15 @@ const Header = ({ user, onLogout }) => {
           ...baseItems,
           { path: '/family/care-tasks', label: t('care_tasks') },
           { path: '/family/alerts', label: t('recent_alerts') },
+          { path: '/family/charity', label: language === 'ar' ? 'مركز التبرعات' : 'Charity Centre' },
         ];
       case 'doctor':
         return [
           ...baseItems,
           { path: '/doctor/patients', label: t('my_patients') },
           { path: '/doctor/appointments', label: t('todays_appointments') },
-        ];
-      case 'donor':
-        return [
-          ...baseItems,
-          { path: '/donor/marketplace', label: t('equipment_marketplace') },
-          { path: '/donor/donations', label: t('my_donations') },
+          { path: '/doctor/records', label: t('medical_records') },
+          { path: '/doctor/charity', label: language === 'ar' ? 'مركز التبرعات' : 'Charity Centre' },
         ];
       default:
         return baseItems;
