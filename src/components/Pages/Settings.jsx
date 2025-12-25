@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Bell,
   Globe,
@@ -7,13 +8,17 @@ import {
   Volume2,
   Eye,
   Lock,
-  Database
+  Database,
+  Webhook
 } from 'lucide-react';
 import { Card, Button } from '../shared/UIComponents';
+import WebhookSettings from '../shared/WebhookSettings';
 import { clsx } from 'clsx';
 
 const Settings = () => {
   const { t, isRTL, language, toggleLanguage } = useLanguage();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('general');
 
   const [settings, setSettings] = useState({
     // Notifications
@@ -78,6 +83,40 @@ const Settings = () => {
         <p className="text-gray-600 mt-1">Manage your app preferences and configurations</p>
       </div>
 
+      {/* Tab Navigation - Show Webhooks tab for Doctor and Family roles */}
+      {(user?.role === 'doctor' || user?.role === 'family' || user?.role === 'admin') && (
+        <div className="flex gap-2 mb-6 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('general')}
+            className={clsx(
+              'px-4 py-2 font-medium text-sm border-b-2 transition-colors',
+              activeTab === 'general'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
+          >
+            {language === 'ar' ? 'عام' : 'General'}
+          </button>
+          <button
+            onClick={() => setActiveTab('webhooks')}
+            className={clsx(
+              'px-4 py-2 font-medium text-sm border-b-2 transition-colors flex items-center gap-2',
+              activeTab === 'webhooks'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
+          >
+            <Webhook className="w-4 h-4" />
+            Webhooks
+          </button>
+        </div>
+      )}
+
+      {/* Webhook Settings Tab */}
+      {activeTab === 'webhooks' && (user?.role === 'doctor' || user?.role === 'family' || user?.role === 'admin') ? (
+        <WebhookSettings />
+      ) : (
+        <>
       {/* Notifications */}
       <Card title="Notification Preferences" icon={Bell} className="mb-6">
         <div className="space-y-4">
@@ -300,6 +339,8 @@ const Settings = () => {
           <p className="text-xs mt-1">Medical Intern | MNGHA</p>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

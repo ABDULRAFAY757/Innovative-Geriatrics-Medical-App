@@ -13,6 +13,17 @@ import {
   donors as initialDonors,
   familyMembers,
 } from '../data/mockData';
+import {
+  webhookService,
+  WEBHOOK_EVENTS,
+  dispatchFallAlert,
+  dispatchAppointmentEvent,
+  dispatchMedicationEvent,
+  dispatchHealthAlert,
+  dispatchEquipmentEvent,
+  dispatchDonationEvent,
+  dispatchCareTaskEvent,
+} from '../services/WebhookService';
 
 const AppContext = createContext();
 
@@ -198,6 +209,12 @@ export const AppProvider = ({ children }) => {
 
     if (doseTaken) {
       addNotification('success', `${medName} dose recorded!`);
+      // Dispatch webhook for medication taken
+      dispatchMedicationEvent(WEBHOOK_EVENTS.MEDICATION_TAKEN, {
+        medication_id: medicationId,
+        medication_name: medName,
+        taken_at: new Date().toISOString(),
+      });
     } else {
       addNotification('info', `All ${medName} doses completed for today`);
     }
@@ -214,6 +231,8 @@ export const AppProvider = ({ children }) => {
     };
     setMedicationReminders(prev => [...prev, newMed]);
     addNotification('success', 'Medication added successfully!');
+    // Dispatch webhook for medication added
+    dispatchMedicationEvent(WEBHOOK_EVENTS.MEDICATION_ADDED, newMed);
     return newMed;
   };
 
@@ -228,29 +247,45 @@ export const AppProvider = ({ children }) => {
     };
     setAppointments(prev => [...prev, newAppointment]);
     addNotification('success', 'Appointment booked successfully!');
+    // Dispatch webhook for appointment booked
+    dispatchAppointmentEvent(WEBHOOK_EVENTS.APPOINTMENT_BOOKED, newAppointment);
     return newAppointment;
   };
 
   const cancelAppointment = (appointmentId) => {
+    let cancelledAppointment = null;
     setAppointments(prev =>
-      prev.map(apt =>
-        apt.id === appointmentId
-          ? { ...apt, status: 'Cancelled' }
-          : apt
-      )
+      prev.map(apt => {
+        if (apt.id === appointmentId) {
+          cancelledAppointment = { ...apt, status: 'Cancelled' };
+          return cancelledAppointment;
+        }
+        return apt;
+      })
     );
     addNotification('info', 'Appointment cancelled');
+    // Dispatch webhook for appointment cancelled
+    if (cancelledAppointment) {
+      dispatchAppointmentEvent(WEBHOOK_EVENTS.APPOINTMENT_CANCELLED, cancelledAppointment);
+    }
   };
 
   const completeAppointment = (appointmentId) => {
+    let completedAppointment = null;
     setAppointments(prev =>
-      prev.map(apt =>
-        apt.id === appointmentId
-          ? { ...apt, status: 'Completed' }
-          : apt
-      )
+      prev.map(apt => {
+        if (apt.id === appointmentId) {
+          completedAppointment = { ...apt, status: 'Completed' };
+          return completedAppointment;
+        }
+        return apt;
+      })
     );
     addNotification('success', 'Appointment completed!');
+    // Dispatch webhook for appointment completed
+    if (completedAppointment) {
+      dispatchAppointmentEvent(WEBHOOK_EVENTS.APPOINTMENT_COMPLETED, completedAppointment);
+    }
   };
 
   // ========== CARE TASK ACTIONS ==========
@@ -264,18 +299,27 @@ export const AppProvider = ({ children }) => {
     };
     setCareTasks(prev => [...prev, newTask]);
     addNotification('success', 'Care task added!');
+    // Dispatch webhook for care task created
+    dispatchCareTaskEvent(WEBHOOK_EVENTS.CARE_TASK_CREATED, newTask);
     return newTask;
   };
 
   const completeCareTask = (taskId) => {
+    let completedTask = null;
     setCareTasks(prev =>
-      prev.map(task =>
-        task.id === taskId
-          ? { ...task, status: 'Completed', completed_at: new Date().toISOString() }
-          : task
-      )
+      prev.map(task => {
+        if (task.id === taskId) {
+          completedTask = { ...task, status: 'Completed', completed_at: new Date().toISOString() };
+          return completedTask;
+        }
+        return task;
+      })
     );
     addNotification('success', 'Task completed!');
+    // Dispatch webhook for care task completed
+    if (completedTask) {
+      dispatchCareTaskEvent(WEBHOOK_EVENTS.CARE_TASK_COMPLETED, completedTask);
+    }
   };
 
   const deleteCareTask = (taskId) => {
@@ -294,16 +338,31 @@ export const AppProvider = ({ children }) => {
     };
     setEquipmentRequests(prev => [...prev, newRequest]);
     addNotification('success', 'Equipment request created!');
+    // Dispatch webhook for equipment requested
+    dispatchEquipmentEvent(WEBHOOK_EVENTS.EQUIPMENT_REQUESTED, newRequest);
     return newRequest;
   };
 
   const updateEquipmentRequest = (requestId, updates) => {
+    let updatedRequest = null;
     setEquipmentRequests(prev =>
-      prev.map(req =>
-        req.id === requestId ? { ...req, ...updates } : req
-      )
+      prev.map(req => {
+        if (req.id === requestId) {
+          updatedRequest = { ...req, ...updates };
+          return updatedRequest;
+        }
+        return req;
+      })
     );
     addNotification('info', 'Request updated');
+    // Dispatch webhook based on status update
+    if (updatedRequest) {
+      if (updates.status === 'Approved') {
+        dispatchEquipmentEvent(WEBHOOK_EVENTS.EQUIPMENT_APPROVED, updatedRequest);
+      } else if (updates.status === 'Fulfilled') {
+        dispatchEquipmentEvent(WEBHOOK_EVENTS.EQUIPMENT_FULFILLED, updatedRequest);
+      }
+    }
   };
 
   // ========== DONATION ACTIONS ==========
@@ -332,6 +391,8 @@ export const AppProvider = ({ children }) => {
     }
 
     addNotification('success', 'Thank you for your donation!');
+    // Dispatch webhook for donation received
+    dispatchDonationEvent(newDonation);
     return newDonation;
   };
 
@@ -388,10 +449,16 @@ export const AppProvider = ({ children }) => {
     if (!silent) {
       addNotification('success', 'Health metric recorded!');
     }
+    // Dispatch webhook for health metric - check for abnormal values
+    webhookService.dispatch(WEBHOOK_EVENTS.HEALTH_METRIC_RECORDED, newMetric);
+    if (metricData.status === 'Elevated' || metricData.status === 'Low' || metricData.status === 'Critical') {
+      dispatchHealthAlert(newMetric);
+    }
     return newMetric;
   };
 
   const updateHealthMetric = (metricData, silent = false) => {
+    let updatedMetric = null;
     setHealthMetrics(prev => {
       // Find if metric of this type already exists for this patient
       const existingIndex = prev.findIndex(
@@ -406,6 +473,7 @@ export const AppProvider = ({ children }) => {
           ...metricData,
           recorded_at: new Date().toISOString(),
         };
+        updatedMetric = updated[existingIndex];
         return updated;
       } else {
         // Add new metric if it doesn't exist
@@ -414,12 +482,17 @@ export const AppProvider = ({ children }) => {
           ...metricData,
           recorded_at: new Date().toISOString(),
         };
+        updatedMetric = newMetric;
         return [...prev, newMetric];
       }
     });
 
     if (!silent) {
       addNotification('success', 'Health metric updated!');
+    }
+    // Dispatch webhook for abnormal health metrics
+    if (updatedMetric && (metricData.status === 'Elevated' || metricData.status === 'Low' || metricData.status === 'Critical')) {
+      dispatchHealthAlert(updatedMetric);
     }
   };
 
@@ -434,23 +507,32 @@ export const AppProvider = ({ children }) => {
     };
     setFallAlerts(prev => [...prev, newAlert]);
     addNotification('error', `FALL ALERT: ${alertData.patient_name}`);
+    // CRITICAL: Dispatch webhook for fall detection immediately
+    dispatchFallAlert(newAlert);
     return newAlert;
   };
 
   const resolveFallAlert = (alertId, actionTaken) => {
+    let resolvedAlert = null;
     setFallAlerts(prev =>
-      prev.map(alert =>
-        alert.id === alertId
-          ? {
-              ...alert,
-              status: 'Resolved',
-              resolved_at: new Date().toISOString(),
-              action_taken: actionTaken,
-            }
-          : alert
-      )
+      prev.map(alert => {
+        if (alert.id === alertId) {
+          resolvedAlert = {
+            ...alert,
+            status: 'Resolved',
+            resolved_at: new Date().toISOString(),
+            action_taken: actionTaken,
+          };
+          return resolvedAlert;
+        }
+        return alert;
+      })
     );
     addNotification('success', 'Fall alert resolved');
+    // Dispatch webhook for fall resolved
+    if (resolvedAlert) {
+      webhookService.dispatch(WEBHOOK_EVENTS.FALL_RESOLVED, resolvedAlert);
+    }
   };
 
   // ========== NOTIFICATION SYSTEM ==========
@@ -565,6 +647,10 @@ export const AppProvider = ({ children }) => {
     addNotification,
     removeNotification,
     markNotificationRead,
+
+    // Webhook service
+    webhookService,
+    WEBHOOK_EVENTS,
 
     // Utility
     resetAllData,
