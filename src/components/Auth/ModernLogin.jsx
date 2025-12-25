@@ -166,10 +166,51 @@ const ModernLogin = () => {
         </div>
 
         <div className="relative z-10">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
-            <p className="text-sm mb-2">Developed by</p>
-            <p className="font-semibold">Mr. Khaled Bin Salman</p>
-            <p className="text-xs text-blue-100">AI Engineer</p>
+          <div className="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <p className="text-xs font-medium text-blue-200 uppercase tracking-wider">Crafted by Healthcare Innovators</p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Overlapping Avatars */}
+              <div className="flex -space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-rose-400 via-pink-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-bold border-3 border-white/30 shadow-lg shadow-pink-500/30 hover:scale-110 hover:z-10 transition-transform cursor-pointer">
+                  LA
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-sm font-bold border-3 border-white/30 shadow-lg shadow-blue-500/30 hover:scale-110 hover:z-10 transition-transform cursor-pointer">
+                  KS
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 rounded-full flex items-center justify-center text-sm font-bold border-3 border-white/30 shadow-lg shadow-teal-500/30 hover:scale-110 hover:z-10 transition-transform cursor-pointer">
+                  AR
+                </div>
+              </div>
+
+              {/* Team Info */}
+              <div className="flex-1">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  <span className="text-white font-medium">Dr. Lama A.</span>
+                  <span className="text-blue-200">•</span>
+                  <span className="text-white font-medium">Khaled B.S.</span>
+                  <span className="text-blue-200">•</span>
+                  <span className="text-white font-medium">Abdul R.</span>
+                </div>
+                <p className="text-xs text-blue-300 mt-1">Medical × AI × Engineering</p>
+              </div>
+            </div>
+
+            {/* Stats Bar */}
+            <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/10">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+                <span className="text-xs text-blue-200">MNGHA Certified</span>
+              </div>
+              <div className="text-xs text-blue-300">
+                Saudi Arabia 🇸🇦
+              </div>
+            </div>
           </div>
         </div>
       </div>
