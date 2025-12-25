@@ -438,12 +438,6 @@ const InteractivePatientDashboard = ({ user }) => {
                   </div>
                 </div>
 
-                {/* Progress indicator for pending items */}
-                {req.status === 'Pending' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-100">
-                    <div className="h-full w-1/4 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-pulse"></div>
-                  </div>
-                )}
               </div>
             ))
           ) : (
