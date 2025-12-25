@@ -249,7 +249,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">{t('family_dashboard')}</h1>
-        <p className="text-gray-600 mt-1">Caring for {language === 'ar' ? patient.name : patient.nameEn}</p>
+        <p className="text-gray-600 mt-1">Caring for {patient.nameEn}</p>
       </div>
 
       {/* Alert Banner */}
@@ -273,10 +273,10 @@ const InteractiveFamilyDashboard = ({ user }) => {
       {/* Patient Overview Card */}
       <Card className="mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <Avatar name={language === 'ar' ? patient.name : patient.nameEn} size="xl" />
+          <Avatar name={patient.nameEn} size="xl" />
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900">
-              {language === 'ar' ? patient.name : patient.nameEn}
+              {patient.nameEn}
             </h2>
             <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
               <span className="flex items-center gap-1">
@@ -921,7 +921,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
                       <div>
                         <p className="font-medium text-gray-900">{txn.transaction_type}</p>
                         <p className="text-xs text-gray-500">
-                          {txnDoctor ? (language === 'ar' ? txnDoctor.name : txnDoctor.nameEn) : 'Doctor'} • {formatDate(txn.created_at)}
+                          {txnDoctor ? txnDoctor.nameEn : 'Doctor'} • {formatDate(txn.created_at)}
                         </p>
                       </div>
                     </div>

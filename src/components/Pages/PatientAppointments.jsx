@@ -229,10 +229,10 @@ const PatientAppointments = ({ user }) => {
                 <Avatar name={doctor.nameEn} size="xl" />
                 <div className="flex-1">
                   <h3 className="font-bold text-lg text-gray-900">
-                    {language === 'ar' ? doctor.name : doctor.nameEn}
+                    {doctor.nameEn}
                   </h3>
                   <p className="text-blue-600 font-medium">
-                    {language === 'ar' ? doctor.specializationAr : doctor.specialization}
+                    {doctor.specialization}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="flex items-center gap-0.5">

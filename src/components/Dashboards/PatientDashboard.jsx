@@ -243,7 +243,7 @@ const InteractivePatientDashboard = ({ user }) => {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
-          {t('welcome')}, {language === 'ar' ? patient.name : patient.nameEn}!
+          {t('welcome')}, {patient.nameEn}!
         </h1>
         <p className="text-gray-600 mt-1">{t('patient_dashboard_subtitle')}</p>
       </div>
@@ -432,9 +432,9 @@ const InteractivePatientDashboard = ({ user }) => {
                 <Avatar name={doctor.nameEn} size="lg" />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-gray-900 truncate">
-                    {language === 'ar' ? doctor.name : doctor.nameEn}
+                    {doctor.nameEn}
                   </h4>
-                  <p className="text-sm text-blue-600">{language === 'ar' ? doctor.specializationAr : doctor.specialization}</p>
+                  <p className="text-sm text-blue-600">{doctor.specialization}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                     <span className="text-sm text-gray-600">{doctor.rating}</span>

@@ -24,7 +24,8 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
   patients,
-  getDoctorById
+  getDoctorById,
+  medications
 } from '../../data/mockData';
 import { StatCard, Card, Table, Badge, Button, Input, Modal, Avatar, Select } from '../shared/UIComponents';
 import { DonutChart, AreaChart, RadialBarChart } from '../shared/Charts';
@@ -48,6 +49,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showAllAppointmentsModal, setShowAllAppointmentsModal] = useState(false);
+  const [showReportsModal, setShowReportsModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   // Clinical Note Form Data
@@ -109,7 +111,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
   };
 
   const filteredPatients = patients.filter(p => {
-    const name = language === 'ar' ? p.name : p.nameEn;
+    const name = p.nameEn;
     return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            p.p_no.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -214,6 +216,60 @@ const InteractiveDoctorDashboard = ({ user }) => {
       labels: Object.keys(types).length > 0 ? Object.keys(types) : ['Follow-up', 'Consultation', 'Checkup']
     };
   }, [doctorAppointments]);
+
+  // Monthly consultations data for reports
+  const monthlyConsultations = useMemo(() => ({
+    series: [{
+      name: language === 'ar' ? 'الاستشارات' : 'Consultations',
+      data: [45, 52, 38, 65, 48, 72, 58, 61, 55, 70, 62, 48]
+    }],
+    categories: language === 'ar'
+      ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+      : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  }), [language]);
+
+  // Age distribution for reports
+  const ageDistribution = useMemo(() => {
+    const ranges = { '60-65': 0, '66-70': 0, '71-75': 0, '76-80': 0, '80+': 0 };
+    patients.forEach(p => {
+      const age = getPatientAge(p.dateOfBirth);
+      if (age <= 65) ranges['60-65']++;
+      else if (age <= 70) ranges['66-70']++;
+      else if (age <= 75) ranges['71-75']++;
+      else if (age <= 80) ranges['76-80']++;
+      else ranges['80+']++;
+    });
+    return {
+      series: Object.values(ranges),
+      labels: Object.keys(ranges)
+    };
+  }, []);
+
+  // Medical conditions distribution
+  const conditionsDistribution = useMemo(() => {
+    const conditions = {};
+    patients.forEach(p => {
+      p.medicalConditions.forEach(c => {
+        conditions[c] = (conditions[c] || 0) + 1;
+      });
+    });
+    const sorted = Object.entries(conditions).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    return {
+      series: sorted.map(([, count]) => count),
+      labels: sorted.map(([name]) => name)
+    };
+  }, []);
+
+  // Revenue trend data
+  const revenueTrend = useMemo(() => ({
+    series: [{
+      name: language === 'ar' ? 'الإيرادات' : 'Revenue',
+      data: [12500, 15000, 11800, 18200, 14500, 21000, 17500, 19200, 16800, 22500, 18900, 15600]
+    }],
+    categories: language === 'ar'
+      ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+      : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  }), [language]);
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
@@ -372,7 +428,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
-          {t('welcome')}, {language === 'ar' ? doctor.name : doctor.nameEn}!
+          {t('welcome')}, {doctor.nameEn}!
         </h1>
         <p className="text-gray-600 mt-1">{t('doctor_dashboard_subtitle')}</p>
       </div>
@@ -385,10 +441,10 @@ const InteractiveDoctorDashboard = ({ user }) => {
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900">
-              {language === 'ar' ? doctor.name : doctor.nameEn}
+              {doctor.nameEn}
             </h2>
             <p className="text-gray-600">
-              {language === 'ar' ? doctor.specializationAr : doctor.specialization}
+              {doctor.specialization}
             </p>
             <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
               <span>{doctor.hospital}</span>
@@ -531,10 +587,10 @@ const InteractiveDoctorDashboard = ({ user }) => {
                           <span className="text-sm font-semibold text-gray-900">{formatTime(apt.date)}</span>
                         </div>
                         <div className="w-1 h-8 bg-green-500 rounded-full mx-3 flex-shrink-0" />
-                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <Avatar name={patient?.nameEn} size="sm" />
                         <div className="ml-3 flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {language === 'ar' ? patient?.name : patient?.nameEn}
+                            {patient?.nameEn}
                           </p>
                           <p className="text-xs text-gray-500">{apt.type}</p>
                         </div>
@@ -564,10 +620,10 @@ const InteractiveDoctorDashboard = ({ user }) => {
                           <span className="text-sm font-semibold text-gray-900">{formatTime(apt.date)}</span>
                         </div>
                         <div className="w-1 h-8 bg-blue-500 rounded-full mx-3 flex-shrink-0" />
-                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <Avatar name={patient?.nameEn} size="sm" />
                         <div className="ml-3 flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {language === 'ar' ? patient?.name : patient?.nameEn}
+                            {patient?.nameEn}
                           </p>
                           <p className="text-xs text-gray-500">{apt.type}</p>
                         </div>
@@ -598,10 +654,10 @@ const InteractiveDoctorDashboard = ({ user }) => {
                           <p className="text-sm font-semibold text-gray-900">{new Date(apt.date).getDate()}</p>
                         </div>
                         <div className="w-1 h-8 bg-gray-300 rounded-full mx-3 flex-shrink-0" />
-                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                        <Avatar name={patient?.nameEn} size="sm" />
                         <div className="ml-3 flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            {language === 'ar' ? patient?.name : patient?.nameEn}
+                            {patient?.nameEn}
                           </p>
                           <p className="text-xs text-gray-500">{apt.type} · {formatTime(apt.date)}</p>
                         </div>
@@ -658,6 +714,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
               variant="outline"
               className="w-full justify-start"
               icon={Activity}
+              onClick={() => setShowReportsModal(true)}
             >
               {language === 'ar' ? 'عرض التقارير' : 'View Reports'}
             </Button>
@@ -700,9 +757,9 @@ const InteractiveDoctorDashboard = ({ user }) => {
               header: t('name'),
               render: (row) => (
                 <div className="flex items-center gap-3">
-                  <Avatar name={language === 'ar' ? row.name : row.nameEn} size="sm" />
+                  <Avatar name={row.nameEn} size="sm" />
                   <div>
-                    <p className="font-medium">{language === 'ar' ? row.name : row.nameEn}</p>
+                    <p className="font-medium">{row.nameEn}</p>
                     <p className="text-xs text-gray-500">{row.p_no}</p>
                   </div>
                 </div>
@@ -928,8 +985,8 @@ const InteractiveDoctorDashboard = ({ user }) => {
                     const patient = patients.find(p => p.id === row.patient_id);
                     return (
                       <div className="flex items-center gap-2">
-                        <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
-                        <span>{language === 'ar' ? patient?.name : patient?.nameEn}</span>
+                        <Avatar name={patient?.nameEn} size="sm" />
+                        <span>{patient?.nameEn}</span>
                       </div>
                     );
                   }
@@ -1061,11 +1118,22 @@ const InteractiveDoctorDashboard = ({ user }) => {
               <p className="text-sm text-gray-500">{selectedPatient?.p_no}</p>
             </div>
           </div>
-          <Input
+          <Select
             label={t('medication')}
-            placeholder="Medication name"
             value={prescriptionFormData.medication_name}
-            onChange={(e) => setPrescriptionFormData(prev => ({ ...prev, medication_name: e.target.value }))}
+            onChange={(e) => {
+              const selectedMed = medications.find(m => m.name === e.target.value);
+              setPrescriptionFormData(prev => ({
+                ...prev,
+                medication_name: e.target.value,
+                dosage: selectedMed?.dosage?.split(' ')[0] || prev.dosage
+              }));
+            }}
+            options={medications.map(med => ({
+              value: med.name,
+              label: `${med.name} - ${med.category}`
+            }))}
+            placeholder={language === 'ar' ? 'اختر الدواء...' : 'Select medication...'}
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -1127,44 +1195,126 @@ const InteractiveDoctorDashboard = ({ user }) => {
               <p className="text-sm text-gray-500">{selectedPatient?.p_no}</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="date"
-              label="Date"
-              value={appointmentFormData.date}
-              onChange={(e) => setAppointmentFormData(prev => ({ ...prev, date: e.target.value }))}
-            />
-            <Input
-              type="time"
-              label="Time"
-              value={appointmentFormData.time}
-              onChange={(e) => setAppointmentFormData(prev => ({ ...prev, time: e.target.value }))}
-            />
+
+          {/* Quick Date Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'اختر التاريخ' : 'Select Date'}
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {(() => {
+                const dates = [];
+                for (let i = 0; i < 8; i++) {
+                  const date = new Date();
+                  date.setDate(date.getDate() + i);
+                  const dateStr = date.toISOString().split('T')[0];
+                  const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                  const dayNum = date.getDate();
+                  const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                  const isToday = i === 0;
+                  const isTomorrow = i === 1;
+                  dates.push(
+                    <button
+                      key={dateStr}
+                      type="button"
+                      onClick={() => setAppointmentFormData(prev => ({ ...prev, date: dateStr }))}
+                      className={clsx(
+                        'p-3 rounded-xl border-2 text-center transition-all',
+                        appointmentFormData.date === dateStr
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      )}
+                    >
+                      <p className="text-xs text-gray-500">
+                        {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : dayName}
+                      </p>
+                      <p className="text-lg font-bold">{dayNum}</p>
+                      <p className="text-xs text-gray-500">{monthName}</p>
+                    </button>
+                  );
+                }
+                return dates;
+              })()}
+            </div>
           </div>
-          <Select
-            label={language === 'ar' ? 'نوع الموعد' : 'Appointment Type'}
-            value={appointmentFormData.type}
-            onChange={(e) => setAppointmentFormData(prev => ({ ...prev, type: e.target.value }))}
-            options={[
-              { value: 'Follow-up', label: language === 'ar' ? 'متابعة' : 'Follow-up' },
-              { value: 'Consultation', label: language === 'ar' ? 'استشارة' : 'Consultation' },
-              { value: 'Checkup', label: language === 'ar' ? 'فحص' : 'Checkup' },
-              { value: 'Lab Review', label: language === 'ar' ? 'مراجعة المختبر' : 'Lab Review' },
-            ]}
-            placeholder=""
-          />
+
+          {/* Quick Time Slot Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'اختر الوقت' : 'Select Time'}
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map((time) => (
+                <button
+                  key={time}
+                  type="button"
+                  onClick={() => setAppointmentFormData(prev => ({ ...prev, time }))}
+                  className={clsx(
+                    'py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    appointmentFormData.time === time
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  )}
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Appointment Type - Quick Buttons */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'نوع الموعد' : 'Appointment Type'}
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: 'Follow-up', label: 'Follow-up' },
+                { value: 'Consultation', label: 'Consultation' },
+                { value: 'Checkup', label: 'Checkup' },
+                { value: 'Lab Review', label: 'Lab Review' }
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setAppointmentFormData(prev => ({ ...prev, type: type.value }))}
+                  className={clsx(
+                    'py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    appointmentFormData.type === type.value
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                  )}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes - Optional */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <textarea
-              className="w-full h-24 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base resize-none"
+              className="w-full h-16 px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm resize-none"
               placeholder="Additional notes..."
               value={appointmentFormData.notes}
               onChange={(e) => setAppointmentFormData(prev => ({ ...prev, notes: e.target.value }))}
             />
           </div>
-          <div className="flex justify-end gap-3">
+
+          {/* Summary & Actions */}
+          {appointmentFormData.date && appointmentFormData.time && (
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">Scheduled for:</span>{' '}
+                {new Date(appointmentFormData.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} at {appointmentFormData.time}
+              </p>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-2">
             <Button variant="secondary" onClick={() => setShowAppointmentModal(false)}>
               Cancel
             </Button>
@@ -1201,9 +1351,9 @@ const InteractiveDoctorDashboard = ({ user }) => {
                       <div className="w-20 flex-shrink-0 text-center">
                         <span className="text-sm font-bold text-green-700">{formatTime(apt.date)}</span>
                       </div>
-                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                      <Avatar name={patient?.nameEn} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{language === 'ar' ? patient?.name : patient?.nameEn}</p>
+                        <p className="font-medium text-gray-900 truncate">{patient?.nameEn}</p>
                         <p className="text-xs text-gray-500 truncate">{apt.type} • {apt.notes}</p>
                       </div>
                       <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
@@ -1229,9 +1379,9 @@ const InteractiveDoctorDashboard = ({ user }) => {
                       <div className="w-20 flex-shrink-0 text-center">
                         <span className="text-sm font-bold text-blue-700">{formatTime(apt.date)}</span>
                       </div>
-                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                      <Avatar name={patient?.nameEn} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{language === 'ar' ? patient?.name : patient?.nameEn}</p>
+                        <p className="font-medium text-gray-900 truncate">{patient?.nameEn}</p>
                         <p className="text-xs text-gray-500 truncate">{apt.type} • {apt.notes}</p>
                       </div>
                       <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
@@ -1258,9 +1408,9 @@ const InteractiveDoctorDashboard = ({ user }) => {
                         <p className="text-[10px] text-gray-400 uppercase">{formatDayDate(apt.date)}</p>
                         <span className="text-sm font-bold text-gray-700">{formatTime(apt.date)}</span>
                       </div>
-                      <Avatar name={language === 'ar' ? patient?.name : patient?.nameEn} size="sm" />
+                      <Avatar name={patient?.nameEn} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{language === 'ar' ? patient?.name : patient?.nameEn}</p>
+                        <p className="font-medium text-gray-900 truncate">{patient?.nameEn}</p>
                         <p className="text-xs text-gray-500 truncate">{apt.type} • {apt.notes}</p>
                       </div>
                       <Badge variant={statusColors[apt.status]} size="sm">{apt.status}</Badge>
@@ -1280,6 +1430,166 @@ const InteractiveDoctorDashboard = ({ user }) => {
         </div>
         <div className="flex justify-end pt-4 border-t mt-4">
           <Button variant="secondary" onClick={() => setShowAllAppointmentsModal(false)}>
+            {language === 'ar' ? 'إغلاق' : 'Close'}
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Reports Modal */}
+      <Modal
+        isOpen={showReportsModal}
+        onClose={() => setShowReportsModal(false)}
+        title={language === 'ar' ? 'التقارير والإحصائيات' : 'Reports & Analytics'}
+        size="xl"
+      >
+        <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 text-center">
+              <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-gray-900">{patients.length}</p>
+              <p className="text-xs text-gray-600">{language === 'ar' ? 'إجمالي المرضى' : 'Total Patients'}</p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-xl border border-green-200 text-center">
+              <Calendar className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-gray-900">{doctorAppointments.length}</p>
+              <p className="text-xs text-gray-600">{language === 'ar' ? 'المواعيد' : 'Appointments'}</p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-xl border border-purple-200 text-center">
+              <FileText className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-gray-900">{doctorTransactions.length}</p>
+              <p className="text-xs text-gray-600">{language === 'ar' ? 'السجلات' : 'Records'}</p>
+            </div>
+            <div className="p-4 bg-orange-50 rounded-xl border border-orange-200 text-center">
+              <DollarSign className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-gray-900">
+                {doctorTransactions.reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-600">{language === 'ar' ? 'الإيرادات (ر.س)' : 'Revenue (SAR)'}</p>
+            </div>
+          </div>
+
+          {/* Monthly Consultations Chart */}
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-500" />
+              {language === 'ar' ? 'الاستشارات الشهرية' : 'Monthly Consultations'}
+            </h3>
+            <AreaChart
+              series={monthlyConsultations.series}
+              categories={monthlyConsultations.categories}
+              height={220}
+              colors={['#3b82f6']}
+            />
+          </div>
+
+          {/* Two Column Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Patient Age Distribution */}
+            <div className="p-4 bg-white rounded-xl border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-500" />
+                {language === 'ar' ? 'توزيع الأعمار' : 'Age Distribution'}
+              </h3>
+              <DonutChart
+                series={ageDistribution.series}
+                labels={ageDistribution.labels}
+                height={180}
+                colors={['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe']}
+                centerText={{
+                  label: language === 'ar' ? 'المرضى' : 'Patients',
+                  value: patients.length.toString()
+                }}
+              />
+            </div>
+
+            {/* Gender Distribution */}
+            <div className="p-4 bg-white rounded-xl border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-pink-500" />
+                {language === 'ar' ? 'توزيع الجنس' : 'Gender Distribution'}
+              </h3>
+              <DonutChart
+                series={patientDemographics.series}
+                labels={patientDemographics.labels}
+                height={180}
+                colors={['#3b82f6', '#ec4899']}
+                centerText={{
+                  label: language === 'ar' ? 'المجموع' : 'Total',
+                  value: patients.length.toString()
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Revenue Trend */}
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-green-500" />
+              {language === 'ar' ? 'اتجاه الإيرادات' : 'Revenue Trend'}
+            </h3>
+            <AreaChart
+              series={revenueTrend.series}
+              categories={revenueTrend.categories}
+              height={220}
+              colors={['#22c55e']}
+            />
+          </div>
+
+          {/* Two More Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Medical Conditions */}
+            <div className="p-4 bg-white rounded-xl border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-red-500" />
+                {language === 'ar' ? 'الحالات الطبية الشائعة' : 'Common Conditions'}
+              </h3>
+              <DonutChart
+                series={conditionsDistribution.series}
+                labels={conditionsDistribution.labels}
+                height={180}
+                colors={['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#8b5cf6']}
+              />
+            </div>
+
+            {/* Fall Risk Distribution */}
+            <div className="p-4 bg-white rounded-xl border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-orange-500" />
+                {language === 'ar' ? 'توزيع مخاطر السقوط' : 'Fall Risk Distribution'}
+              </h3>
+              <RadialBarChart
+                series={fallRiskDistribution.series.map(v => Math.round((v / patients.length) * 100))}
+                labels={fallRiskDistribution.labels}
+                height={180}
+                colors={['#ef4444', '#f59e0b', '#22c55e']}
+              />
+            </div>
+          </div>
+
+          {/* Appointment Types */}
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 text-blue-500" />
+              {language === 'ar' ? 'أنواع المواعيد' : 'Appointment Types'}
+            </h3>
+            <div className="flex items-center justify-center">
+              <DonutChart
+                series={appointmentTypes.series}
+                labels={appointmentTypes.labels}
+                height={200}
+                colors={['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6']}
+                centerText={{
+                  label: language === 'ar' ? 'المواعيد' : 'Appointments',
+                  value: doctorAppointments.length.toString()
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-4 border-t mt-4">
+          <Button variant="secondary" onClick={() => setShowReportsModal(false)}>
             {language === 'ar' ? 'إغلاق' : 'Close'}
           </Button>
         </div>

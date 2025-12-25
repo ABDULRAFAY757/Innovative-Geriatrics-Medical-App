@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
+import { medications } from '../../data/mockData';
 import {
   Pill,
   Clock,
@@ -10,7 +11,7 @@ import {
   Search,
   TrendingUp
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator, Pagination, usePagination } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator, Pagination, usePagination, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientMedications = ({ user }) => {
@@ -398,33 +399,116 @@ const PatientMedications = ({ user }) => {
         isOpen={showAddMedication}
         onClose={() => setShowAddMedication(false)}
         title="Add New Medication"
+        size="lg"
       >
         <div className="space-y-4">
-          <Input
-            label="Medication Name"
-            placeholder="e.g., Metformin"
+          {/* Medication Selection Dropdown */}
+          <Select
+            label={language === 'ar' ? 'اسم الدواء' : 'Medication Name'}
             value={newMedication.medication_name}
-            onChange={(e) => setNewMedication({...newMedication, medication_name: e.target.value})}
+            onChange={(e) => {
+              const selectedMed = medications.find(m => m.name === e.target.value);
+              setNewMedication({
+                ...newMedication,
+                medication_name: e.target.value,
+                dosage: selectedMed?.dosage?.split(' ')[0] || newMedication.dosage
+              });
+            }}
+            options={medications.map(med => ({
+              value: med.name,
+              label: `${med.name} - ${med.category}`
+            }))}
+            placeholder={language === 'ar' ? 'اختر الدواء...' : 'Select medication...'}
           />
+
+          {/* Selected Medication Info */}
+          {newMedication.medication_name && (
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">{newMedication.medication_name}</span>
+                {' - '}
+                {medications.find(m => m.name === newMedication.medication_name)?.description}
+              </p>
+            </div>
+          )}
+
+          {/* Dosage Input */}
           <Input
-            label="Dosage"
+            label={language === 'ar' ? 'الجرعة' : 'Dosage'}
             placeholder="e.g., 500mg"
             value={newMedication.dosage}
             onChange={(e) => setNewMedication({...newMedication, dosage: e.target.value})}
           />
-          <Input
-            label="Frequency"
-            placeholder="e.g., Twice daily"
-            value={newMedication.frequency}
-            onChange={(e) => setNewMedication({...newMedication, frequency: e.target.value})}
-          />
-          <Input
-            type="time"
-            label="Time"
-            value={newMedication.time}
-            onChange={(e) => setNewMedication({...newMedication, time: e.target.value})}
-          />
-          <div className="flex gap-3 pt-4">
+
+          {/* Frequency - Quick Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'التكرار' : 'Frequency'}
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: 'Once daily', label: 'Once daily' },
+                { value: 'Twice daily', label: 'Twice daily' },
+                { value: 'Three times daily', label: '3x daily' },
+                { value: 'As needed', label: 'As needed' }
+              ].map((freq) => (
+                <button
+                  key={freq.value}
+                  type="button"
+                  onClick={() => setNewMedication({...newMedication, frequency: freq.value})}
+                  className={clsx(
+                    'py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    newMedication.frequency === freq.value
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  )}
+                >
+                  {freq.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Time - Quick Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'ar' ? 'الوقت' : 'Time'}
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: '08:00', label: '8:00 AM' },
+                { value: '12:00', label: '12:00 PM' },
+                { value: '18:00', label: '6:00 PM' },
+                { value: '21:00', label: '9:00 PM' }
+              ].map((time) => (
+                <button
+                  key={time.value}
+                  type="button"
+                  onClick={() => setNewMedication({...newMedication, time: time.value})}
+                  className={clsx(
+                    'py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    newMedication.time === time.value
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                  )}
+                >
+                  {time.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary */}
+          {newMedication.medication_name && newMedication.dosage && newMedication.frequency && newMedication.time && (
+            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800">
+                <span className="font-medium">Summary:</span>{' '}
+                {newMedication.medication_name} {newMedication.dosage}, {newMedication.frequency} at {newMedication.time}
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
             <Button variant="secondary" onClick={() => setShowAddMedication(false)} className="flex-1">
               Cancel
             </Button>

@@ -282,7 +282,7 @@ const DoctorPatients = ({ user }) => {
                   <Avatar name={row.nameEn} />
                   <div>
                     <p className="font-medium text-gray-900">
-                      {language === 'ar' ? row.name : row.nameEn}
+                      {row.nameEn}
                     </p>
                     <p className="text-sm text-gray-500">{row.p_no}</p>
                   </div>

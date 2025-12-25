@@ -4,7 +4,8 @@
 export const patients = [
   {
     id: "1",
-    name: "أحمد محمد", // Ahmed Mohamed
+    name: "أحمد محمد",
+    nameEn: "Ahmed Mohammed",
     iqaama: "1234567890",
     p_no: "P001",
     phone: "+966501234567",
@@ -14,7 +15,7 @@ export const patients = [
     gender: "Male",
     bloodType: "O+",
     emergencyContact: {
-      name: "فاطمة أحمد", // Fatima Ahmed
+      name: "Fatima Ahmed",
       phone: "+966507654321",
       relationship: "Daughter"
     },
@@ -24,8 +25,9 @@ export const patients = [
     lastCheckup: "2024-12-01"
   },
   {
-    id: "2", 
-    name: "فاطمة عبدالله", // Fatima Abdullah
+    id: "2",
+    name: "فاطمة عبدالله",
+    nameEn: "Fatima Abdullah",
     iqaama: "2345678901",
     p_no: "P002",
     phone: "+966502345678",
@@ -35,7 +37,7 @@ export const patients = [
     gender: "Female",
     bloodType: "A+",
     emergencyContact: {
-      name: "محمد فاطمة", // Mohamed Fatima
+      name: "Mohamed Fatima",
       phone: "+966508765432",
       relationship: "Son"
     },
@@ -46,8 +48,9 @@ export const patients = [
   },
   {
     id: "3",
-    name: "عبدالرحمن سعود", // Abdulrahman Saud
-    iqaama: "3456789012", 
+    name: "عبدالرحمن سعود",
+    nameEn: "Abdulrahman Saud",
+    iqaama: "3456789012",
     p_no: "P003",
     phone: "+966503456789",
     email: "abdulrahman.saud@email.com",
@@ -56,7 +59,7 @@ export const patients = [
     gender: "Male",
     bloodType: "B+",
     emergencyContact: {
-      name: "سارة عبدالرحمن", // Sara Abdulrahman
+      name: "Sara Abdulrahman",
       phone: "+966509876543",
       relationship: "Wife"
     },
@@ -814,17 +817,7 @@ export const familyMembers = [
 
 // Enhanced patient data with additional properties
 patients.forEach(patient => {
-  patient.nameEn = patient.name.split(' ').map(word => {
-    const arabicToEnglish = {
-      'أحمد': 'Ahmed',
-      'محمد': 'Mohamed',
-      'فاطمة': 'Fatima',
-      'عبدالله': 'Abdullah',
-      'عبدالرحمن': 'Abdulrahman',
-      'سعود': 'Saud',
-    };
-    return arabicToEnglish[word] || word;
-  }).join(' ');
+  // Note: patient.nameEn is already defined in the patients array above
   patient.address = 'Riyadh, Saudi Arabia';
   patient.insuranceProvider = 'Saudi Health Insurance';
   patient.insuranceNumber = `INS${patient.id}${Math.random().toString(36).substring(7).toUpperCase()}`;
@@ -832,7 +825,7 @@ patients.forEach(patient => {
 
 // Enhanced doctor data with additional properties
 doctors.forEach(doctor => {
-  doctor.nameEn = doctor.name;
+  // Note: doctor.nameEn is already defined in the doctors array above
   doctor.specializationAr = {
     'Geriatrics': 'طب الشيخوخة',
     'Internal Medicine': 'الطب الباطني',
