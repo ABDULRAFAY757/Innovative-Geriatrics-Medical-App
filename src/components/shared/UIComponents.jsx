@@ -126,6 +126,13 @@ export const Input = ({
   icon: Icon,
   className,
   error,
+  name,
+  maxLength,
+  min,
+  max,
+  disabled,
+  autoComplete,
+  ...rest
 }) => {
   return (
     <div className={className}>
@@ -141,7 +148,19 @@ export const Input = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={clsx('input', Icon && 'pl-10', error && 'border-red-500')}
+          name={name}
+          maxLength={maxLength}
+          min={min}
+          max={max}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          className={clsx(
+            'input',
+            Icon && 'pl-10',
+            error && 'border-red-500',
+            disabled && 'opacity-50 cursor-not-allowed bg-gray-100'
+          )}
+          {...rest}
         />
       </div>
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
@@ -159,6 +178,7 @@ export const Select = ({
   className,
   error,
   disabled = false,
+  children,
 }) => {
   return (
     <div className={className}>
@@ -178,12 +198,12 @@ export const Select = ({
             disabled && 'opacity-50 cursor-not-allowed bg-gray-100'
           )}
         >
-          {placeholder && (
+          {placeholder && !children && (
             <option value="" disabled>
               {placeholder}
             </option>
           )}
-          {options.map((option) => (
+          {children ? children : options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

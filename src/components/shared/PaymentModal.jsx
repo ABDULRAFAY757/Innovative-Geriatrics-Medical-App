@@ -4,7 +4,10 @@ import { Modal, Button, Input } from './UIComponents';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { clsx } from 'clsx';
 
-const PaymentModal = ({ isOpen, onClose, amount, description, onSuccess }) => {
+const PaymentModal = ({ isOpen, onClose, amount, description, onSuccess, onPaymentSuccess, title, disabled }) => {
+  // Support both onSuccess and onPaymentSuccess prop names for backward compatibility
+  const handleSuccess = onPaymentSuccess || onSuccess;
+
   const { t, isRTL } = useLanguage();
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -68,17 +71,28 @@ const PaymentModal = ({ isOpen, onClose, amount, description, onSuccess }) => {
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
+
+      // Determine card type based on payment method
+      let cardType = 'Credit Card';
+      if (paymentMethod === 'mada_card') cardType = 'Mada Card';
+      if (paymentMethod === 'apple_pay') cardType = 'Apple Pay';
+
       const paymentData = {
         amount,
         description,
         paymentMethod,
+        cardType, // Add cardType for compatibility
         timestamp: new Date().toISOString(),
         status: 'success',
         transactionId: `TXN${Date.now()}`,
         receipt_number: `RCP${Date.now()}`,
       };
-      onSuccess(paymentData);
+
+      if (handleSuccess) {
+        handleSuccess(paymentData);
+      }
       onClose();
+
       // Reset form
       setFormData({
         cardNumber: '',

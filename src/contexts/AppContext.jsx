@@ -24,6 +24,8 @@ import {
   dispatchDonationEvent,
   dispatchCareTaskEvent,
 } from '../services/WebhookService';
+import { sanitizeObject, rateLimiters } from '../utils/security';
+import { validateForm, validationSchemas } from '../utils/validation';
 
 const AppContext = createContext();
 
@@ -221,10 +223,27 @@ export const AppProvider = ({ children }) => {
   };
 
   const addMedication = (patientId, medicationData) => {
+    // Rate limiting
+    if (!rateLimiters.medication.canProceed(patientId)) {
+      addNotification('error', 'Too many medication requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate medication data
+    const errors = validateForm(medicationData, validationSchemas.medication);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(medicationData);
+
     const newMed = {
       id: `med_${Date.now()}`,
       patient_id: patientId,
-      ...medicationData,
+      ...sanitizedData,
       adherence_rate: 100,
       status: 'Active',
       last_taken: new Date().toISOString(),
@@ -239,9 +258,26 @@ export const AppProvider = ({ children }) => {
   // ========== APPOINTMENT ACTIONS ==========
 
   const bookAppointment = (appointmentData) => {
+    // Rate limiting
+    if (!rateLimiters.appointment.canProceed(appointmentData.patient_id)) {
+      addNotification('error', 'Too many appointment requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate appointment data
+    const errors = validateForm(appointmentData, validationSchemas.appointment);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(appointmentData);
+
     const newAppointment = {
       id: `apt_${Date.now()}`,
-      ...appointmentData,
+      ...sanitizedData,
       status: 'Scheduled',
       created_at: new Date().toISOString(),
     };
@@ -291,9 +327,26 @@ export const AppProvider = ({ children }) => {
   // ========== CARE TASK ACTIONS ==========
 
   const addCareTask = (taskData) => {
+    // Rate limiting
+    if (!rateLimiters.careTask.canProceed(taskData.patient_id)) {
+      addNotification('error', 'Too many task requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate care task data
+    const errors = validateForm(taskData, validationSchemas.careTask);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(taskData);
+
     const newTask = {
       id: `task_${Date.now()}`,
-      ...taskData,
+      ...sanitizedData,
       status: 'Pending',
       created_at: new Date().toISOString(),
     };
@@ -330,9 +383,26 @@ export const AppProvider = ({ children }) => {
   // ========== EQUIPMENT REQUEST ACTIONS ==========
 
   const createEquipmentRequest = (requestData) => {
+    // Rate limiting
+    if (!rateLimiters.equipmentRequest.canProceed(requestData.patient_id)) {
+      addNotification('error', 'Too many equipment requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate equipment request data
+    const errors = validateForm(requestData, validationSchemas.equipmentRequest);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(requestData);
+
     const newRequest = {
       id: `req_${Date.now()}`,
-      ...requestData,
+      ...sanitizedData,
       status: 'Pending',
       created_at: new Date().toISOString(),
     };
@@ -368,6 +438,24 @@ export const AppProvider = ({ children }) => {
   // ========== DONATION ACTIONS ==========
 
   const makeDonation = (donationData) => {
+    // Validate donation doesn't exceed remaining amount
+    if (donationData.equipment_request_id) {
+      const request = equipmentRequests.find(r => r.id === donationData.equipment_request_id);
+      if (!request) {
+        addNotification('error', 'Equipment request not found!');
+        return null;
+      }
+
+      const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0);
+      const remainingAmount = (request.estimated_cost || 0) - totalDonated;
+
+      if (donationData.amount > remainingAmount) {
+        addNotification('error', `Donation amount (${donationData.amount} SAR) exceeds remaining amount (${remainingAmount} SAR)!`);
+        return null;
+      }
+    }
+
     const newDonation = {
       id: `don_${Date.now()}`,
       ...donationData,
@@ -381,16 +469,74 @@ export const AppProvider = ({ children }) => {
 
     // Update equipment request status
     if (donationData.equipment_request_id) {
+      const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0) + donationData.amount;
+      const request = equipmentRequests.find(r => r.id === donationData.equipment_request_id);
+
       setEquipmentRequests(prev =>
         prev.map(req =>
           req.id === donationData.equipment_request_id
-            ? { ...req, status: 'Fulfilled' }
+            ? { ...req, status: totalDonated >= (req.estimated_cost || 0) ? 'Fulfilled' : 'In Progress' }
             : req
         )
       );
     }
 
     addNotification('success', 'Thank you for your donation!');
+    // Dispatch webhook for donation received
+    dispatchDonationEvent(newDonation);
+    return newDonation;
+  };
+
+  const makePartialDonation = (donationData) => {
+    // Validate donation doesn't exceed remaining amount
+    if (donationData.equipment_request_id) {
+      const request = equipmentRequests.find(r => r.id === donationData.equipment_request_id);
+      if (!request) {
+        addNotification('error', 'Equipment request not found!');
+        return null;
+      }
+
+      const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0);
+      const remainingAmount = (request.estimated_cost || 0) - totalDonated;
+
+      if (donationData.amount > remainingAmount) {
+        addNotification('error', `Donation amount (${donationData.amount} SAR) exceeds remaining amount (${remainingAmount} SAR)!`);
+        return null;
+      }
+    }
+
+    const newDonation = {
+      id: `don_${Date.now()}`,
+      ...donationData,
+      status: 'Completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      receipt_number: `RCP${Date.now()}`,
+      is_partial: true,
+    };
+
+    setDonations(prev => [...prev, newDonation]);
+
+    // Check if equipment request is now fully funded
+    if (donationData.equipment_request_id) {
+      const requestDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = requestDonations.reduce((sum, d) => sum + d.amount, 0) + donationData.amount;
+
+      setEquipmentRequests(prev =>
+        prev.map(req =>
+          req.id === donationData.equipment_request_id
+            ? {
+                ...req,
+                status: totalDonated >= (req.estimated_cost || 0) ? 'Fulfilled' : 'In Progress'
+              }
+            : req
+        )
+      );
+    }
+
+    addNotification('success', `Thank you for your partial donation of ${donationData.amount} SAR!`);
     // Dispatch webhook for donation received
     dispatchDonationEvent(newDonation);
     return newDonation;
@@ -630,6 +776,7 @@ export const AppProvider = ({ children }) => {
 
     // Donation actions
     makeDonation,
+    makePartialDonation,
 
     // Clinical actions
     addClinicalNote,

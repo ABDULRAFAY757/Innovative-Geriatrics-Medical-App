@@ -43,14 +43,14 @@ const Header = ({ user, onLogout }) => {
           { path: '/patient/medications', label: t('my_medications') },
           { path: '/patient/appointments', label: t('my_appointments') },
           { path: '/patient/records', label: t('medical_records') },
-          { path: '/patient/equipment', label: t('equipment_requests') },
+          { path: '/patient/equipment', label: language === 'ar' ? 'مركز طلبات المعدات' : 'Equipment Assistance' },
         ];
       case 'family':
         return [
           ...baseItems,
           { path: '/family/care-tasks', label: t('care_tasks') },
           { path: '/family/alerts', label: t('recent_alerts') },
-          { path: '/family/charity', label: language === 'ar' ? 'مركز التبرعات' : 'Charity Centre' },
+          { path: '/family/equipment', label: language === 'ar' ? 'مركز التبرعات بالمعدات' : 'Equipment Donations' },
         ];
       case 'doctor':
         return [
@@ -58,7 +58,7 @@ const Header = ({ user, onLogout }) => {
           { path: '/doctor/patients', label: t('my_patients') },
           { path: '/doctor/appointments', label: t('todays_appointments') },
           { path: '/doctor/records', label: t('medical_records') },
-          { path: '/doctor/charity', label: language === 'ar' ? 'مركز التبرعات' : 'Charity Centre' },
+          { path: '/doctor/equipment', label: language === 'ar' ? 'مركز التبرعات بالمعدات' : 'Equipment Donations' },
         ];
       default:
         return baseItems;

@@ -20,7 +20,12 @@
       "Bash(npm run test:*)",
       "Bash(npm test:*)",
       "Bash(npm install:*)",
-      "Bash(timeout 10 npm run dev)"
+      "Bash(timeout 10 npm run dev)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(test:*)",
+      "Bash(del APPOINTMENT_BOOKING_IMPROVEMENTS.md PATIENT_DASHBOARD_BOOKING_UPDATE.md FUNCTIONAL_FEATURES_SUMMARY.md POC_PRESENTATION_NOTES.md PROJECT_DOCUMENTATION.md TABLER_GUIDE.md)",
+      "Bash(git add:*)"
     ]
   }
 }

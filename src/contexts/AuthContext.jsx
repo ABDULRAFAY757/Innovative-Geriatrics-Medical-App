@@ -122,25 +122,40 @@ const USER_DATABASE = {
   },
 
   // Doctors
-  'doctor1@kfmc.sa': {
+  // Doctors (matching mockData.js doctors)
+  'lama@innovativegeriatrics.com': {
     id: '1',
-    email: 'doctor1@kfmc.sa',
-    password: 'doctor123',
+    email: 'lama@innovativegeriatrics.com',
+    password: 'Lama@123',
     role: 'doctor',
-    name: 'د. أحمد حسن',
-    nameEn: 'Dr. Ahmed Hassan',
-    specialty: 'Geriatric Medicine',
+    name: 'د. لمى الغريني',
+    nameEn: 'Dr. Lama Algaraini',
+    specialty: 'Geriatrics',
+    hospital: 'King Saud Medical City',
     verified: true,
-    twoFactorEnabled: true
+    twoFactorEnabled: false
   },
-  'doctor2@kfmc.sa': {
+  'mohamed.hassan@hospital.com': {
     id: '2',
-    email: 'doctor2@kfmc.sa',
-    password: 'doctor123',
+    email: 'mohamed.hassan@hospital.com',
+    password: 'Mohamed@123',
     role: 'doctor',
-    name: 'د. سارة الأحمد',
-    nameEn: 'Dr. Sarah Al-Ahmad',
+    name: 'د. محمد حسن',
+    nameEn: 'Dr. Mohamed Hassan',
+    specialty: 'Internal Medicine',
+    hospital: 'Riyadh Medical Complex',
+    verified: true,
+    twoFactorEnabled: false
+  },
+  'aisha.alsaud@hospital.com': {
+    id: '3',
+    email: 'aisha.alsaud@hospital.com',
+    password: 'Aisha@123',
+    role: 'doctor',
+    name: 'د. عائشة آل سعود',
+    nameEn: 'Dr. Aisha Al-Saud',
     specialty: 'Cardiology',
+    hospital: 'King Faisal Specialist Hospital',
     verified: true,
     twoFactorEnabled: false
   },

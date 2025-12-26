@@ -15,7 +15,7 @@ import { clsx } from 'clsx';
 
 const FamilyAlerts = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
-  const { fallAlerts, respondToFallAlert } = useApp();
+  const { fallAlerts, resolveFallAlert } = useApp();
 
   const patientId = user?.patientId || '1';
   const myAlerts = fallAlerts.filter(alert => alert.patient_id === patientId);
@@ -74,7 +74,7 @@ const FamilyAlerts = ({ user }) => {
       return;
     }
 
-    respondToFallAlert(selectedAlert.id, responseAction);
+    resolveFallAlert(selectedAlert.id, responseAction);
     setShowResponseModal(false);
     setSelectedAlert(null);
     setResponseAction('');

@@ -35,7 +35,7 @@ const ModernLogin = () => {
   // Demo credentials for easy testing (3 roles: Patient, Doctor, Family)
   const demoCredentials = {
     patient: { email: 'patient1@elderly.sa', password: 'patient123' },
-    doctor: { email: 'doctor1@kfmc.sa', password: 'doctor123' },
+    doctor: { email: 'lama@innovativegeriatrics.com', password: 'Lama@123' },
     family: { email: 'family1@gmail.com', password: 'family123' }
   };
 
@@ -107,7 +107,6 @@ const ModernLogin = () => {
       {/* Left Side - Branding & Info */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-600 p-12 flex-col justify-between text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-5"></div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-12">

@@ -290,27 +290,6 @@ const DoctorPatients = ({ user }) => {
               )
             },
             {
-              header: 'Age',
-              accessor: 'age'
-            },
-            {
-              header: 'Conditions',
-              render: (row) => (
-                <div className="flex flex-wrap gap-1">
-                  {(row.conditions || []).slice(0, 2).map((condition, idx) => (
-                    <Badge key={idx} variant="info" size="sm">
-                      {condition}
-                    </Badge>
-                  ))}
-                  {(row.conditions || []).length > 2 && (
-                    <Badge variant="default" size="sm">
-                      +{row.conditions.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              )
-            },
-            {
               header: 'Last Visit',
               render: (row) => formatDate(row.lastCheckup)
             },

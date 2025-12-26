@@ -32,6 +32,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { StatCard, Card, Badge, Button, Alert, Avatar, Modal, Input } from '../shared/UIComponents';
 import { LineChart, RadialBarChart, AreaChart, SparklineChart } from '../shared/Charts';
+import HealthSummaryChart from '../shared/HealthSummaryChart';
 import { clsx } from 'clsx';
 
 const InteractiveFamilyDashboard = ({ user }) => {
@@ -345,6 +346,11 @@ const InteractiveFamilyDashboard = ({ user }) => {
           color={avgAdherence >= 80 ? 'green' : 'yellow'}
           subtitle="Medication compliance"
         />
+      </div>
+
+      {/* Health Summary with Charts */}
+      <div className="mb-8">
+        <HealthSummaryChart patient={patient} language={language} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

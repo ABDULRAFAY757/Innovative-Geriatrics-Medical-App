@@ -1,43 +1,55 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { ToastContainer } from './components/shared/ToastNotification';
 
-// Auth Components
+// Auth Components (not lazy - needed immediately)
 import ModernLogin from './components/Auth/ModernLogin';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 
-// Layout
+// Layout (not lazy - needed immediately)
 import Header from './components/Layout/Header';
 
-// Dashboards (3 main roles: Patient, Doctor, Family)
-import PatientDashboard from './components/Dashboards/PatientDashboard';
-import FamilyDashboard from './components/Dashboards/FamilyDashboard';
-import DoctorDashboard from './components/Dashboards/DoctorDashboard';
+// Lazy-loaded Dashboards for better performance
+const PatientDashboard = lazy(() => import('./components/Dashboards/PatientDashboard'));
+const FamilyDashboard = lazy(() => import('./components/Dashboards/FamilyDashboard'));
+const DoctorDashboard = lazy(() => import('./components/Dashboards/DoctorDashboard'));
 
-// Common Pages
-import Profile from './components/Pages/Profile';
-import Settings from './components/Pages/Settings';
-import Help from './components/Pages/Help';
+// Lazy-loaded Common Pages
+const Profile = lazy(() => import('./components/Pages/Profile'));
+const Settings = lazy(() => import('./components/Pages/Settings'));
+const Help = lazy(() => import('./components/Pages/Help'));
 
-// Patient Pages
-import PatientMedications from './components/Pages/PatientMedications';
-import PatientAppointments from './components/Pages/PatientAppointments';
-import PatientEquipment from './components/Pages/PatientEquipment';
-import PatientRecords from './components/Pages/PatientRecords';
+// Lazy-loaded Patient Pages
+const PatientMedications = lazy(() => import('./components/Pages/PatientMedications'));
+const PatientAppointments = lazy(() => import('./components/Pages/PatientAppointments'));
+const PatientRecords = lazy(() => import('./components/Pages/PatientRecords'));
 
-// Doctor Pages
-import DoctorPatients from './components/Pages/DoctorPatients';
-import DoctorAppointments from './components/Pages/DoctorAppointments';
-import DoctorMedicalRecords from './components/Pages/DoctorMedicalRecords';
+// Lazy-loaded Doctor Pages
+const DoctorPatients = lazy(() => import('./components/Pages/DoctorPatients'));
+const DoctorAppointments = lazy(() => import('./components/Pages/DoctorAppointments'));
+const DoctorMedicalRecords = lazy(() => import('./components/Pages/DoctorMedicalRecords'));
 
-// Family Pages
-import FamilyCareTasks from './components/Pages/FamilyCareTasks';
-import FamilyAlerts from './components/Pages/FamilyAlerts';
+// Lazy-loaded Family Pages
+const FamilyCareTasks = lazy(() => import('./components/Pages/FamilyCareTasks'));
+const FamilyAlerts = lazy(() => import('./components/Pages/FamilyAlerts'));
 
-// Charity Centre - accessible by Doctor and Family roles
-import CharityCentre from './components/Pages/CharityCentre';
+// Lazy-loaded Equipment Assistance Center
+const EquipmentAssistance = lazy(() => import('./components/Pages/EquipmentAssistance'));
+
+/**
+ * Loading Fallback Component for Lazy-loaded Routes
+ */
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-lg font-semibold text-gray-700">Loading...</p>
+    </div>
+  </div>
+);
 
 /**
  * Dashboard Layout Wrapper with Header and Toast Notifications
@@ -49,7 +61,11 @@ const DashboardLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header user={user} onLogout={logout} />
-      <main className="min-h-[calc(100vh-64px)]">{children}</main>
+      <main className="min-h-[calc(100vh-64px)]">
+        <Suspense fallback={<PageLoader />}>
+          {children}
+        </Suspense>
+      </main>
       <ToastContainer notifications={notifications} onClose={removeNotification} />
     </div>
   );
@@ -103,7 +119,7 @@ function AppRoutes() {
                 <Route index element={<PatientDashboard user={user} />} />
                 <Route path="medications" element={<PatientMedications user={user} />} />
                 <Route path="appointments" element={<PatientAppointments user={user} />} />
-                <Route path="equipment" element={<PatientEquipment user={user} />} />
+                <Route path="equipment" element={<EquipmentAssistance user={user} />} />
                 <Route path="records" element={<PatientRecords user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />
@@ -125,7 +141,7 @@ function AppRoutes() {
                 <Route path="patients" element={<DoctorPatients user={user} />} />
                 <Route path="appointments" element={<DoctorAppointments user={user} />} />
                 <Route path="records" element={<DoctorMedicalRecords user={user} />} />
-                <Route path="charity" element={<CharityCentre user={user} />} />
+                <Route path="equipment" element={<EquipmentAssistance user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />
                 <Route path="help" element={<Help user={user} />} />
@@ -145,7 +161,7 @@ function AppRoutes() {
                 <Route index element={<FamilyDashboard user={user} />} />
                 <Route path="care-tasks" element={<FamilyCareTasks user={user} />} />
                 <Route path="alerts" element={<FamilyAlerts user={user} />} />
-                <Route path="charity" element={<CharityCentre user={user} />} />
+                <Route path="equipment" element={<EquipmentAssistance user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />
                 <Route path="help" element={<Help user={user} />} />

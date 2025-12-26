@@ -9,9 +9,12 @@ import {
   AlertCircle,
   Plus,
   Search,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  History,
+  Info
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, ProgressBar, Modal, DoseIndicator, Pagination, usePagination, Select } from '../shared/UIComponents';
+import { Card, Badge, Button, Input, Modal, DoseIndicator, Pagination, usePagination, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientMedications = ({ user }) => {
@@ -100,66 +103,82 @@ const PatientMedications = ({ user }) => {
       className={clsx('p-6 max-w-7xl mx-auto', isRTL && 'font-arabic')}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{t('my_medications')}</h1>
-        <p className="text-gray-600 mt-1">Manage your medication schedule and adherence</p>
+      {/* Page Header - Enhanced */}
+      <div className="mb-8 animate-fadeIn">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+            <Pill className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              {t('my_medications')}
+            </h1>
+            <p className="text-gray-600 text-sm">Manage your medication schedule and adherence</p>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Pill className="w-6 h-6 text-blue-600" />
+      {/* Stats Cards - Enhanced with better gradients and hover effects */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-slideUp">
+        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-blue-50 via-blue-50/50 to-white border-2 border-blue-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/30 transition-all"></div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
+              <Pill className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Total Medications</p>
-              <p className="text-2xl font-bold text-gray-900">{myMedications.length}</p>
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Medications</p>
+              <p className="text-3xl font-bold text-gray-900">{myMedications.length}</p>
             </div>
           </div>
-        </Card>
-        <Card className="bg-green-50 border-green-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 rounded-full">
-              <Check className="w-6 h-6 text-green-600" />
+        </div>
+
+        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-green-50 via-green-50/50 to-white border-2 border-green-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-green-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-green-500/30 transition-all"></div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
+              <Check className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">On Track</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">On Track</p>
+              <p className="text-3xl font-bold text-gray-900">
                 {myMedications.filter(m => m.adherence_rate >= 80).length}
               </p>
             </div>
           </div>
-        </Card>
-        <Card className="bg-purple-50 border-purple-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+        </div>
+
+        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-purple-50 via-purple-50/50 to-white border-2 border-purple-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-purple-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-purple-500/30 transition-all"></div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Avg. Adherence</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Avg. Adherence</p>
+              <p className="text-3xl font-bold text-gray-900">
                 {Math.round(myMedications.reduce((acc, m) => acc + m.adherence_rate, 0) / myMedications.length || 0)}%
               </p>
             </div>
           </div>
-        </Card>
-        <Card className="bg-orange-50 border-orange-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <Clock className="w-6 h-6 text-orange-600" />
+        </div>
+
+        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-orange-50 via-orange-50/50 to-white border-2 border-orange-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-orange-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-orange-500/30 transition-all"></div>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
+              <Clock className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Due Today</p>
-              <p className="text-2xl font-bold text-gray-900">{myMedications.length}</p>
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Due Today</p>
+              <p className="text-3xl font-bold text-gray-900">{myMedications.length}</p>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
-      {/* Filters and Search */}
-      <Card className="mb-6">
+      {/* Filters and Search - Enhanced with better spacing and visual hierarchy */}
+      <div className="mb-6 p-6 bg-white/95 backdrop-blur-sm border-2 border-gray-200/80 rounded-2xl shadow-lg animate-fadeIn">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -169,102 +188,199 @@ const PatientMedications = ({ user }) => {
               icon={Search}
             />
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant={filterStatus === 'all' ? 'primary' : 'outline'}
-              size="sm"
+          <div className="flex gap-2 flex-wrap">
+            <button
               onClick={() => handleFilterChange('all')}
+              className={clsx(
+                'px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
+                filterStatus === 'all'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg shadow-blue-500/30'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
+              )}
             >
               {language === 'ar' ? 'الكل' : 'All'}
-            </Button>
-            <Button
-              variant={filterStatus === 'active' ? 'primary' : 'outline'}
-              size="sm"
+            </button>
+            <button
               onClick={() => handleFilterChange('active')}
+              className={clsx(
+                'px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
+                filterStatus === 'active'
+                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-600 shadow-lg shadow-green-500/30'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50 hover:shadow-md'
+              )}
             >
               {language === 'ar' ? 'نشط' : 'Active'}
-            </Button>
-            <Button
-              variant={filterStatus === 'taken' ? 'primary' : 'outline'}
-              size="sm"
+            </button>
+            <button
               onClick={() => handleFilterChange('taken')}
+              className={clsx(
+                'px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
+                filterStatus === 'taken'
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white border-purple-600 shadow-lg shadow-purple-500/30'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50 hover:shadow-md'
+              )}
             >
               {language === 'ar' ? 'تم تناوله' : 'Taken'}
-            </Button>
+            </button>
           </div>
           <Button
             variant="primary"
             icon={Plus}
             onClick={() => setShowAddMedication(true)}
+            className="hover:scale-105 active:scale-95 transition-transform"
           >
             Add Medication
           </Button>
         </div>
-      </Card>
+      </div>
 
       {/* Medications List */}
       <Card title={language === 'ar' ? 'جدول الأدوية' : 'Medication Schedule'}>
         {filteredMedications.length > 0 ? (
           <>
           <div className="space-y-4">
-            {paginatedMedications.map((med) => (
+            {paginatedMedications.map((med) => {
+              const freq = med.frequency.toLowerCase();
+              const totalDoses = freq.includes('once') ? 1 : freq.includes('twice') ? 2 : freq.includes('three') ? 3 : 1;
+              const allTaken = (med.taken_today || 0) >= totalDoses;
+
+              return (
               <div
                 key={med.id}
-                className="flex flex-col md:flex-row items-start md:items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className={clsx(
+                  "group relative overflow-hidden flex flex-col md:flex-row items-start md:items-center gap-4 p-5 rounded-2xl transition-all duration-500",
+                  allTaken
+                    ? "bg-gradient-to-r from-green-50 via-green-50/80 to-emerald-50 border-2 border-green-300 shadow-lg hover:shadow-xl"
+                    : "bg-gradient-to-r from-white via-gray-50/30 to-white border-2 border-gray-200 hover:border-blue-300 hover:shadow-xl hover:scale-[1.01]"
+                )}
               >
+                {/* Glow effect for completed medications */}
+                {allTaken && (
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-green-500"></div>
+                )}
+
                 {/* Medication Icon and Info */}
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Pill className="w-6 h-6 text-blue-600" />
+                  <div className={clsx(
+                    "p-3 rounded-xl shadow-md transition-all group-hover:scale-110",
+                    allTaken
+                      ? "bg-gradient-to-br from-green-500 to-green-600"
+                      : "bg-gradient-to-br from-blue-500 to-blue-600"
+                  )}>
+                    <Pill className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 text-lg">{med.medication_name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      <span className="font-medium">Dosage:</span> {med.dosage}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Frequency:</span> {med.frequency}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">{med.time}</span>
+                    <h3 className="font-bold text-gray-900 text-lg mb-1">{med.medication_name}</h3>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
+                        {med.dosage}
+                      </span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold">
+                        {med.frequency}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-semibold">
+                        <Clock className="w-3 h-3" />
+                        {med.time}
+                      </span>
+                    </div>
+
+                    {/* Additional Information - Not on Dashboard */}
+                    <div className="mt-3 space-y-1.5">
+                      {med.last_taken && (
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <History className="w-3.5 h-3.5 text-gray-500" />
+                          <span className="font-medium">Last taken:</span>
+                          <span className="text-gray-700">{new Date(med.last_taken).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}</span>
+                        </div>
+                      )}
+                      {med.next_dose && (
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                          <span className="font-medium">Next dose:</span>
+                          <span className="text-blue-700 font-semibold">{new Date(med.next_dose).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-xs">
+                        <Info className="w-3.5 h-3.5 text-indigo-500" />
+                        <span className="font-medium text-gray-600">Adherence Rate:</span>
+                        <span className={clsx(
+                          "font-bold",
+                          med.adherence_rate >= 80 ? "text-green-700" : med.adherence_rate >= 50 ? "text-yellow-700" : "text-red-700"
+                        )}>
+                          {med.adherence_rate}%
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Daily Dose Indicators */}
-                <div className="w-full md:w-48">
-                  <p className="text-xs text-gray-500 mb-2">Today&apos;s Doses</p>
+                {/* Daily Dose Indicators with Before/After Visual */}
+                <div className="w-full md:w-52 p-4 bg-white/50 rounded-xl border border-gray-200">
+                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Today&apos;s Doses</p>
                   <DoseIndicator
                     frequency={med.frequency}
                     taken={med.taken_today || 0}
                     color={med.adherence_rate >= 80 ? 'green' : med.adherence_rate >= 50 ? 'yellow' : 'red'}
                   />
-                  <p className="text-xs text-gray-400 mt-2">
-                    {med.taken_today || 0} taken today
-                  </p>
+                  <div className="flex items-center justify-between mt-3 gap-2">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-green-100 rounded-lg">
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></div>
+                      <span className="text-xs font-bold text-green-800">{med.taken_today || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-lg">
+                      <div className="w-2.5 h-2.5 rounded-full bg-gray-400 border-2 border-gray-500"></div>
+                      <span className="text-xs font-bold text-gray-700">
+                        {(() => {
+                          const freq = med.frequency.toLowerCase();
+                          const total = freq.includes('once') ? 1 : freq.includes('twice') ? 2 : freq.includes('three') ? 3 : 1;
+                          return Math.max(0, total - (med.taken_today || 0));
+                        })()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Status Badge */}
-                <div className="flex flex-col items-center gap-2">
-                  <Badge variant={statusColors[med.status] || 'info'}>
+                {/* Take Button - Enhanced */}
+                <div className="flex flex-col items-center gap-3">
+                  <button
+                    onClick={() => handleTakeMedication(med.id)}
+                    disabled={allTaken}
+                    className={clsx(
+                      "group/btn relative px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md",
+                      allTaken
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:scale-110 hover:shadow-xl active:scale-95"
+                    )}
+                  >
+                    {allTaken ? (
+                      <span className="flex items-center gap-2">
+                        <Check className="w-5 h-5" />
+                        Complete
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Check className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                        Take Now
+                      </span>
+                    )}
+                  </button>
+                  <Badge variant={statusColors[med.status] || 'info'} className="text-xs">
                     {med.status || 'Active'}
                   </Badge>
                 </div>
-
-                {/* Take Button */}
-                <div>
-                  <Button
-                    variant="success"
-                    size="sm"
-                    icon={Check}
-                    onClick={() => handleTakeMedication(med.id)}
-                  >
-                    Take Now
-                  </Button>
-                </div>
               </div>
-            ))}
+              );
+            })}
           </div>
           <Pagination
             currentPage={currentPage}
@@ -301,107 +417,98 @@ const PatientMedications = ({ user }) => {
         )}
       </Card>
 
-      {/* Medication History Table */}
+
+      {/* Medication Instructions & Tips - Extra Information */}
       {filteredMedications.length > 0 && (
-        <Card title={language === 'ar' ? 'سجل الأدوية' : 'Medication History'} className="mt-6">
-          <Table
-            columns={[
-              {
-                header: language === 'ar' ? 'الدواء' : 'Medication',
-                accessor: 'medication_name'
-              },
-              {
-                header: language === 'ar' ? 'الجرعة' : 'Dosage',
-                accessor: 'dosage'
-              },
-              {
-                header: language === 'ar' ? 'التكرار' : 'Frequency',
-                accessor: 'frequency'
-              },
-              {
-                header: language === 'ar' ? 'الوقت' : 'Time',
-                accessor: 'time'
-              },
-              {
-                header: language === 'ar' ? 'الالتزام' : 'Adherence',
-                render: (row) => (
-                  <div className="flex items-center gap-2">
-                    <div className="w-24">
-                      <ProgressBar
-                        value={row.adherence_rate}
-                        color={row.adherence_rate >= 80 ? 'green' : 'yellow'}
-                        size="sm"
-                      />
-                    </div>
-                    <span className="text-sm font-medium">{row.adherence_rate}%</span>
-                  </div>
-                )
-              },
-              {
-                header: language === 'ar' ? 'الحالة' : 'Status',
-                render: (row) => (
-                  <Badge variant={statusColors[row.status] || 'info'}>
-                    {row.status || 'Active'}
-                  </Badge>
-                )
-              },
-              {
-                header: language === 'ar' ? 'الإجراءات' : 'Actions',
-                render: (row) => (
-                  <Button
-                    variant="success"
-                    size="sm"
-                    icon={Check}
-                    onClick={() => handleTakeMedication(row.id)}
-                  >
-                    {language === 'ar' ? 'تناول' : 'Take'}
-                  </Button>
-                )
-              }
-            ]}
-            data={paginatedMedications}
-          />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            rowsPerPage={rowsPerPage}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-            labels={language === 'ar' ? {
-              show: 'عرض',
-              perPage: 'لكل صفحة',
-              of: 'من',
-              first: 'الأولى',
-              previous: 'السابقة',
-              next: 'التالية',
-              last: 'الأخيرة'
-            } : {}}
-          />
-        </Card>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* General Instructions */}
+          <div className="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl shadow-md">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                <Info className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-bold text-blue-900 text-base">Taking Your Medications</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-blue-800">
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <span>Take medications at the same time each day</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <span>Keep medications in their original containers</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <span>Store in a cool, dry place away from sunlight</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <span>Never skip doses without consulting your doctor</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* When to Contact Doctor */}
+          <div className="p-5 bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl shadow-md">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="p-2 bg-gradient-to-br from-red-500 to-red-600 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-bold text-red-900 text-base">Contact Your Doctor If:</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-red-800">
+              <li className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <span>You experience severe side effects</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <span>You miss multiple doses in a row</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <span>Your symptoms worsen or don't improve</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <span>You want to stop or change medications</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       )}
 
-      {/* Important Notice */}
-      <Card className="mt-6 bg-yellow-50 border-yellow-200">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-yellow-900">Important Reminder</p>
-            <p className="text-sm text-yellow-700 mt-1">
+      {/* Important Notice - Enhanced */}
+      <div className="mt-6 p-6 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-2 border-amber-200 rounded-2xl shadow-lg animate-fadeIn">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-md">
+            <AlertCircle className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-amber-900 text-lg mb-2">Important Reminder</p>
+            <p className="text-sm text-amber-800 leading-relaxed">
               Always take your medications as prescribed by your doctor. If you experience any side effects or have questions, contact your healthcare provider immediately.
             </p>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Add Medication Modal */}
+      {/* Add Medication Modal - Enhanced */}
       <Modal
         isOpen={showAddMedication}
         onClose={() => setShowAddMedication(false)}
-        title="Add New Medication"
+        title={
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+              <Plus className="w-5 h-5 text-white" />
+            </div>
+            <span>Add New Medication</span>
+          </div>
+        }
         size="lg"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Medication Selection Dropdown */}
           <Select
             label={language === 'ar' ? 'اسم الدواء' : 'Medication Name'}
@@ -421,13 +528,15 @@ const PatientMedications = ({ user }) => {
             placeholder={language === 'ar' ? 'اختر الدواء...' : 'Select medication...'}
           />
 
-          {/* Selected Medication Info */}
+          {/* Selected Medication Info - Enhanced */}
           {newMedication.medication_name && (
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                <span className="font-medium">{newMedication.medication_name}</span>
-                {' - '}
-                {medications.find(m => m.name === newMedication.medication_name)?.description}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 shadow-sm animate-fadeIn">
+              <p className="text-sm text-blue-900">
+                <span className="font-bold text-base">{newMedication.medication_name}</span>
+                <br />
+                <span className="text-blue-700 mt-1 block">
+                  {medications.find(m => m.name === newMedication.medication_name)?.description}
+                </span>
               </p>
             </div>
           )}
@@ -440,12 +549,12 @@ const PatientMedications = ({ user }) => {
             onChange={(e) => setNewMedication({...newMedication, dosage: e.target.value})}
           />
 
-          {/* Frequency - Quick Selection */}
+          {/* Frequency - Quick Selection Enhanced */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-800 mb-3">
               {language === 'ar' ? 'التكرار' : 'Frequency'}
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { value: 'Once daily', label: 'Once daily' },
                 { value: 'Twice daily', label: 'Twice daily' },
@@ -457,10 +566,10 @@ const PatientMedications = ({ user }) => {
                   type="button"
                   onClick={() => setNewMedication({...newMedication, frequency: freq.value})}
                   className={clsx(
-                    'py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    'py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all duration-300 shadow-sm',
                     newMedication.frequency === freq.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md hover:scale-105'
                   )}
                 >
                   {freq.label}
@@ -469,12 +578,12 @@ const PatientMedications = ({ user }) => {
             </div>
           </div>
 
-          {/* Time - Quick Selection */}
+          {/* Time - Quick Selection Enhanced */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-800 mb-3">
               {language === 'ar' ? 'الوقت' : 'Time'}
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { value: '08:00', label: '8:00 AM' },
                 { value: '12:00', label: '12:00 PM' },
@@ -486,10 +595,10 @@ const PatientMedications = ({ user }) => {
                   type="button"
                   onClick={() => setNewMedication({...newMedication, time: time.value})}
                   className={clsx(
-                    'py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all',
+                    'py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all duration-300 shadow-sm',
                     newMedication.time === time.value
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
+                      ? 'border-green-500 bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg scale-105'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-green-400 hover:bg-green-50 hover:shadow-md hover:scale-105'
                   )}
                 >
                   {time.label}
@@ -498,27 +607,42 @@ const PatientMedications = ({ user }) => {
             </div>
           </div>
 
-          {/* Summary */}
+          {/* Summary - Enhanced */}
           {newMedication.medication_name && newMedication.dosage && newMedication.frequency && newMedication.time && (
-            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-sm text-green-800">
-                <span className="font-medium">Summary:</span>{' '}
-                {newMedication.medication_name} {newMedication.dosage}, {newMedication.frequency} at {newMedication.time}
-              </p>
+            <div className="p-5 bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 rounded-xl border-2 border-green-300 shadow-md animate-fadeIn">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+                  <Check className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-green-900 mb-1">Summary</p>
+                  <p className="text-sm text-green-800 font-medium">
+                    {newMedication.medication_name} <span className="text-green-600">{newMedication.dosage}</span>, {newMedication.frequency} at <span className="text-green-600">{newMedication.time}</span>
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <Button variant="secondary" onClick={() => setShowAddMedication(false)} className="flex-1">
+          <div className="flex gap-3 pt-3">
+            <button
+              onClick={() => setShowAddMedication(false)}
+              className="flex-1 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 hover:border-gray-400 hover:shadow-md transition-all duration-300"
+            >
               Cancel
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={handleAddMedication}
-              className="flex-1"
               disabled={!newMedication.medication_name || !newMedication.dosage || !newMedication.frequency || !newMedication.time}
+              className={clsx(
+                "flex-1 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-md",
+                !newMedication.medication_name || !newMedication.dosage || !newMedication.frequency || !newMedication.time
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:scale-105 active:scale-95"
+              )}
             >
               Add Medication
-            </Button>
+            </button>
           </div>
         </div>
       </Modal>

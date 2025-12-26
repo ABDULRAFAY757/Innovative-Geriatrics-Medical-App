@@ -573,6 +573,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(0, 9, 0), // Today 9:00 AM
     type: "Consultation",
     status: "Confirmed",
@@ -584,6 +585,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(0, 11, 30), // Today 11:30 AM
     type: "Follow-up",
     status: "Confirmed",
@@ -595,6 +597,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(1, 10, 0), // Tomorrow 10:00 AM
     type: "Consultation",
     status: "Scheduled",
@@ -606,6 +609,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(1, 14, 30), // Tomorrow 2:30 PM
     type: "Checkup",
     status: "Scheduled",
@@ -617,6 +621,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(3, 9, 0), // 3 days later
     type: "Lab Review",
     status: "Scheduled",
@@ -628,6 +633,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(5, 11, 0), // 5 days later
     type: "Follow-up",
     status: "Scheduled",
@@ -639,6 +645,7 @@ export const appointments = [
     doctor_id: "3",
     doctor_name: "Dr. Aisha Al-Saud",
     specialization: "Cardiology",
+    location: "King Faisal Specialist Hospital",
     date: getRelativeDate(7, 10, 0), // 7 days later
     type: "Specialist Consultation",
     status: "Scheduled",
@@ -650,6 +657,7 @@ export const appointments = [
     doctor_id: "2",
     doctor_name: "Dr. Mohamed Hassan",
     specialization: "Internal Medicine",
+    location: "Riyadh Medical Complex",
     date: getRelativeDate(2, 14, 0), // 2 days later
     type: "Consultation",
     status: "Scheduled",
