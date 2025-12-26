@@ -18,7 +18,8 @@ import {
   Building,
   CheckCircle,
   AlertTriangle,
-  ChevronRight
+  ChevronRight,
+  Star
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';

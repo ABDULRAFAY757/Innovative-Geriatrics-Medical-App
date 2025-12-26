@@ -132,7 +132,13 @@ const EquipmentAssistance = ({ user }) => {
   };
 
   const handleCreateRequest = () => {
-    if (!newRequest.equipment_name || !newRequest.description) {
+    // Validate all required fields
+    if (!newRequest.equipment_name ||
+        !newRequest.category ||
+        !newRequest.urgency ||
+        !newRequest.description ||
+        !newRequest.estimated_cost ||
+        newRequest.estimated_cost <= 0) {
       alert(language === 'ar' ? 'يرجى ملء جميع الحقول المطلوبة' : 'Please fill all required fields');
       return;
     }
