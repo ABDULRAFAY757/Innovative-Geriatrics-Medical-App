@@ -468,7 +468,7 @@ const PatientMedications = ({ user }) => {
               </li>
               <li className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                <span>Your symptoms worsen or don't improve</span>
+                <span>Your symptoms worsen or do not improve</span>
               </li>
               <li className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />

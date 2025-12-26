@@ -471,8 +471,6 @@ export const AppProvider = ({ children }) => {
     if (donationData.equipment_request_id) {
       const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
       const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0) + donationData.amount;
-      const request = equipmentRequests.find(r => r.id === donationData.equipment_request_id);
-
       setEquipmentRequests(prev =>
         prev.map(req =>
           req.id === donationData.equipment_request_id

@@ -18,7 +18,7 @@ import { clsx } from 'clsx';
  * - Sleep Quality (1 week)
  * - Medication Adherence (1 week)
  */
-const HealthSummaryChart = ({ patient, language = 'en' }) => {
+const HealthSummaryChart = ({ patient: _patient, language = 'en' }) => {
   const isRTL = language === 'ar';
   const [selectedMetric, setSelectedMetric] = useState('bloodPressure');
 
@@ -36,18 +36,18 @@ const HealthSummaryChart = ({ patient, language = 'en' }) => {
     }
 
     return {
-      bloodPressure: days.map((day, i) => ({
+      bloodPressure: days.map((day) => ({
         ...day,
         systolic: 135 + Math.floor(Math.random() * 15) - 7,
         diastolic: 85 + Math.floor(Math.random() * 10) - 5,
       })),
-      sleepQuality: days.map((day, i) => ({
+      sleepQuality: days.map((day) => ({
         ...day,
         hours: 6 + Math.random() * 2,
         quality: ['Poor', 'Fair', 'Good', 'Excellent'][Math.floor(Math.random() * 4)],
         qualityScore: 60 + Math.floor(Math.random() * 40),
       })),
-      medicationAdherence: days.map((day, i) => ({
+      medicationAdherence: days.map((day) => ({
         ...day,
         taken: Math.floor(Math.random() * 3) + 2,
         total: 3,
@@ -96,7 +96,6 @@ const HealthSummaryChart = ({ patient, language = 'en' }) => {
       };
     } else if (selectedMetric === 'sleepQuality') {
       const avgHours = currentData.reduce((sum, d) => sum + d.hours, 0) / currentData.length;
-      const avgQuality = currentData.reduce((sum, d) => sum + d.qualityScore, 0) / currentData.length;
       const trend = currentData[currentData.length - 1].hours > currentData[0].hours ? 'up' : 'down';
       return {
         average: avgHours.toFixed(1),

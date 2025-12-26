@@ -50,6 +50,7 @@ export const escapeSQL = (str) => {
     .replace(/\\/g, '\\\\')
     .replace(/'/g, "\\'")
     .replace(/"/g, '\\"')
+    // eslint-disable-next-line no-control-regex
     .replace(/\x00/g, '\\0');
 };
 

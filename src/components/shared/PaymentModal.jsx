@@ -4,7 +4,7 @@ import { Modal, Button, Input } from './UIComponents';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { clsx } from 'clsx';
 
-const PaymentModal = ({ isOpen, onClose, amount, description, onSuccess, onPaymentSuccess, title, disabled }) => {
+const PaymentModal = ({ isOpen, onClose, amount, description, onSuccess, onPaymentSuccess, title: _title, disabled: _disabled }) => {
   // Support both onSuccess and onPaymentSuccess prop names for backward compatibility
   const handleSuccess = onPaymentSuccess || onSuccess;
 

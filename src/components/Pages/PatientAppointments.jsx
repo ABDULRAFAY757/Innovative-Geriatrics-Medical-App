@@ -19,7 +19,7 @@ import {
   Building,
   X
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Modal, Avatar, Pagination, Select } from '../shared/UIComponents';
+import { Table, Badge, Button, Input, Modal, Avatar, Pagination, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientAppointments = ({ user }) => {

@@ -8,12 +8,10 @@ import {
   DollarSign,
   CheckCircle,
   Clock,
-  AlertCircle,
   XCircle,
   Gift,
   Users,
   TrendingUp,
-  Download,
   Plus
 } from 'lucide-react';
 import { Card, Badge, Button, Input, Pagination, StatCard, Modal, Select } from '../shared/UIComponents';
@@ -26,7 +24,7 @@ import { clsx } from 'clsx';
  * - Doctor/Family: View requests (with patient confidentiality) and make full/partial donations
  */
 const EquipmentAssistance = ({ user }) => {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const {
     equipmentRequests,
     createEquipmentRequest,
@@ -45,6 +43,7 @@ const EquipmentAssistance = ({ user }) => {
   const urgencies = ['all', 'Low', 'Medium', 'High', 'Critical'];
   const statuses = ['all', 'Pending', 'In Progress', 'Fulfilled', 'Cancelled'];
 
+  // eslint-disable-next-line no-unused-vars
   const [activeTab, setActiveTab] = useState(isPatient ? 'my-requests' : 'donate');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -88,11 +87,11 @@ const EquipmentAssistance = ({ user }) => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedRequests = filteredRequests.slice(startIndex, startIndex + rowsPerPage);
 
-  // Get user's donations (if donor)
-  const myDonations = isDonor ? donations.filter(d => d.donor_id === user?.id) : [];
-
   // Statistics
   const stats = useMemo(() => {
+    // Get user's donations (if donor) inside useMemo to avoid dependency warnings
+    const userDonations = isDonor ? donations.filter(d => d.donor_id === user?.id) : [];
+
     if (isPatient) {
       const myRequests = relevantRequests;
       return {
@@ -104,12 +103,12 @@ const EquipmentAssistance = ({ user }) => {
     } else {
       return {
         available: filteredRequests.filter(r => r.status === 'Pending' || r.status === 'In Progress').length,
-        myDonations: myDonations.length,
-        totalDonated: myDonations.reduce((sum, d) => sum + d.amount, 0),
-        patientsHelped: new Set(myDonations.map(d => d.equipment_request_id)).size,
+        myDonations: userDonations.length,
+        totalDonated: userDonations.reduce((sum, d) => sum + d.amount, 0),
+        patientsHelped: new Set(userDonations.map(d => d.equipment_request_id)).size,
       };
     }
-  }, [relevantRequests, filteredRequests, myDonations, isPatient]);
+  }, [relevantRequests, filteredRequests, donations, isDonor, user?.id, isPatient]);
 
   // Get anonymous patient name for confidentiality
   const getAnonymousPatientName = (request) => {
@@ -441,7 +440,7 @@ const EquipmentAssistance = ({ user }) => {
       {/* Equipment Requests Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedRequests.map(request => {
-          const { donations: requestDonations, totalDonated } = getRequestDonations(request.id);
+          const { totalDonated } = getRequestDonations(request.id);
           const estimatedCost = request.estimated_cost || 0;
           const remainingAmount = estimatedCost - totalDonated;
           const fundingProgress = estimatedCost > 0 ? (totalDonated / estimatedCost) * 100 : 0;
