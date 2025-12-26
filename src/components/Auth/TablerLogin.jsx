@@ -33,10 +33,10 @@ const TablerLogin = () => {
   const [error, setError] = useState('');
   const [selectedRole, setSelectedRole] = useState('patient');
 
-  // Demo credentials for easy testing (3 roles: Patient, Doctor, Family)
+  // Demo credentials matching AuthContext USER_DATABASE
   const demoCredentials = {
     patient: { email: 'patient1@elderly.sa', password: 'patient123' },
-    doctor: { email: 'doctor1@kfmc.sa', password: 'doctor123' },
+    doctor: { email: 'lama@innovativegeriatrics.com', password: 'Lama@123' },
     family: { email: 'family1@gmail.com', password: 'family123' }
   };
 
@@ -206,9 +206,14 @@ const TablerLogin = () => {
 
             {/* Role Selection */}
             <div className="mb-6">
-              <label className="form-label">
-                {language === 'ar' ? 'تسجيل دخول سريع - تجريبي' : 'Quick Demo Login'}
+              <label className="form-label mb-3">
+                {language === 'ar' ? 'اختر نوع الحساب للتسجيل التجريبي' : 'Select Account Type for Demo Login'}
               </label>
+              <p className="text-xs text-muted mb-3">
+                {language === 'ar'
+                  ? 'انقر على أي دور لملء بيانات الدخول تلقائياً'
+                  : 'Click any role to auto-fill login credentials'}
+              </p>
               <div className="grid grid-cols-3 gap-2">
                 {roleCards.map((roleCard) => {
                   const Icon = roleCard.icon;
@@ -217,16 +222,20 @@ const TablerLogin = () => {
                     <button
                       key={roleCard.role}
                       onClick={() => handleDemoLogin(roleCard.role)}
+                      type="button"
                       className={clsx(
-                        'card p-3 text-center transition-all cursor-pointer',
+                        'card p-3 text-center transition-all cursor-pointer hover:shadow-md',
                         isSelected
-                          ? 'border-blue-600 bg-blue-50'
+                          ? 'border-blue-600 bg-blue-50 shadow-md'
                           : 'border-gray-200 hover:border-blue-300'
                       )}
                     >
                       <Icon className={clsx('w-6 h-6 mx-auto mb-2', isSelected ? 'text-blue-600' : 'text-gray-600')} />
-                      <p className={clsx('text-xs font-medium', isSelected ? 'text-blue-900' : 'text-gray-700')}>
+                      <p className={clsx('text-xs font-medium mb-1', isSelected ? 'text-blue-900' : 'text-gray-700')}>
                         {roleCard.title}
+                      </p>
+                      <p className={clsx('text-[10px]', isSelected ? 'text-blue-600' : 'text-gray-500')}>
+                        {roleCard.description}
                       </p>
                     </button>
                   );
@@ -308,14 +317,35 @@ const TablerLogin = () => {
               </p>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 rounded border border-blue-100">
-              <div className="flex items-start gap-2 text-xs text-blue-900">
-                <TablerBadge variant="primary" size="sm">Demo</TablerBadge>
-                <p className="text-blue-700">
-                  {language === 'ar'
-                    ? 'انقر على أي دور أعلاه للتعبئة التلقائية'
-                    : 'Click any role card above to auto-fill credentials'}
-                </p>
+            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-3">
+                <TablerBadge variant="primary" size="sm" className="mt-0.5">Demo</TablerBadge>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-blue-900 mb-2">
+                    {language === 'ar' ? 'بيانات تسجيل الدخول التجريبية' : 'Demo Login Credentials'}
+                  </p>
+                  <div className="space-y-1.5 text-xs text-blue-700">
+                    <div className="flex justify-between">
+                      <span className="font-medium">{language === 'ar' ? 'مريض:' : 'Patient:'}</span>
+                      <span className="font-mono">patient1@elderly.sa</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">{language === 'ar' ? 'طبيب:' : 'Doctor:'}</span>
+                      <span className="font-mono">lama@innovativegeriatrics.com</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">{language === 'ar' ? 'عائلة:' : 'Family:'}</span>
+                      <span className="font-mono">family1@gmail.com</span>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-blue-200">
+                      <p className="text-blue-600 italic">
+                        {language === 'ar'
+                          ? 'كلمة المرور لجميع الحسابات يتم ملؤها تلقائياً عند اختيار الدور'
+                          : 'Password is auto-filled when you select a role'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </TablerCard>
