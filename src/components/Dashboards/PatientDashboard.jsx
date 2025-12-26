@@ -60,6 +60,8 @@ const InteractivePatientDashboard = ({ user }) => {
     equipment_name: '',
     description: '',
     category: 'Mobility',
+    urgency: 'Medium',
+    estimated_cost: 0,
     medical_justification: '',
   });
 
@@ -260,6 +262,8 @@ const InteractivePatientDashboard = ({ user }) => {
       equipment_name: '',
       description: '',
       category: 'Mobility',
+      urgency: 'Medium',
+      estimated_cost: 0,
       medical_justification: '',
     });
   };
@@ -1254,11 +1258,32 @@ const InteractivePatientDashboard = ({ user }) => {
             </select>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Urgency *</label>
+            <select
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
+              value={newEquipmentRequest.urgency || 'Medium'}
+              onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, urgency: e.target.value})}
+            >
+              <option value="High">🔴 High Priority</option>
+              <option value="Medium">🟡 Medium Priority</option>
+              <option value="Low">🟢 Low Priority</option>
+            </select>
+          </div>
+
           <Input
             label="Description"
             value={newEquipmentRequest.description}
             onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, description: e.target.value})}
             placeholder="Briefly describe your need..."
+          />
+
+          <Input
+            label="Estimated Cost (SAR) *"
+            type="number"
+            value={newEquipmentRequest.estimated_cost || ''}
+            onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, estimated_cost: parseFloat(e.target.value) || 0})}
+            placeholder="Enter estimated cost in SAR"
           />
 
           <div>
@@ -1278,7 +1303,7 @@ const InteractivePatientDashboard = ({ user }) => {
             <Button
               onClick={handleCreateEquipment}
               className="flex-1"
-              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.description}
+              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.description || !newEquipmentRequest.urgency || !newEquipmentRequest.estimated_cost || newEquipmentRequest.estimated_cost <= 0}
             >
               Submit Request
             </Button>
