@@ -59,9 +59,9 @@ const InteractivePatientDashboard = ({ user }) => {
   const [newEquipmentRequest, setNewEquipmentRequest] = useState({
     equipment_name: '',
     description: '',
-    category: 'Mobility',
-    urgency: 'Medium',
-    estimated_cost: 0,
+    category: '',
+    urgency: '',
+    estimated_cost: '',
     medical_justification: '',
   });
 
@@ -261,9 +261,9 @@ const InteractivePatientDashboard = ({ user }) => {
     setNewEquipmentRequest({
       equipment_name: '',
       description: '',
-      category: 'Mobility',
-      urgency: 'Medium',
-      estimated_cost: 0,
+      category: '',
+      urgency: '',
+      estimated_cost: '',
       medical_justification: '',
     });
   };
@@ -1238,19 +1238,20 @@ const InteractivePatientDashboard = ({ user }) => {
           </div>
 
           <Input
-            label="Equipment Name"
+            label="Equipment Name *"
             value={newEquipmentRequest.equipment_name}
             onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, equipment_name: e.target.value})}
             placeholder="e.g., Wheelchair, Walking Frame, Blood Pressure Monitor"
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
             <select
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
               value={newEquipmentRequest.category}
               onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, category: e.target.value})}
             >
+              <option value="" disabled>Select category...</option>
               <option value="Mobility">🦽 Mobility Aids</option>
               <option value="Monitoring">📊 Health Monitoring</option>
               <option value="Safety">🛡️ Safety Equipment</option>
@@ -1262,9 +1263,10 @@ const InteractivePatientDashboard = ({ user }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Urgency *</label>
             <select
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
-              value={newEquipmentRequest.urgency || 'Medium'}
+              value={newEquipmentRequest.urgency}
               onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, urgency: e.target.value})}
             >
+              <option value="" disabled>Select priority level...</option>
               <option value="High">🔴 High Priority</option>
               <option value="Medium">🟡 Medium Priority</option>
               <option value="Low">🟢 Low Priority</option>
@@ -1272,7 +1274,7 @@ const InteractivePatientDashboard = ({ user }) => {
           </div>
 
           <Input
-            label="Description"
+            label="Description *"
             value={newEquipmentRequest.description}
             onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, description: e.target.value})}
             placeholder="Briefly describe your need..."
@@ -1303,7 +1305,7 @@ const InteractivePatientDashboard = ({ user }) => {
             <Button
               onClick={handleCreateEquipment}
               className="flex-1"
-              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.description || !newEquipmentRequest.urgency || !newEquipmentRequest.estimated_cost || newEquipmentRequest.estimated_cost <= 0}
+              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.category || !newEquipmentRequest.description || !newEquipmentRequest.urgency || !newEquipmentRequest.estimated_cost || newEquipmentRequest.estimated_cost <= 0}
             >
               Submit Request
             </Button>
