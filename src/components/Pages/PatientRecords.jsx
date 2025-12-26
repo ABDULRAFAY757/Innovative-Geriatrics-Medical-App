@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { FileText, Search, Eye, User, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { FileText, Search, Eye, User, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Calendar } from 'lucide-react';
 import { Card, Badge, Button, Input, Modal, Table } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 import { medicalRecords, patients } from '../../data/mockData';
