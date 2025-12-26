@@ -220,8 +220,42 @@ const InteractivePatientDashboard = ({ user }) => {
   };
 
   const handleBookAppointment = () => {
+    // Comprehensive validation with user feedback
     if (!selectedDoctorId || !newAppointment.date || !newAppointment.time) {
+      alert('Please fill in all required fields: Doctor, Date, and Time');
       return;
+    }
+
+    // Validate date is not in the past
+    const selectedDateTime = new Date(`${newAppointment.date}T${newAppointment.time}`);
+    const now = new Date();
+    if (selectedDateTime < now) {
+      alert('Cannot book appointments in the past. Please select a future date and time.');
+      return;
+    }
+
+    // Validate location type is selected
+    if (!newAppointment.locationType) {
+      alert('Please select a location type (In-Person or Online)');
+      return;
+    }
+
+    // Check for duplicate appointments (same doctor, same day)
+    const hasDuplicateAppointment = myAppointments.some(apt => {
+      const aptDate = new Date(apt.date);
+      const selectedDate = new Date(newAppointment.date);
+      return apt.doctor_id === newAppointment.doctor_id &&
+             aptDate.toDateString() === selectedDate.toDateString() &&
+             apt.status !== 'Cancelled';
+    });
+
+    if (hasDuplicateAppointment) {
+      const confirmDuplicate = window.confirm(
+        `You already have an appointment with ${newAppointment.doctor_name} on this date. Do you want to book another one?`
+      );
+      if (!confirmDuplicate) {
+        return;
+      }
     }
 
     const appointmentData = {
@@ -236,6 +270,10 @@ const InteractivePatientDashboard = ({ user }) => {
     };
 
     bookAppointment(appointmentData);
+
+    // Success feedback
+    alert(`Appointment booked successfully with ${newAppointment.doctor_name} on ${new Date(selectedDateTime).toLocaleDateString()}`);
+
     setShowNewAppointment(false);
     setSelectedDoctorId('');
     setNewAppointment({
@@ -252,11 +290,61 @@ const InteractivePatientDashboard = ({ user }) => {
   };
 
   const handleCreateEquipment = () => {
+    // Comprehensive validation
+    if (!newEquipmentRequest.equipment_name || newEquipmentRequest.equipment_name.trim().length < 3) {
+      alert('Equipment name must be at least 3 characters long');
+      return;
+    }
+
+    if (!newEquipmentRequest.category) {
+      alert('Please select an equipment category');
+      return;
+    }
+
+    if (!newEquipmentRequest.urgency) {
+      alert('Please select a priority level');
+      return;
+    }
+
+    if (!newEquipmentRequest.description || newEquipmentRequest.description.trim().length < 10) {
+      alert('Please provide a detailed description (at least 10 characters)');
+      return;
+    }
+
+    if (!newEquipmentRequest.estimated_cost || parseFloat(newEquipmentRequest.estimated_cost) <= 0) {
+      alert('Please enter a valid estimated cost greater than 0 SAR');
+      return;
+    }
+
+    if (parseFloat(newEquipmentRequest.estimated_cost) > 1000000) {
+      alert('Estimated cost cannot exceed 1,000,000 SAR. Please contact support for high-value equipment requests.');
+      return;
+    }
+
+    // Check for duplicate equipment requests
+    const hasDuplicateRequest = myEquipment.some(eq => {
+      return eq.equipment_name.toLowerCase() === newEquipmentRequest.equipment_name.toLowerCase() &&
+             (eq.status === 'Pending' || eq.status === 'Approved');
+    });
+
+    if (hasDuplicateRequest) {
+      const confirmDuplicate = window.confirm(
+        `You already have a ${newEquipmentRequest.equipment_name} request that is pending or approved. Do you want to submit another request?`
+      );
+      if (!confirmDuplicate) {
+        return;
+      }
+    }
+
     createEquipmentRequest({
       ...newEquipmentRequest,
       patient_id: patientId,
       patient_name: patient?.name || '',
     });
+
+    // Success feedback
+    alert(`Equipment request for "${newEquipmentRequest.equipment_name}" submitted successfully. You will be notified once it's reviewed.`);
+
     setShowNewEquipment(false);
     setNewEquipmentRequest({
       equipment_name: '',
@@ -1013,27 +1101,56 @@ const InteractivePatientDashboard = ({ user }) => {
             </div>
           </div>
 
-          {/* Time Slot Selection */}
+          {/* Time Slot Selection - Smart filtering for today's date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'ar' ? 'اختر الوقت' : 'Select Time'}
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map((time) => (
-                <button
-                  key={time}
-                  type="button"
-                  onClick={() => setNewAppointment(prev => ({ ...prev, time }))}
-                  className={`px-3 py-2 rounded-lg border-2 transition-all duration-200 hover:border-blue-400 hover:bg-blue-50 text-sm font-medium ${
-                    newAppointment.time === time
-                      ? 'border-blue-600 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 bg-white text-gray-700'
-                  }`}
-                >
-                  {time}
-                </button>
-              ))}
+              {(() => {
+                const allTimes = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+                const now = new Date();
+                const selectedDate = newAppointment.date ? new Date(newAppointment.date) : null;
+                const isToday = selectedDate && selectedDate.toDateString() === now.toDateString();
+
+                return allTimes.map((time) => {
+                  // Check if time slot is in the past for today's appointments
+                  let isPastTime = false;
+                  if (isToday) {
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const timeSlot = new Date();
+                    timeSlot.setHours(hours, minutes, 0, 0);
+                    isPastTime = timeSlot < now;
+                  }
+
+                  return (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => !isPastTime && setNewAppointment(prev => ({ ...prev, time }))}
+                      disabled={isPastTime}
+                      className={`px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                        isPastTime
+                          ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                          : newAppointment.time === time
+                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50'
+                      }`}
+                      title={isPastTime ? 'Time slot has passed' : ''}
+                    >
+                      {time}
+                      {isPastTime && <span className="ml-1 text-xs">✗</span>}
+                    </button>
+                  );
+                });
+              })()}
             </div>
+            {newAppointment.date && new Date(newAppointment.date).toDateString() === new Date().toDateString() && (
+              <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Past time slots are disabled for today
+              </p>
+            )}
           </div>
 
           {/* Appointment Type Selection */}
@@ -1257,6 +1374,34 @@ const InteractivePatientDashboard = ({ user }) => {
               <option value="Safety">🛡️ Safety Equipment</option>
               <option value="Home Care">🏠 Home Care</option>
             </select>
+
+            {/* Category-based suggestions */}
+            {newEquipmentRequest.category && (
+              <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl animate-fadeIn">
+                <p className="text-xs font-semibold text-blue-700 mb-2">Common items in this category:</p>
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const suggestions = {
+                      'Mobility': ['Wheelchair', 'Walker', 'Walking Cane', 'Crutches', 'Mobility Scooter'],
+                      'Monitoring': ['Blood Pressure Monitor', 'Glucose Meter', 'Pulse Oximeter', 'Thermometer', 'Heart Rate Monitor'],
+                      'Safety': ['Bed Rails', 'Grab Bars', 'Emergency Alert System', 'Fall Detection Device', 'Night Light'],
+                      'Home Care': ['Hospital Bed', 'Bedside Commode', 'Shower Chair', 'Oxygen Concentrator', 'Nebulizer']
+                    };
+                    const items = suggestions[newEquipmentRequest.category] || [];
+                    return items.map(item => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setNewEquipmentRequest({...newEquipmentRequest, equipment_name: item})}
+                        className="px-3 py-1.5 bg-white border border-blue-300 rounded-lg text-xs font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-400 transition-all"
+                      >
+                        {item}
+                      </button>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -1273,20 +1418,49 @@ const InteractivePatientDashboard = ({ user }) => {
             </select>
           </div>
 
-          <Input
-            label="Description *"
-            value={newEquipmentRequest.description}
-            onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, description: e.target.value})}
-            placeholder="Briefly describe your need..."
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+            <textarea
+              className="w-full h-24 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base resize-none"
+              value={newEquipmentRequest.description}
+              onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, description: e.target.value})}
+              placeholder="Briefly describe your need (minimum 10 characters)..."
+              maxLength={1000}
+            />
+            <div className="flex justify-between items-center mt-1">
+              <p className={`text-xs ${newEquipmentRequest.description.length >= 10 ? 'text-green-600' : 'text-gray-500'}`}>
+                {newEquipmentRequest.description.length >= 10 ? '✓ Good description' : `${newEquipmentRequest.description.length}/10 minimum`}
+              </p>
+              <p className="text-xs text-gray-400">
+                {newEquipmentRequest.description.length}/1000
+              </p>
+            </div>
+          </div>
 
-          <Input
-            label="Estimated Cost (SAR) *"
-            type="number"
-            value={newEquipmentRequest.estimated_cost || ''}
-            onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, estimated_cost: parseFloat(e.target.value) || 0})}
-            placeholder="Enter estimated cost in SAR"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Cost (SAR) *</label>
+            <input
+              type="number"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
+              value={newEquipmentRequest.estimated_cost || ''}
+              onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, estimated_cost: parseFloat(e.target.value) || ''})}
+              placeholder="Enter estimated cost in SAR"
+              min="1"
+              max="1000000"
+              step="1"
+            />
+            {newEquipmentRequest.estimated_cost && (
+              <div className="mt-1">
+                {parseFloat(newEquipmentRequest.estimated_cost) > 0 && parseFloat(newEquipmentRequest.estimated_cost) <= 1000000 ? (
+                  <p className="text-xs text-green-600">✓ Valid cost amount</p>
+                ) : parseFloat(newEquipmentRequest.estimated_cost) > 1000000 ? (
+                  <p className="text-xs text-red-600">⚠ Cost exceeds maximum (1,000,000 SAR)</p>
+                ) : (
+                  <p className="text-xs text-red-600">⚠ Cost must be greater than 0</p>
+                )}
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Medical Reason</label>
