@@ -157,7 +157,7 @@ const PatientMedications = ({ user }) => {
             <div>
               <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Avg. Adherence</p>
               <p className="text-3xl font-bold text-gray-900">
-                {Math.round(myMedications.reduce((acc, m) => acc + m.adherence_rate, 0) / myMedications.length || 0)}%
+                {myMedications.length > 0 ? Math.round(myMedications.reduce((acc, m) => acc + m.adherence_rate, 0) / myMedications.length) : 0}%
               </p>
             </div>
           </div>

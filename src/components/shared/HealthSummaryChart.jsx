@@ -85,10 +85,15 @@ const HealthSummaryChart = ({ patient: _patient, language = 'en' }) => {
 
   // Calculate averages and trends
   const getStats = () => {
+    // Guard against empty data
+    if (!currentData || currentData.length === 0) {
+      return { average: '0', trend: 'stable', status: 'good' };
+    }
+
     if (selectedMetric === 'bloodPressure') {
       const avgSystolic = currentData.reduce((sum, d) => sum + d.systolic, 0) / currentData.length;
       const avgDiastolic = currentData.reduce((sum, d) => sum + d.diastolic, 0) / currentData.length;
-      const trend = currentData[currentData.length - 1].systolic > currentData[0].systolic ? 'up' : 'down';
+      const trend = currentData.length > 1 && currentData[currentData.length - 1].systolic > currentData[0].systolic ? 'up' : 'down';
       return {
         average: `${Math.round(avgSystolic)}/${Math.round(avgDiastolic)}`,
         trend,
@@ -96,7 +101,7 @@ const HealthSummaryChart = ({ patient: _patient, language = 'en' }) => {
       };
     } else if (selectedMetric === 'sleepQuality') {
       const avgHours = currentData.reduce((sum, d) => sum + d.hours, 0) / currentData.length;
-      const trend = currentData[currentData.length - 1].hours > currentData[0].hours ? 'up' : 'down';
+      const trend = currentData.length > 1 && currentData[currentData.length - 1].hours > currentData[0].hours ? 'up' : 'down';
       return {
         average: avgHours.toFixed(1),
         trend,
@@ -104,7 +109,7 @@ const HealthSummaryChart = ({ patient: _patient, language = 'en' }) => {
       };
     } else {
       const avgAdherence = currentData.reduce((sum, d) => sum + d.percentage, 0) / currentData.length;
-      const trend = currentData[currentData.length - 1].percentage > currentData[0].percentage ? 'up' : 'down';
+      const trend = currentData.length > 1 && currentData[currentData.length - 1].percentage > currentData[0].percentage ? 'up' : 'down';
       return {
         average: avgAdherence.toFixed(0),
         trend,

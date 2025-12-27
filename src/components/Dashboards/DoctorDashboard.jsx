@@ -535,7 +535,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
             {language === 'ar' ? 'مخاطر السقوط' : 'Fall Risk'}
           </h3>
           <RadialBarChart
-            series={fallRiskDistribution.series.map(v => Math.round((v / patients.length) * 100))}
+            series={fallRiskDistribution.series.map(v => patients.length > 0 ? Math.round((v / patients.length) * 100) : 0)}
             labels={fallRiskDistribution.labels}
             height={160}
             colors={['#ef4444', '#f59e0b', '#22c55e']}
@@ -690,7 +690,8 @@ const InteractiveDoctorDashboard = ({ user }) => {
               variant="outline"
               className="w-full justify-start"
               icon={Plus}
-              onClick={() => handleAddClinicalNote(patients[0])}
+              onClick={() => patients.length > 0 && handleAddClinicalNote(patients[0])}
+              disabled={patients.length === 0}
             >
               {t('add_clinical_note')}
             </Button>
@@ -698,7 +699,8 @@ const InteractiveDoctorDashboard = ({ user }) => {
               variant="outline"
               className="w-full justify-start"
               icon={Pill}
-              onClick={() => handleAddPrescription(patients[0])}
+              onClick={() => patients.length > 0 && handleAddPrescription(patients[0])}
+              disabled={patients.length === 0}
             >
               {t('add_prescription')}
             </Button>
@@ -706,7 +708,8 @@ const InteractiveDoctorDashboard = ({ user }) => {
               variant="outline"
               className="w-full justify-start"
               icon={Calendar}
-              onClick={() => handleScheduleAppointment(patients[0])}
+              onClick={() => patients.length > 0 && handleScheduleAppointment(patients[0])}
+              disabled={patients.length === 0}
             >
               {language === 'ar' ? 'جدولة موعد' : 'Schedule Appointment'}
             </Button>
@@ -1559,7 +1562,7 @@ const InteractiveDoctorDashboard = ({ user }) => {
                 {language === 'ar' ? 'توزيع مخاطر السقوط' : 'Fall Risk Distribution'}
               </h3>
               <RadialBarChart
-                series={fallRiskDistribution.series.map(v => Math.round((v / patients.length) * 100))}
+                series={fallRiskDistribution.series.map(v => patients.length > 0 ? Math.round((v / patients.length) * 100) : 0)}
                 labels={fallRiskDistribution.labels}
                 height={180}
                 colors={['#ef4444', '#f59e0b', '#22c55e']}
