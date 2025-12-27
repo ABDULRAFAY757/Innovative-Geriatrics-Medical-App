@@ -116,8 +116,8 @@ const Help = ({ user }) => {
   const currentFaqs = faqs[user?.role] || faqs.patient;
   const filteredFaqs = searchTerm
     ? currentFaqs.filter(faq =>
-        faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+        (faq.question || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (faq.answer || '').toLowerCase().includes(searchTerm.toLowerCase())
       )
     : currentFaqs;
 

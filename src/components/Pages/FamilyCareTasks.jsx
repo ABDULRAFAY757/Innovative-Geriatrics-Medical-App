@@ -36,8 +36,8 @@ const FamilyCareTasks = ({ user }) => {
   });
 
   const filteredTasks = myCareTasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          task.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (task.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (task.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' ||
       (filterStatus === 'pending' && task.status === 'Pending') ||
       (filterStatus === 'completed' && task.status === 'Completed');

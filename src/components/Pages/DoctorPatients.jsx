@@ -58,9 +58,9 @@ const DoctorPatients = ({ user }) => {
   });
 
   const filteredPatients = allPatients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.p_no.toLowerCase().includes(searchTerm.toLowerCase())
+    (patient.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.nameEn || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.p_no || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination

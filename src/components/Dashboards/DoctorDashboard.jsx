@@ -111,9 +111,9 @@ const InteractiveDoctorDashboard = ({ user }) => {
   };
 
   const filteredPatients = patients.filter(p => {
-    const name = p.nameEn;
+    const name = p.nameEn || '';
     return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           p.p_no.toLowerCase().includes(searchTerm.toLowerCase());
+           (p.p_no || '').toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const todaysAppointments = doctorAppointments.filter(a => {

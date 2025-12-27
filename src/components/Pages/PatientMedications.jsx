@@ -240,7 +240,7 @@ const PatientMedications = ({ user }) => {
           <>
           <div className="space-y-4">
             {paginatedMedications.map((med) => {
-              const freq = med.frequency.toLowerCase();
+              const freq = (med.frequency || '').toLowerCase();
               const totalDoses = freq.includes('once') ? 1 : freq.includes('twice') ? 2 : freq.includes('three') ? 3 : 1;
               const allTaken = (med.taken_today || 0) >= totalDoses;
 
@@ -341,7 +341,7 @@ const PatientMedications = ({ user }) => {
                       <div className="w-2.5 h-2.5 rounded-full bg-gray-400 border-2 border-gray-500"></div>
                       <span className="text-xs font-bold text-gray-700">
                         {(() => {
-                          const freq = med.frequency.toLowerCase();
+                          const freq = (med.frequency || '').toLowerCase();
                           const total = freq.includes('once') ? 1 : freq.includes('twice') ? 2 : freq.includes('three') ? 3 : 1;
                           return Math.max(0, total - (med.taken_today || 0));
                         })()}

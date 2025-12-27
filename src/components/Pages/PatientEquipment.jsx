@@ -40,8 +40,8 @@ const PatientEquipment = ({ user }) => {
   });
 
   const filteredRequests = myEquipment.filter(req => {
-    const matchesSearch = req.equipment_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          req.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (req.equipment_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (req.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' ||
       (filterStatus === 'pending' && req.status === 'Pending') ||
       (filterStatus === 'fulfilled' && req.status === 'Fulfilled') ||

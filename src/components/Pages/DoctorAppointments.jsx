@@ -57,8 +57,8 @@ const DoctorAppointments = ({ user }) => {
 
   const filteredAppointments = myAppointments.filter(apt => {
     const patient = patients.find(p => p.id === apt.patient_id);
-    const matchesSearch = patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          patient?.nameEn.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = patient?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          patient?.nameEn?.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (filterStatus === 'today') {
       const aptDate = new Date(apt.date);

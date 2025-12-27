@@ -29,7 +29,7 @@ const FamilyAlerts = ({ user }) => {
   const [responseAction, setResponseAction] = useState('');
 
   const filteredAlerts = myAlerts.filter(alert => {
-    const matchesSearch = alert.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (alert.location || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' ||
       (filterStatus === 'pending' && alert.status === 'Pending') ||
       (filterStatus === 'resolved' && alert.status === 'Resolved');
