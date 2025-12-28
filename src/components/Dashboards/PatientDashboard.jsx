@@ -25,7 +25,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { doctors } from '../../data/mockData';
 import { Card, Badge, Button, Modal, Input } from '../shared/UIComponents';
-import { DonutChart, SparklineChart } from '../shared/Charts';
+import { RadialBarChart, SparklineChart } from '../shared/Charts';
 import { clsx } from 'clsx';
 
 const InteractivePatientDashboard = ({ user }) => {
@@ -714,16 +714,25 @@ const InteractivePatientDashboard = ({ user }) => {
             <Pill className="w-4 h-4 text-green-500" />
             {language === 'ar' ? 'الالتزام بالأدوية' : 'Med Adherence'}
           </h4>
-          <DonutChart
-            series={[avgAdherence, 100 - avgAdherence]}
-            labels={[language === 'ar' ? 'تم تناوله' : 'Taken', language === 'ar' ? 'فائت' : 'Missed']}
-            height={140}
-            colors={['#22c55e', '#ef4444']}
-            centerText={{
-              label: language === 'ar' ? 'الالتزام' : 'Adherence',
-              value: `${avgAdherence}%`
-            }}
-          />
+          <div className="flex flex-col items-center">
+            <RadialBarChart
+              series={[avgAdherence]}
+              labels={['']}
+              height={160}
+              colors={[avgAdherence >= 80 ? '#22c55e' : avgAdherence >= 60 ? '#f59e0b' : '#ef4444']}
+            />
+            {/* Legend outside the chart */}
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="text-xs text-gray-600">{language === 'ar' ? 'تم تناوله' : 'Taken'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-xs text-gray-600">{language === 'ar' ? 'فائت' : 'Missed'}</span>
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
 
@@ -734,7 +743,7 @@ const InteractivePatientDashboard = ({ user }) => {
         <Card
           title={t('medication_reminders')}
           action={
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => { navigate('/patient/medications'); window.scrollTo(0, 0); }}>
               {t('view_all')} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           }

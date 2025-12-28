@@ -467,7 +467,7 @@ export const saveNewRole = async (roleConfig) => {
   // });
   // return response.json();
 
-  console.log('New role would be saved:', roleConfig);
+  // In production, this would save to backend
   return roleConfig;
 };
 

@@ -99,10 +99,12 @@ const PatientAppointments = ({ user }) => {
   };
 
   const filteredAppointments = myAppointments.filter(apt => {
-    const matchesSearch = apt.doctor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          apt.specialization.toLowerCase().includes(searchTerm.toLowerCase());
+    const doctorName = (apt.doctor_name || '').toLowerCase();
+    const specialization = (apt.specialization || '').toLowerCase();
+    const search = searchTerm.toLowerCase();
+    const matchesSearch = doctorName.includes(search) || specialization.includes(search);
     const matchesFilter = filterStatus === 'all' ||
-      (filterStatus === 'upcoming' && apt.status === 'Confirmed') ||
+      (filterStatus === 'upcoming' && (apt.status === 'Confirmed' || apt.status === 'Scheduled')) ||
       (filterStatus === 'completed' && apt.status === 'Completed') ||
       (filterStatus === 'cancelled' && apt.status === 'Cancelled');
     return matchesSearch && matchesFilter;
@@ -131,7 +133,7 @@ const PatientAppointments = ({ user }) => {
     resetPage();
   };
 
-  const upcomingCount = myAppointments.filter(a => a.status === 'Confirmed').length;
+  const upcomingCount = myAppointments.filter(a => a.status === 'Confirmed' || a.status === 'Scheduled').length;
   const completedCount = myAppointments.filter(a => a.status === 'Completed').length;
 
   const handleBookAppointment = () => {

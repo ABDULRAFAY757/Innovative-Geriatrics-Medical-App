@@ -35,10 +35,17 @@ const PatientMedications = ({ user }) => {
   });
 
   const filteredMedications = myMedications.filter(med => {
-    const matchesSearch = med.medication_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const medName = (med.medication_name || '').toLowerCase();
+    const matchesSearch = medName.includes(searchTerm.toLowerCase());
+
+    // Calculate if all doses are taken for today
+    const freq = (med.frequency || '').toLowerCase();
+    const totalDoses = freq.includes('once') ? 1 : freq.includes('twice') ? 2 : freq.includes('three') ? 3 : 1;
+    const allTakenToday = (med.taken_today || 0) >= totalDoses;
+
     const matchesFilter = filterStatus === 'all' ||
-      (filterStatus === 'active' && med.adherence_rate < 100) ||
-      (filterStatus === 'taken' && med.adherence_rate === 100);
+      (filterStatus === 'active' && !allTakenToday) ||  // Not all doses taken today
+      (filterStatus === 'taken' && allTakenToday);       // All doses taken today
     return matchesSearch && matchesFilter;
   });
 
@@ -205,22 +212,22 @@ const PatientMedications = ({ user }) => {
               className={clsx(
                 'px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
                 filterStatus === 'active'
-                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-600 shadow-lg shadow-green-500/30'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50 hover:shadow-md'
+                  ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white border-orange-600 shadow-lg shadow-orange-500/30'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-orange-400 hover:bg-orange-50 hover:shadow-md'
               )}
             >
-              {language === 'ar' ? 'نشط' : 'Active'}
+              {language === 'ar' ? 'متبقي' : 'Pending'}
             </button>
             <button
               onClick={() => handleFilterChange('taken')}
               className={clsx(
                 'px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
                 filterStatus === 'taken'
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white border-purple-600 shadow-lg shadow-purple-500/30'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400 hover:bg-purple-50 hover:shadow-md'
+                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white border-green-600 shadow-lg shadow-green-500/30'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50 hover:shadow-md'
               )}
             >
-              {language === 'ar' ? 'تم تناوله' : 'Taken'}
+              {language === 'ar' ? 'مكتمل' : 'Complete'}
             </button>
           </div>
           <Button

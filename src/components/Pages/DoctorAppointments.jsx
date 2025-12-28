@@ -8,14 +8,19 @@ import {
   Phone,
   Video,
   CheckCircle,
-  Search
+  Search,
+  FileText,
+  User,
+  Stethoscope,
+  ClipboardCheck,
+  X
 } from 'lucide-react';
-import { Card, Table, Badge, Button, Input, Avatar, Pagination } from '../shared/UIComponents';
+import { Card, Table, Badge, Button, Input, Avatar, Pagination, Modal } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const DoctorAppointments = ({ user }) => {
   const { isRTL, language } = useLanguage();
-  const { appointments } = useApp();
+  const { appointments, completeAppointment, updateAppointmentDetails } = useApp();
 
   const doctorId = user?.id || '1';
   const myAppointments = appointments.filter(a => a.doctor_id === doctorId);
@@ -24,6 +29,16 @@ const DoctorAppointments = ({ user }) => {
   const [filterStatus, setFilterStatus] = useState('today');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Complete appointment modal state
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [completionNotes, setCompletionNotes] = useState({
+    diagnosis: '',
+    clinical_notes: '',
+    prescriptions: '',
+    follow_up_days: ''
+  });
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -97,6 +112,44 @@ const DoctorAppointments = ({ user }) => {
     Completed: 'default',
     Cancelled: 'danger',
     Pending: 'warning',
+  };
+
+  // Handle opening complete modal
+  const handleOpenCompleteModal = (appointment) => {
+    setSelectedAppointment(appointment);
+    setCompletionNotes({
+      diagnosis: '',
+      clinical_notes: '',
+      prescriptions: '',
+      follow_up_days: ''
+    });
+    setShowCompleteModal(true);
+  };
+
+  // Handle completing the appointment
+  const handleCompleteAppointment = () => {
+    if (!selectedAppointment) return;
+
+    // Update appointment with clinical details before completing
+    if (updateAppointmentDetails) {
+      const followUpDate = completionNotes.follow_up_days
+        ? new Date(Date.now() + parseInt(completionNotes.follow_up_days) * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      updateAppointmentDetails(selectedAppointment.id, {
+        diagnosis: completionNotes.diagnosis,
+        clinical_notes: completionNotes.clinical_notes,
+        prescriptions: completionNotes.prescriptions ? completionNotes.prescriptions.split(',').map(p => p.trim()) : [],
+        follow_up_date: followUpDate
+      });
+    }
+
+    // Mark appointment as completed
+    completeAppointment(selectedAppointment.id);
+
+    // Close modal and reset
+    setShowCompleteModal(false);
+    setSelectedAppointment(null);
   };
 
   return (
@@ -228,15 +281,28 @@ const DoctorAppointments = ({ user }) => {
                     <Badge variant={statusColors[apt.status]}>
                       {apt.status}
                     </Badge>
-                    {apt.status === 'Confirmed' && (
+                    {(apt.status === 'Confirmed' || apt.status === 'Scheduled') && (
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">
                           <Phone className="w-4 h-4" />
                         </Button>
-                        <Button variant="primary" size="sm">
+                        <Button variant="outline" size="sm">
                           <Video className="w-4 h-4" />
-                          Start
                         </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleOpenCompleteModal(apt)}
+                        >
+                          <ClipboardCheck className="w-4 h-4 mr-1" />
+                          Complete
+                        </Button>
+                      </div>
+                    )}
+                    {apt.status === 'Completed' && (
+                      <div className="flex items-center gap-1 text-green-600 text-sm">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Done</span>
                       </div>
                     )}
                   </div>
@@ -317,15 +383,25 @@ const DoctorAppointments = ({ user }) => {
                 header: 'Actions',
                 render: (row) => (
                   <div className="flex gap-2">
-                    {row.status === 'Confirmed' && (
+                    {(row.status === 'Confirmed' || row.status === 'Scheduled') && (
                       <>
                         <Button variant="ghost" size="sm">
                           <Phone className="w-4 h-4" />
                         </Button>
-                        <Button variant="primary" size="sm">
+                        <Button variant="ghost" size="sm">
                           <Video className="w-4 h-4" />
                         </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleOpenCompleteModal(row)}
+                        >
+                          <ClipboardCheck className="w-4 h-4" />
+                        </Button>
                       </>
+                    )}
+                    {row.status === 'Completed' && (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
                     )}
                   </div>
                 )
@@ -353,6 +429,105 @@ const DoctorAppointments = ({ user }) => {
           />
         </Card>
       )}
+
+      {/* Complete Appointment Modal */}
+      <Modal
+        isOpen={showCompleteModal}
+        onClose={() => setShowCompleteModal(false)}
+        title="Complete Appointment"
+        size="lg"
+      >
+        {selectedAppointment && (
+          <div className="space-y-6">
+            {/* Patient Info */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {patients.find(p => p.id === selectedAppointment.patient_id)?.nameEn}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {selectedAppointment.type} • {formatDate(selectedAppointment.date)} at {formatTime(selectedAppointment.date)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Clinical Notes Form */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Stethoscope className="w-4 h-4 inline mr-1" />
+                  Diagnosis
+                </label>
+                <Input
+                  placeholder="Enter diagnosis..."
+                  value={completionNotes.diagnosis}
+                  onChange={(e) => setCompletionNotes(prev => ({ ...prev, diagnosis: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FileText className="w-4 h-4 inline mr-1" />
+                  Clinical Notes
+                </label>
+                <textarea
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={3}
+                  placeholder="Enter clinical notes..."
+                  value={completionNotes.clinical_notes}
+                  onChange={(e) => setCompletionNotes(prev => ({ ...prev, clinical_notes: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Prescriptions (comma separated)
+                </label>
+                <Input
+                  placeholder="e.g., Metformin 500mg, Lisinopril 10mg"
+                  value={completionNotes.prescriptions}
+                  onChange={(e) => setCompletionNotes(prev => ({ ...prev, prescriptions: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Follow-up in (days)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="e.g., 30"
+                  value={completionNotes.follow_up_days}
+                  onChange={(e) => setCompletionNotes(prev => ({ ...prev, follow_up_days: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t">
+              <Button
+                variant="secondary"
+                onClick={() => setShowCompleteModal(false)}
+                className="flex-1"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleCompleteAppointment}
+                className="flex-1"
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Complete Appointment
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

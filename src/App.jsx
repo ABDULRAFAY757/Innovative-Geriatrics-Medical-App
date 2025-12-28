@@ -35,6 +35,7 @@ const DoctorMedicalRecords = lazy(() => import('./components/Pages/DoctorMedical
 // Lazy-loaded Family Pages
 const FamilyCareTasks = lazy(() => import('./components/Pages/FamilyCareTasks'));
 const FamilyAlerts = lazy(() => import('./components/Pages/FamilyAlerts'));
+const FamilyAppointments = lazy(() => import('./components/Pages/FamilyAppointments'));
 
 // Lazy-loaded Equipment Assistance Center
 const EquipmentAssistance = lazy(() => import('./components/Pages/EquipmentAssistance'));
@@ -161,6 +162,7 @@ function AppRoutes() {
                 <Route index element={<FamilyDashboard user={user} />} />
                 <Route path="care-tasks" element={<FamilyCareTasks user={user} />} />
                 <Route path="alerts" element={<FamilyAlerts user={user} />} />
+                <Route path="appointments" element={<FamilyAppointments user={user} />} />
                 <Route path="equipment" element={<EquipmentAssistance user={user} />} />
                 <Route path="profile" element={<Profile user={user} />} />
                 <Route path="settings" element={<Settings user={user} />} />

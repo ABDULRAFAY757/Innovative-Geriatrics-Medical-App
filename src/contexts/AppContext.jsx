@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   patients as initialPatients,
   doctors as initialDoctors,
@@ -322,6 +322,17 @@ export const AppProvider = ({ children }) => {
     if (completedAppointment) {
       dispatchAppointmentEvent(WEBHOOK_EVENTS.APPOINTMENT_COMPLETED, completedAppointment);
     }
+  };
+
+  const updateAppointmentDetails = (appointmentId, details) => {
+    setAppointments(prev =>
+      prev.map(apt => {
+        if (apt.id === appointmentId) {
+          return { ...apt, ...details };
+        }
+        return apt;
+      })
+    );
   };
 
   // ========== CARE TASK ACTIONS ==========
@@ -738,7 +749,10 @@ export const AppProvider = ({ children }) => {
     addNotification('info', 'All data has been reset to defaults');
   };
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  // Note: Functions are intentionally excluded from deps - they use stable setters
+  const value = useMemo(
+    () => ({
     // State
     patients,
     doctors,
@@ -762,6 +776,7 @@ export const AppProvider = ({ children }) => {
     bookAppointment,
     cancelAppointment,
     completeAppointment,
+    updateAppointmentDetails,
 
     // Care task actions
     addCareTask,
@@ -799,7 +814,14 @@ export const AppProvider = ({ children }) => {
 
     // Utility
     resetAllData,
-  };
+  }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      patients, doctors, donors, appointments, careTasks,
+      medicationReminders, equipmentRequests, donations,
+      fallAlerts, transactions, healthMetrics, notifications
+    ]
+  );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

@@ -36,7 +36,7 @@ const ABAC_RULES = {
   },
 
   // Family can only manage tasks for their assigned patients
-  canManageCareTask: (user, task) => {
+  canManageCareTask: (user, task) => { 
     if (!task) return false;
     if (user.role === 'family') {
       return user.assignedPatients?.includes(task.patient_id);

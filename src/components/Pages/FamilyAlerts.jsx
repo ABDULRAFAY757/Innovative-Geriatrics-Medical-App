@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import {
@@ -15,10 +15,19 @@ import { clsx } from 'clsx';
 
 const FamilyAlerts = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
-  const { fallAlerts, resolveFallAlert } = useApp();
+  const { fallAlerts, familyMembers, resolveFallAlert } = useApp();
 
-  const patientId = user?.patientId || '1';
-  const myAlerts = fallAlerts.filter(alert => alert.patient_id === patientId);
+  // Get patientId the same way FamilyDashboard does
+  const familyMember = familyMembers.find(fm => fm.user_id === user?.id);
+  const patientId = familyMember?.patient_id || user?.patientId || '1';
+
+  // Get fall alerts for this patient - sorted by date (newest first)
+  // This uses the same data source as FamilyDashboard for consistency
+  const myAlerts = useMemo(() => {
+    return fallAlerts
+      .filter(alert => alert.patient_id === patientId)
+      .sort((a, b) => new Date(b.detected_at) - new Date(a.detected_at));
+  }, [fallAlerts, patientId]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -236,7 +245,7 @@ const FamilyAlerts = ({ user }) => {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="font-semibold text-gray-900 text-lg">
-                          Fall Detected
+                          {alert.type || 'Fall Detected'}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           {formatDate(alert.detected_at)}

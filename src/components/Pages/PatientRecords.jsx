@@ -1,18 +1,61 @@
 import { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useApp } from '../../contexts/AppContext';
 import { FileText, Search, Eye, User, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Calendar } from 'lucide-react';
 import { Badge, Button, Input, Modal, Table } from '../shared/UIComponents';
 import { clsx } from 'clsx';
-import { medicalRecords, patients } from '../../data/mockData';
+import { medicalRecords as staticMedicalRecords } from '../../data/mockData';
 
 const PatientRecords = ({ user }) => {
   const { isRTL, language } = useLanguage();
+  const { patients, appointments } = useApp();
 
   const patientId = user?.id || '1';
   const patient = patients.find(p => p.id === patientId);
-  const myRecords = medicalRecords
-    .filter(r => r.patient_id === patientId)
-    .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
+
+  // Combine static medical records with dynamic completed appointments
+  // This provides both historical data and newly completed appointments
+  const myRecords = useMemo(() => {
+    // Get static medical records for this patient
+    const staticRecords = staticMedicalRecords
+      .filter(r => r.patient_id === patientId)
+      .map(r => ({ ...r, source: 'static' }));
+
+    // Get completed appointments and convert to record format
+    const completedAppointments = appointments
+      .filter(apt => apt.patient_id === patientId && apt.status === 'Completed')
+      .map(apt => ({
+        id: apt.id,
+        patient_id: apt.patient_id,
+        doctor_id: apt.doctor_id,
+        doctor_name: apt.doctor_name,
+        specialization: apt.specialization,
+        hospital: apt.location || 'Medical Center',
+        record_type: apt.type || 'Consultation',
+        visit_date: apt.date,
+        chief_complaint: apt.notes || 'General consultation',
+        diagnosis: apt.diagnosis || 'Consultation completed',
+        diagnosis_code: apt.diagnosis_code || '',
+        clinical_notes: apt.clinical_notes || apt.notes || 'Visit completed successfully.',
+        vitals: apt.vitals || {
+          blood_pressure: '-',
+          heart_rate: '-',
+          temperature: '-',
+          weight: '-',
+          oxygen_saturation: '-'
+        },
+        prescriptions: apt.prescriptions || [],
+        lab_orders: apt.lab_orders || [],
+        follow_up_date: apt.follow_up_date || null,
+        admission_required: false,
+        status: 'Completed',
+        source: 'appointment'
+      }));
+
+    // Combine both sources and sort by date (newest first)
+    const allRecords = [...staticRecords, ...completedAppointments];
+    return allRecords.sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
+  }, [appointments, patientId]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -23,15 +66,18 @@ const PatientRecords = ({ user }) => {
 
   const filteredRecords = myRecords.filter(record => {
     const recordPatient = patients.find(p => p.id === record.patient_id);
-    const patientName = recordPatient?.name?.toLowerCase() || '';
-    const patientNo = recordPatient?.p_no?.toLowerCase() || '';
+    const patientName = (recordPatient?.name || '').toLowerCase();
+    const patientNo = (recordPatient?.p_no || '').toLowerCase();
+    const doctorName = (record.doctor_name || '').toLowerCase();
+    const diagnosis = (record.diagnosis || '').toLowerCase();
+    const hospital = (record.hospital || '').toLowerCase();
     const search = searchTerm.toLowerCase();
 
     return patientName.includes(search) ||
       patientNo.includes(search) ||
-      record.doctor_name.toLowerCase().includes(search) ||
-      record.diagnosis.toLowerCase().includes(search) ||
-      record.hospital.toLowerCase().includes(search);
+      doctorName.includes(search) ||
+      diagnosis.includes(search) ||
+      hospital.includes(search);
   });
 
   // Pagination calculations
