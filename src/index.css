@@ -1,3 +1,6 @@
+/* Import Tabler Design System */
+@import './tabler.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -174,6 +177,30 @@
   50% {
     opacity: 0.5;
   }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  10%, 30% {
+    transform: rotate(14deg);
+  }
+  20%, 40% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+  60% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-wave {
+  animation: wave 2s ease-in-out infinite;
+  transform-origin: 70% 70%;
+  display: inline-block;
 }
 
 .animate-fadeIn {

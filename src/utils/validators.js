@@ -153,3 +153,59 @@ export const isInRange = (value, min, max) => {
   const num = parseFloat(value);
   return !isNaN(num) && num >= min && num <= max;
 };
+
+/**
+ * Validate positive number (greater than zero)
+ * @param {number} value - Number to validate
+ * @returns {boolean} True if positive
+ */
+export const isPositiveNumber = (value) => {
+  const num = parseFloat(value);
+  return !isNaN(num) && num > 0;
+};
+
+/**
+ * Validate non-negative number (zero or positive)
+ * @param {number} value - Number to validate
+ * @returns {boolean} True if non-negative
+ */
+export const isNonNegativeNumber = (value) => {
+  const num = parseFloat(value);
+  return !isNaN(num) && num >= 0;
+};
+
+/**
+ * Validate future date
+ * @param {string} dateValue - Date string to validate (ISO or date input format)
+ * @returns {boolean} True if date is today or in the future
+ */
+export const isFutureDate = (dateValue) => {
+  if (!dateValue) return true; // Allow empty (will be caught by required validator)
+
+  const selectedDate = new Date(dateValue);
+  if (isNaN(selectedDate.getTime())) return false; // Invalid date
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset to start of day for comparison
+
+  selectedDate.setHours(0, 0, 0, 0); // Reset to start of day
+
+  return selectedDate >= today;
+};
+
+/**
+ * Validate past date
+ * @param {string} dateValue - Date string to validate
+ * @returns {boolean} True if date is in the past or today
+ */
+export const isPastOrTodayDate = (dateValue) => {
+  if (!dateValue) return true;
+
+  const selectedDate = new Date(dateValue);
+  if (isNaN(selectedDate.getTime())) return false;
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // End of today
+
+  return selectedDate <= today;
+};

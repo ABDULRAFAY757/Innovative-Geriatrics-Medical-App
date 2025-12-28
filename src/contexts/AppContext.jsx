@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   patients as initialPatients,
   doctors as initialDoctors,
@@ -24,6 +24,8 @@ import {
   dispatchDonationEvent,
   dispatchCareTaskEvent,
 } from '../services/WebhookService';
+import { sanitizeObject, rateLimiters } from '../utils/security';
+import { validateForm, validationSchemas } from '../utils/validation';
 
 const AppContext = createContext();
 
@@ -221,10 +223,27 @@ export const AppProvider = ({ children }) => {
   };
 
   const addMedication = (patientId, medicationData) => {
+    // Rate limiting
+    if (!rateLimiters.medication.canProceed(patientId)) {
+      addNotification('error', 'Too many medication requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate medication data
+    const errors = validateForm(medicationData, validationSchemas.medication);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(medicationData);
+
     const newMed = {
       id: `med_${Date.now()}`,
       patient_id: patientId,
-      ...medicationData,
+      ...sanitizedData,
       adherence_rate: 100,
       status: 'Active',
       last_taken: new Date().toISOString(),
@@ -239,9 +258,26 @@ export const AppProvider = ({ children }) => {
   // ========== APPOINTMENT ACTIONS ==========
 
   const bookAppointment = (appointmentData) => {
+    // Rate limiting
+    if (!rateLimiters.appointment.canProceed(appointmentData.patient_id)) {
+      addNotification('error', 'Too many appointment requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate appointment data
+    const errors = validateForm(appointmentData, validationSchemas.appointment);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(appointmentData);
+
     const newAppointment = {
       id: `apt_${Date.now()}`,
-      ...appointmentData,
+      ...sanitizedData,
       status: 'Scheduled',
       created_at: new Date().toISOString(),
     };
@@ -288,12 +324,40 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const updateAppointmentDetails = (appointmentId, details) => {
+    setAppointments(prev =>
+      prev.map(apt => {
+        if (apt.id === appointmentId) {
+          return { ...apt, ...details };
+        }
+        return apt;
+      })
+    );
+  };
+
   // ========== CARE TASK ACTIONS ==========
 
   const addCareTask = (taskData) => {
+    // Rate limiting
+    if (!rateLimiters.careTask.canProceed(taskData.patient_id)) {
+      addNotification('error', 'Too many task requests. Please wait a moment.');
+      return null;
+    }
+
+    // Validate care task data
+    const errors = validateForm(taskData, validationSchemas.careTask);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(taskData);
+
     const newTask = {
       id: `task_${Date.now()}`,
-      ...taskData,
+      ...sanitizedData,
       status: 'Pending',
       created_at: new Date().toISOString(),
     };
@@ -330,10 +394,33 @@ export const AppProvider = ({ children }) => {
   // ========== EQUIPMENT REQUEST ACTIONS ==========
 
   const createEquipmentRequest = (requestData) => {
+    // Rate limiting
+    if (!rateLimiters.equipmentRequest.canProceed(requestData.patient_id)) {
+      addNotification('error', 'Too many equipment requests. Please wait a moment.');
+      return null;
+    }
+
+    // Check if this is a donation - handle differently
+    if (requestData.request_type === 'donate') {
+      return createEquipmentDonation(requestData);
+    }
+
+    // Validate equipment request data
+    const errors = validateForm(requestData, validationSchemas.equipmentRequest);
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      addNotification('error', firstError);
+      return null;
+    }
+
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(requestData);
+
     const newRequest = {
       id: `req_${Date.now()}`,
-      ...requestData,
+      ...sanitizedData,
       status: 'Pending',
+      request_date: new Date().toISOString(),
       created_at: new Date().toISOString(),
     };
     setEquipmentRequests(prev => [...prev, newRequest]);
@@ -341,6 +428,64 @@ export const AppProvider = ({ children }) => {
     // Dispatch webhook for equipment requested
     dispatchEquipmentEvent(WEBHOOK_EVENTS.EQUIPMENT_REQUESTED, newRequest);
     return newRequest;
+  };
+
+  // Handle equipment donation - tries to fulfill an existing request
+  const createEquipmentDonation = (donationData) => {
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(donationData);
+
+    // Find a matching pending request for this equipment type
+    const matchingRequest = equipmentRequests.find(req =>
+      req.equipment_name.toLowerCase() === sanitizedData.equipment_name.toLowerCase() &&
+      req.status === 'Pending' &&
+      req.request_type !== 'donate'
+    );
+
+    // Create the donation record
+    const newDonation = {
+      id: `don_${Date.now()}`,
+      donor_id: sanitizedData.patient_id,
+      donor_name: sanitizedData.patient_name,
+      equipment_name: sanitizedData.equipment_name,
+      category: sanitizedData.category,
+      description: sanitizedData.description,
+      estimated_cost: sanitizedData.estimated_cost || 0,
+      donation_type: 'equipment', // Physical equipment donation
+      status: 'Available',
+      created_at: new Date().toISOString(),
+    };
+
+    // If there's a matching request, fulfill it
+    if (matchingRequest) {
+      newDonation.fulfilled_request_id = matchingRequest.id;
+      newDonation.status = 'Matched';
+
+      // Update the matching request to Fulfilled
+      setEquipmentRequests(prev =>
+        prev.map(req =>
+          req.id === matchingRequest.id
+            ? {
+                ...req,
+                status: 'Fulfilled',
+                fulfilled_by_donation_id: newDonation.id,
+                fulfilled_at: new Date().toISOString()
+              }
+            : req
+        )
+      );
+
+      addNotification('success', `Thank you! Your ${sanitizedData.equipment_name} donation has been matched with a patient in need!`);
+    } else {
+      addNotification('success', `Thank you! Your ${sanitizedData.equipment_name} donation is now available for patients in need.`);
+    }
+
+    setDonations(prev => [...prev, newDonation]);
+
+    // Dispatch webhook for equipment donation
+    dispatchDonationEvent(newDonation);
+
+    return newDonation;
   };
 
   const updateEquipmentRequest = (requestId, updates) => {
@@ -368,6 +513,24 @@ export const AppProvider = ({ children }) => {
   // ========== DONATION ACTIONS ==========
 
   const makeDonation = (donationData) => {
+    // Validate donation doesn't exceed remaining amount
+    if (donationData.equipment_request_id) {
+      const request = equipmentRequests.find(r => r.id === donationData.equipment_request_id);
+      if (!request) {
+        addNotification('error', 'Equipment request not found!');
+        return null;
+      }
+
+      const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0);
+      const remainingAmount = (request.estimated_cost || 0) - totalDonated;
+
+      if (donationData.amount > remainingAmount) {
+        addNotification('error', `Donation amount (${donationData.amount} SAR) exceeds remaining amount (${remainingAmount} SAR)!`);
+        return null;
+      }
+    }
+
     const newDonation = {
       id: `don_${Date.now()}`,
       ...donationData,
@@ -381,16 +544,72 @@ export const AppProvider = ({ children }) => {
 
     // Update equipment request status
     if (donationData.equipment_request_id) {
+      const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0) + donationData.amount;
       setEquipmentRequests(prev =>
         prev.map(req =>
           req.id === donationData.equipment_request_id
-            ? { ...req, status: 'Fulfilled' }
+            ? { ...req, status: totalDonated >= (req.estimated_cost || 0) ? 'Fulfilled' : 'In Progress' }
             : req
         )
       );
     }
 
     addNotification('success', 'Thank you for your donation!');
+    // Dispatch webhook for donation received
+    dispatchDonationEvent(newDonation);
+    return newDonation;
+  };
+
+  const makePartialDonation = (donationData) => {
+    // Validate donation doesn't exceed remaining amount
+    if (donationData.equipment_request_id) {
+      const request = equipmentRequests.find(r => r.id === donationData.equipment_request_id);
+      if (!request) {
+        addNotification('error', 'Equipment request not found!');
+        return null;
+      }
+
+      const existingDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = existingDonations.reduce((sum, d) => sum + d.amount, 0);
+      const remainingAmount = (request.estimated_cost || 0) - totalDonated;
+
+      if (donationData.amount > remainingAmount) {
+        addNotification('error', `Donation amount (${donationData.amount} SAR) exceeds remaining amount (${remainingAmount} SAR)!`);
+        return null;
+      }
+    }
+
+    const newDonation = {
+      id: `don_${Date.now()}`,
+      ...donationData,
+      status: 'Completed',
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      receipt_number: `RCP${Date.now()}`,
+      is_partial: true,
+    };
+
+    setDonations(prev => [...prev, newDonation]);
+
+    // Check if equipment request is now fully funded
+    if (donationData.equipment_request_id) {
+      const requestDonations = donations.filter(d => d.equipment_request_id === donationData.equipment_request_id);
+      const totalDonated = requestDonations.reduce((sum, d) => sum + d.amount, 0) + donationData.amount;
+
+      setEquipmentRequests(prev =>
+        prev.map(req =>
+          req.id === donationData.equipment_request_id
+            ? {
+                ...req,
+                status: totalDonated >= (req.estimated_cost || 0) ? 'Fulfilled' : 'In Progress'
+              }
+            : req
+        )
+      );
+    }
+
+    addNotification('success', `Thank you for your partial donation of ${donationData.amount} SAR!`);
     // Dispatch webhook for donation received
     dispatchDonationEvent(newDonation);
     return newDonation;
@@ -594,7 +813,10 @@ export const AppProvider = ({ children }) => {
     addNotification('info', 'All data has been reset to defaults');
   };
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  // Note: Functions are intentionally excluded from deps - they use stable setters
+  const value = useMemo(
+    () => ({
     // State
     patients,
     doctors,
@@ -618,6 +840,7 @@ export const AppProvider = ({ children }) => {
     bookAppointment,
     cancelAppointment,
     completeAppointment,
+    updateAppointmentDetails,
 
     // Care task actions
     addCareTask,
@@ -626,10 +849,12 @@ export const AppProvider = ({ children }) => {
 
     // Equipment actions
     createEquipmentRequest,
+    createEquipmentDonation,
     updateEquipmentRequest,
 
     // Donation actions
     makeDonation,
+    makePartialDonation,
 
     // Clinical actions
     addClinicalNote,
@@ -654,7 +879,14 @@ export const AppProvider = ({ children }) => {
 
     // Utility
     resetAllData,
-  };
+  }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      patients, doctors, donors, appointments, careTasks,
+      medicationReminders, equipmentRequests, donations,
+      fallAlerts, transactions, healthMetrics, notifications
+    ]
+  );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

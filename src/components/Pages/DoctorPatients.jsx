@@ -58,9 +58,9 @@ const DoctorPatients = ({ user }) => {
   });
 
   const filteredPatients = allPatients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.p_no.toLowerCase().includes(searchTerm.toLowerCase())
+    (patient.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.nameEn || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.p_no || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination
@@ -286,27 +286,6 @@ const DoctorPatients = ({ user }) => {
                     </p>
                     <p className="text-sm text-gray-500">{row.p_no}</p>
                   </div>
-                </div>
-              )
-            },
-            {
-              header: 'Age',
-              accessor: 'age'
-            },
-            {
-              header: 'Conditions',
-              render: (row) => (
-                <div className="flex flex-wrap gap-1">
-                  {(row.conditions || []).slice(0, 2).map((condition, idx) => (
-                    <Badge key={idx} variant="info" size="sm">
-                      {condition}
-                    </Badge>
-                  ))}
-                  {(row.conditions || []).length > 2 && (
-                    <Badge variant="default" size="sm">
-                      +{row.conditions.length - 2}
-                    </Badge>
-                  )}
                 </div>
               )
             },

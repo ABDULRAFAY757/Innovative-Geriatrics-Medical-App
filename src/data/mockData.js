@@ -451,7 +451,87 @@ export const donations = [
   }
 ];
 
+// Helper to create relative dates for fall alerts
+const getFallAlertDate = (daysAgo, hours = 9, minutes = 4) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+};
+
 export const fallAlerts = [
+  // Alerts for patient_id "1" (أحمد محمد - main patient for family member)
+  {
+    id: "fa1",
+    patient_id: "1",
+    patient_name: "أحمد محمد",
+    type: "Fall Detected",
+    severity: "Critical",
+    location: "Home - Living Room",
+    detected_at: getFallAlertDate(0),
+    resolved_at: null,
+    status: "Pending",
+    response_time: null,
+    injuries: null,
+    response_action: null
+  },
+  {
+    id: "fa2",
+    patient_id: "1",
+    patient_name: "أحمد محمد",
+    type: "Near Fall",
+    severity: "High",
+    location: "Home - Bedroom",
+    detected_at: getFallAlertDate(1),
+    resolved_at: getFallAlertDate(1, 9, 30),
+    status: "Resolved",
+    response_time: "26 minutes",
+    injuries: "None",
+    response_action: "Family checked on patient, no injuries found"
+  },
+  {
+    id: "fa3",
+    patient_id: "1",
+    patient_name: "أحمد محمد",
+    type: "Balance Issue",
+    severity: "Medium",
+    location: "Home - Bathroom",
+    detected_at: getFallAlertDate(2),
+    resolved_at: getFallAlertDate(2, 9, 15),
+    status: "Resolved",
+    response_time: "11 minutes",
+    injuries: "None",
+    response_action: "Family checked on patient, no injuries found"
+  },
+  {
+    id: "fa4",
+    patient_id: "1",
+    patient_name: "أحمد محمد",
+    type: "Sudden Movement",
+    severity: "Low",
+    location: "Home - Kitchen",
+    detected_at: getFallAlertDate(3),
+    resolved_at: getFallAlertDate(3, 9, 20),
+    status: "Resolved",
+    response_time: "16 minutes",
+    injuries: "None",
+    response_action: "Family checked on patient, no injuries found"
+  },
+  {
+    id: "fa5",
+    patient_id: "1",
+    patient_name: "أحمد محمد",
+    type: "Fall Detected",
+    severity: "Critical",
+    location: "Home - Garden",
+    detected_at: getFallAlertDate(4),
+    resolved_at: getFallAlertDate(4, 10, 0),
+    status: "Resolved",
+    response_time: "56 minutes",
+    injuries: "Minor bruising",
+    response_action: "Family checked on patient, no injuries found"
+  },
+  // Existing alerts for other patients
   {
     id: "1",
     patient_id: "3",
@@ -469,7 +549,7 @@ export const fallAlerts = [
   {
     id: "2",
     patient_id: "2",
-    patient_name: "فاطمة عبدالله", 
+    patient_name: "فاطمة عبدالله",
     type: "Near Fall",
     severity: "Medium",
     location: "Home - Kitchen",
@@ -573,6 +653,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(0, 9, 0), // Today 9:00 AM
     type: "Consultation",
     status: "Confirmed",
@@ -584,6 +665,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(0, 11, 30), // Today 11:30 AM
     type: "Follow-up",
     status: "Confirmed",
@@ -595,6 +677,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(1, 10, 0), // Tomorrow 10:00 AM
     type: "Consultation",
     status: "Scheduled",
@@ -606,6 +689,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(1, 14, 30), // Tomorrow 2:30 PM
     type: "Checkup",
     status: "Scheduled",
@@ -617,6 +701,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(3, 9, 0), // 3 days later
     type: "Lab Review",
     status: "Scheduled",
@@ -628,6 +713,7 @@ export const appointments = [
     doctor_id: "1",
     doctor_name: "Dr. Lama Algaraini",
     specialization: "Geriatrics",
+    location: "King Saud Medical City",
     date: getRelativeDate(5, 11, 0), // 5 days later
     type: "Follow-up",
     status: "Scheduled",
@@ -639,6 +725,7 @@ export const appointments = [
     doctor_id: "3",
     doctor_name: "Dr. Aisha Al-Saud",
     specialization: "Cardiology",
+    location: "King Faisal Specialist Hospital",
     date: getRelativeDate(7, 10, 0), // 7 days later
     type: "Specialist Consultation",
     status: "Scheduled",
@@ -650,6 +737,7 @@ export const appointments = [
     doctor_id: "2",
     doctor_name: "Dr. Mohamed Hassan",
     specialization: "Internal Medicine",
+    location: "Riyadh Medical Complex",
     date: getRelativeDate(2, 14, 0), // 2 days later
     type: "Consultation",
     status: "Scheduled",
@@ -658,55 +746,298 @@ export const appointments = [
 ];
 
 export const careTasks = [
+  // Patient 1 tasks - Abdullah's care
   {
     id: "task1",
     patient_id: "1",
     task: "Administer morning medication",
-    notes: "Metformin 500mg and Lisinopril 10mg",
+    title: "Morning Medication",
+    notes: "Metformin 500mg and Lisinopril 10mg - Take with breakfast",
+    description: "Give Metformin 500mg and Lisinopril 10mg with breakfast. Ensure patient drinks full glass of water.",
     priority: "High",
     status: "Pending",
+    category: "Medication",
     family_member: "Fatima Ahmed",
-    due_date: "2024-12-24T08:00:00Z"
+    family_id: "f1",
+    due_date: getRelativeDate(0, 8, 0), // Today at 8 AM
+    recurrence: "daily",
+    reminder_before: 30, // 30 minutes before
+    created_at: getRelativeDate(-7, 10, 0)
   },
   {
     id: "task2",
     patient_id: "1",
     task: "Accompany to doctor appointment",
-    notes: "Dr. Lama Algaraini at 9 AM",
+    title: "Doctor Appointment",
+    notes: "Dr. Lama Algaraini - Cardiology checkup",
+    description: "Accompany to appointment with Dr. Lama at KFMC. Bring previous test results and medication list.",
     priority: "High",
     status: "Pending",
+    category: "Appointment",
     family_member: "Fatima Ahmed",
-    due_date: "2024-12-25T09:00:00Z"
+    family_id: "f1",
+    due_date: getRelativeDate(1, 9, 0), // Tomorrow at 9 AM
+    recurrence: "none",
+    reminder_before: 60,
+    created_at: getRelativeDate(-3, 14, 0)
   },
   {
     id: "task3",
-    patient_id: "2",
-    task: "Check blood pressure",
-    notes: "Morning and evening readings",
+    patient_id: "1",
+    task: "Evening blood pressure check",
+    title: "Blood Pressure Check",
+    notes: "Record in health log",
+    description: "Measure blood pressure using digital monitor. Record systolic/diastolic in the app.",
     priority: "Medium",
     status: "Completed",
-    family_member: "Mohamed Fatima",
-    due_date: "2024-12-23T08:00:00Z"
+    category: "Monitoring",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(-1, 18, 0), // Yesterday at 6 PM
+    completed_at: getRelativeDate(-1, 18, 30),
+    recurrence: "daily",
+    created_at: getRelativeDate(-14, 10, 0)
   },
   {
     id: "task4",
-    patient_id: "3",
-    task: "Physical therapy session",
-    notes: "Stroke recovery exercises",
-    priority: "High",
+    patient_id: "1",
+    task: "Prepare diabetic-friendly dinner",
+    title: "Diabetic Dinner",
+    notes: "Low carb, high protein meal",
+    description: "Prepare dinner following diabetic diet guidelines. Include vegetables, lean protein, avoid simple carbs.",
+    priority: "Medium",
     status: "Pending",
-    family_member: "Sara Abdulrahman",
-    due_date: "2024-12-24T15:00:00Z"
+    category: "Nutrition",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(0, 18, 0), // Today at 6 PM
+    recurrence: "daily",
+    reminder_before: 60,
+    created_at: getRelativeDate(-7, 10, 0)
   },
   {
     id: "task5",
-    patient_id: "3",
-    task: "Prepare healthy meals",
-    notes: "Low sodium diet for blood pressure",
+    patient_id: "1",
+    task: "Assist with evening walk",
+    title: "Evening Walk",
+    notes: "15-20 minutes light walking",
+    description: "Help with light walking exercise around the neighborhood. Monitor for fatigue or shortness of breath.",
+    priority: "Low",
+    status: "Pending",
+    category: "Exercise",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(0, 17, 0), // Today at 5 PM
+    recurrence: "daily",
+    reminder_before: 30,
+    created_at: getRelativeDate(-10, 10, 0)
+  },
+  {
+    id: "task6",
+    patient_id: "1",
+    task: "Administer evening medication",
+    title: "Evening Medication",
+    notes: "Insulin injection and blood thinner",
+    description: "Give insulin injection (as prescribed) and Aspirin 81mg. Monitor injection site.",
+    priority: "High",
+    status: "Pending",
+    category: "Medication",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(0, 20, 0), // Today at 8 PM
+    recurrence: "daily",
+    reminder_before: 30,
+    created_at: getRelativeDate(-7, 10, 0)
+  },
+  {
+    id: "task7",
+    patient_id: "1",
+    task: "Check glucose level",
+    title: "Glucose Check",
+    notes: "Before breakfast reading",
+    description: "Use glucometer to check fasting blood sugar. Record reading in health log. Alert if above 180 or below 70.",
+    priority: "High",
+    status: "Completed",
+    category: "Monitoring",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(0, 7, 0), // Today at 7 AM
+    completed_at: getRelativeDate(0, 7, 15),
+    recurrence: "daily",
+    created_at: getRelativeDate(-14, 10, 0)
+  },
+  {
+    id: "task8",
+    patient_id: "1",
+    task: "Weekly bath assistance",
+    title: "Bath Assistance",
+    notes: "Help with full body bath",
+    description: "Assist with weekly full bath. Ensure bathroom is warm, have non-slip mats ready, check water temperature.",
     priority: "Medium",
     status: "Pending",
+    category: "Personal Care",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(2, 10, 0), // 2 days from now
+    recurrence: "weekly",
+    reminder_before: 60,
+    created_at: getRelativeDate(-21, 10, 0)
+  },
+  {
+    id: "task9",
+    patient_id: "1",
+    task: "Refill medication at pharmacy",
+    title: "Pharmacy Pickup",
+    notes: "Metformin and Lisinopril refill",
+    description: "Pick up monthly medication refill from KFMC pharmacy. Bring insurance card and patient ID.",
+    priority: "High",
+    status: "Pending",
+    category: "Medication",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(3, 10, 0), // 3 days from now
+    recurrence: "monthly",
+    reminder_before: 1440, // 1 day before
+    created_at: getRelativeDate(-2, 10, 0)
+  },
+  {
+    id: "task10",
+    patient_id: "1",
+    task: "Physical therapy at home",
+    title: "Home Therapy",
+    notes: "Leg strengthening exercises",
+    description: "Guide through prescribed leg strengthening exercises. 3 sets of 10 reps each. Rest between sets.",
+    priority: "Medium",
+    status: "Completed",
+    category: "Exercise",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(-2, 15, 0), // 2 days ago
+    completed_at: getRelativeDate(-2, 15, 45),
+    recurrence: "every_other_day",
+    created_at: getRelativeDate(-30, 10, 0)
+  },
+  // Patient 2 tasks
+  {
+    id: "task11",
+    patient_id: "2",
+    task: "Check blood pressure",
+    title: "Blood Pressure Check",
+    notes: "Morning and evening readings",
+    description: "Take blood pressure readings twice daily. Record both values. Call doctor if above 160/100.",
+    priority: "Medium",
+    status: "Completed",
+    category: "Monitoring",
+    family_member: "Mohamed Fatima",
+    family_id: "f2",
+    due_date: getRelativeDate(-1, 8, 0),
+    completed_at: getRelativeDate(-1, 8, 10),
+    recurrence: "daily",
+    created_at: getRelativeDate(-14, 10, 0)
+  },
+  {
+    id: "task12",
+    patient_id: "2",
+    task: "Prepare heart-healthy breakfast",
+    title: "Healthy Breakfast",
+    notes: "Low sodium, low fat",
+    description: "Prepare breakfast following heart-healthy diet. Include whole grains, fruits, avoid salt and fried foods.",
+    priority: "Medium",
+    status: "Pending",
+    category: "Nutrition",
+    family_member: "Mohamed Fatima",
+    family_id: "f2",
+    due_date: getRelativeDate(0, 7, 30),
+    recurrence: "daily",
+    reminder_before: 30,
+    created_at: getRelativeDate(-7, 10, 0)
+  },
+  // Patient 3 tasks
+  {
+    id: "task13",
+    patient_id: "3",
+    task: "Physical therapy session",
+    title: "Stroke Recovery PT",
+    notes: "Stroke recovery exercises",
+    description: "Assist with stroke recovery physical therapy exercises. Focus on right side mobility. 30 minutes session.",
+    priority: "High",
+    status: "Pending",
+    category: "Exercise",
     family_member: "Sara Abdulrahman",
-    due_date: "2024-12-24T12:00:00Z"
+    family_id: "f3",
+    due_date: getRelativeDate(0, 15, 0),
+    recurrence: "daily",
+    reminder_before: 30,
+    created_at: getRelativeDate(-60, 10, 0)
+  },
+  {
+    id: "task14",
+    patient_id: "3",
+    task: "Prepare healthy meals",
+    title: "Low Sodium Lunch",
+    notes: "Low sodium diet for blood pressure",
+    description: "Prepare lunch following stroke recovery diet. Low sodium, high potassium. Include leafy greens.",
+    priority: "Medium",
+    status: "Pending",
+    category: "Nutrition",
+    family_member: "Sara Abdulrahman",
+    family_id: "f3",
+    due_date: getRelativeDate(0, 12, 0),
+    recurrence: "daily",
+    reminder_before: 60,
+    created_at: getRelativeDate(-45, 10, 0)
+  },
+  {
+    id: "task15",
+    patient_id: "3",
+    task: "Speech therapy practice",
+    title: "Speech Practice",
+    notes: "Practice speech exercises",
+    description: "Help with speech therapy exercises for 20 minutes. Practice word pronunciation and sentences from therapy guide.",
+    priority: "High",
+    status: "Pending",
+    category: "Exercise",
+    family_member: "Sara Abdulrahman",
+    family_id: "f3",
+    due_date: getRelativeDate(0, 16, 0),
+    recurrence: "daily",
+    reminder_before: 30,
+    created_at: getRelativeDate(-45, 10, 0)
+  },
+  // Overdue tasks for testing
+  {
+    id: "task16",
+    patient_id: "1",
+    task: "Schedule eye exam",
+    title: "Eye Exam Scheduling",
+    notes: "Annual diabetic eye exam",
+    description: "Call ophthalmologist to schedule annual diabetic retinopathy screening. KFMC Eye Center preferred.",
+    priority: "Medium",
+    status: "Pending",
+    category: "Appointment",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(-3, 10, 0), // Overdue by 3 days
+    recurrence: "yearly",
+    reminder_before: 10080, // 1 week before
+    created_at: getRelativeDate(-10, 10, 0)
+  },
+  {
+    id: "task17",
+    patient_id: "1",
+    task: "Order medical supplies",
+    title: "Medical Supplies",
+    notes: "Glucose strips and lancets",
+    description: "Order glucose test strips (100 count) and lancets from medical supply store. Check insurance coverage.",
+    priority: "Low",
+    status: "Pending",
+    category: "Other",
+    family_member: "Fatima Ahmed",
+    family_id: "f1",
+    due_date: getRelativeDate(-1, 10, 0), // Overdue by 1 day
+    recurrence: "monthly",
+    reminder_before: 4320, // 3 days before
+    created_at: getRelativeDate(-5, 10, 0)
   }
 ];
 
@@ -847,14 +1178,66 @@ donors.forEach(donor => {
   donor.verified = Math.random() > 0.3;
 });
 
+// Equipment Pricing Configuration - Platform determines cost automatically
+export const equipmentPricing = {
+  // Mobility Aids
+  'Wheelchair': { price: 2500, category: 'Mobility', nameAr: 'كرسي متحرك' },
+  'Electric Wheelchair': { price: 8500, category: 'Mobility', nameAr: 'كرسي متحرك كهربائي' },
+  'Walking Frame': { price: 450, category: 'Mobility', nameAr: 'إطار المشي' },
+  'Rollator Walker': { price: 650, category: 'Mobility', nameAr: 'مشاية بعجلات' },
+  'Crutches': { price: 150, category: 'Mobility', nameAr: 'عكازات' },
+  'Walking Cane': { price: 80, category: 'Mobility', nameAr: 'عصا المشي' },
+  'Hospital Bed': { price: 4500, category: 'Mobility', nameAr: 'سرير طبي' },
+  'Patient Lift': { price: 6000, category: 'Mobility', nameAr: 'رافعة المريض' },
+
+  // Monitoring Devices
+  'Blood Pressure Monitor': { price: 350, category: 'Monitoring', nameAr: 'جهاز قياس ضغط الدم' },
+  'Glucose Monitor': { price: 450, category: 'Monitoring', nameAr: 'جهاز قياس السكر' },
+  'Pulse Oximeter': { price: 180, category: 'Monitoring', nameAr: 'جهاز قياس الأكسجين' },
+  'Heart Rate Monitor': { price: 280, category: 'Monitoring', nameAr: 'جهاز قياس نبضات القلب' },
+  'Thermometer': { price: 120, category: 'Monitoring', nameAr: 'ميزان حرارة' },
+  'Weight Scale': { price: 200, category: 'Monitoring', nameAr: 'ميزان الوزن' },
+
+  // Respiratory Equipment
+  'Oxygen Concentrator': { price: 5500, category: 'Respiratory', nameAr: 'مكثف الأكسجين' },
+  'Nebulizer': { price: 350, category: 'Respiratory', nameAr: 'جهاز البخار' },
+  'CPAP Machine': { price: 4500, category: 'Respiratory', nameAr: 'جهاز ضغط الهواء الإيجابي' },
+  'Suction Machine': { price: 1800, category: 'Respiratory', nameAr: 'جهاز الشفط' },
+
+  // Safety Equipment
+  'Bed Rails': { price: 400, category: 'Safety', nameAr: 'حواجز السرير' },
+  'Shower Chair': { price: 350, category: 'Safety', nameAr: 'كرسي الاستحمام' },
+  'Toilet Safety Frame': { price: 280, category: 'Safety', nameAr: 'إطار أمان المرحاض' },
+  'Grab Bars': { price: 150, category: 'Safety', nameAr: 'مقابض الأمان' },
+  'Non-Slip Mat': { price: 80, category: 'Safety', nameAr: 'سجادة مانعة للانزلاق' },
+  'Fall Detection Sensor': { price: 1200, category: 'Safety', nameAr: 'جهاز كشف السقوط' },
+
+  // Home Care
+  'Commode Chair': { price: 450, category: 'Home Care', nameAr: 'كرسي المرحاض' },
+  'Overbed Table': { price: 380, category: 'Home Care', nameAr: 'طاولة السرير' },
+  'Pressure Relief Mattress': { price: 2200, category: 'Home Care', nameAr: 'مرتبة تخفيف الضغط' },
+  'IV Stand': { price: 250, category: 'Home Care', nameAr: 'حامل المحاليل' },
+  'Medical Recliner': { price: 3500, category: 'Home Care', nameAr: 'كرسي طبي قابل للإمالة' },
+};
+
+// Helper function to get equipment price
+export const getEquipmentPrice = (equipmentName) => {
+  return equipmentPricing[equipmentName]?.price || 0;
+};
+
+// Helper function to get equipment details
+export const getEquipmentDetails = (equipmentName) => {
+  return equipmentPricing[equipmentName] || null;
+};
+
 // Enhanced equipment requests with Arabic names
 equipmentRequests.forEach(request => {
-  request.equipment_name_ar = {
-    'Wheelchair': 'كرسي متحرك',
-    'Blood Pressure Monitor': 'جهاز قياس ضغط الدم',
-    'Fall Detection Sensor': 'جهاز كشف السقوط',
-    'Walking Frame': 'إطار المشي'
-  }[request.equipment_name] || request.equipment_name;
+  const details = equipmentPricing[request.equipment_name];
+  request.equipment_name_ar = details?.nameAr || request.equipment_name;
+  // Auto-set estimated cost from pricing if not set
+  if (!request.estimated_cost && details) {
+    request.estimated_cost = details.price;
+  }
 });
 
 // Enhanced donations with payment details

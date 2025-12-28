@@ -225,8 +225,7 @@ class WebhookService {
    */
   async dispatch(eventType, payload, priority = WEBHOOK_PRIORITY.NORMAL) {
     if (!this.config.enabled) {
-      console.log('Webhooks disabled, skipping dispatch');
-      return;
+      return; // Webhooks disabled
     }
 
     const event = {
@@ -319,8 +318,6 @@ class WebhookService {
       }
 
       event.delivered = true;
-      console.log(`Webhook delivered to ${endpoint.name}:`, event.type);
-
       return true;
     } catch (error) {
       console.error(`Webhook delivery failed to ${endpoint.name}:`, error.message);
