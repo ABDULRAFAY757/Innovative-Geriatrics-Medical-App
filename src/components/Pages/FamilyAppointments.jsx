@@ -161,50 +161,47 @@ const FamilyAppointments = ({ user }) => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white">
+        <Card className="bg-blue-50 border-blue-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Calendar className="w-5 h-5" />
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Calendar className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs text-blue-100">{language === 'ar' ? 'الإجمالي' : 'Total'}</p>
-              <p className="text-2xl font-bold">{myAppointments.length}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'الإجمالي' : 'Total'}</p>
+              <p className="text-2xl font-bold text-gray-900">{myAppointments.length}</p>
             </div>
           </div>
         </Card>
-
-        <Card className="bg-gradient-to-br from-green-500 to-emerald-500 border-0 text-white">
+        <Card className="bg-green-50 border-green-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Clock className="w-5 h-5" />
+            <div className="p-3 bg-green-100 rounded-full">
+              <Clock className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-green-100">{language === 'ar' ? 'قادمة' : 'Upcoming'}</p>
-              <p className="text-2xl font-bold">{upcomingCount}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'قادمة' : 'Upcoming'}</p>
+              <p className="text-2xl font-bold text-gray-900">{upcomingCount}</p>
             </div>
           </div>
         </Card>
-
-        <Card className="bg-gradient-to-br from-gray-500 to-gray-600 border-0 text-white">
+        <Card className="bg-purple-50 border-purple-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <CheckCircle className="w-5 h-5" />
+            <div className="p-3 bg-purple-100 rounded-full">
+              <CheckCircle className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-100">{language === 'ar' ? 'مكتملة' : 'Completed'}</p>
-              <p className="text-2xl font-bold">{completedCount}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'مكتملة' : 'Completed'}</p>
+              <p className="text-2xl font-bold text-gray-900">{completedCount}</p>
             </div>
           </div>
         </Card>
-
-        <Card className="bg-gradient-to-br from-red-500 to-rose-500 border-0 text-white">
+        <Card className="bg-red-50 border-red-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <X className="w-5 h-5" />
+            <div className="p-3 bg-red-100 rounded-full">
+              <X className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <p className="text-xs text-red-100">{language === 'ar' ? 'ملغاة' : 'Cancelled'}</p>
-              <p className="text-2xl font-bold">{cancelledCount}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'ملغاة' : 'Cancelled'}</p>
+              <p className="text-2xl font-bold text-gray-900">{cancelledCount}</p>
             </div>
           </div>
         </Card>

@@ -19,7 +19,7 @@ import {
   Building,
   X
 } from 'lucide-react';
-import { Table, Badge, Button, Input, Modal, Avatar, Pagination, Select } from '../shared/UIComponents';
+import { Table, Badge, Button, Input, Modal, Avatar, Pagination, Select, Card } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const PatientAppointments = ({ user }) => {
@@ -261,46 +261,41 @@ const PatientAppointments = ({ user }) => {
         </div>
       </div>
 
-      {/* Stats Cards - Enhanced */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 animate-slideUp">
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-blue-50 via-blue-50/50 to-white border-2 border-blue-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <Calendar className="w-6 h-6 text-white" />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Calendar className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Appointments</p>
-              <p className="text-3xl font-bold text-gray-900">{myAppointments.length}</p>
+              <p className="text-sm text-gray-600">Total Appointments</p>
+              <p className="text-2xl font-bold text-gray-900">{myAppointments.length}</p>
             </div>
           </div>
-        </div>
-
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-green-50 via-green-50/50 to-white border-2 border-green-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-green-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-green-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <CheckCircle className="w-6 h-6 text-white" />
+        </Card>
+        <Card className="bg-green-50 border-green-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-green-100 rounded-full">
+              <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Upcoming</p>
-              <p className="text-3xl font-bold text-gray-900">{upcomingCount}</p>
+              <p className="text-sm text-gray-600">Upcoming</p>
+              <p className="text-2xl font-bold text-gray-900">{upcomingCount}</p>
             </div>
           </div>
-        </div>
-
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-purple-50 via-purple-50/50 to-white border-2 border-purple-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-purple-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-purple-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <Star className="w-6 h-6 text-white" />
+        </Card>
+        <Card className="bg-purple-50 border-purple-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-purple-100 rounded-full">
+              <Star className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Completed</p>
-              <p className="text-3xl font-bold text-gray-900">{completedCount}</p>
+              <p className="text-sm text-gray-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-900">{completedCount}</p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Available Doctors - Compact View */}

@@ -143,10 +143,10 @@ const Settings = () => {
   );
 
   const SettingRow = ({ icon: Icon, title, description, children, iconColor = 'text-gray-600' }) => (
-    <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-0">
+    <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50/50 -mx-4 px-4 rounded-lg transition-colors">
       <div className="flex items-start gap-3 flex-1">
         {Icon && (
-          <div className={clsx('p-2 rounded-lg bg-gray-50', iconColor)}>
+          <div className={clsx('p-2.5 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm', iconColor)}>
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -179,6 +179,36 @@ const Settings = () => {
             <p className="text-gray-600 text-sm">
               {language === 'ar' ? 'إدارة تفضيلات التطبيق والإعدادات' : 'Manage your app preferences and configurations'}
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* User Profile Summary */}
+      <div className="mb-6 p-5 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl border border-blue-100">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-gray-900">{user?.name || 'User'}</h2>
+            <p className="text-sm text-gray-600 capitalize flex items-center gap-2">
+              <span className={clsx(
+                'px-2 py-0.5 rounded-full text-xs font-medium',
+                user?.role === 'doctor' && 'bg-purple-100 text-purple-700',
+                user?.role === 'patient' && 'bg-blue-100 text-blue-700',
+                user?.role === 'family' && 'bg-green-100 text-green-700',
+                user?.role === 'admin' && 'bg-red-100 text-red-700'
+              )}>
+                {user?.role || 'user'}
+              </span>
+            </p>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            <span>{language === 'ar' ? 'حساب موثق' : 'Verified Account'}</span>
           </div>
         </div>
       </div>

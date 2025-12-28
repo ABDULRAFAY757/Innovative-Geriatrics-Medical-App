@@ -1178,14 +1178,66 @@ donors.forEach(donor => {
   donor.verified = Math.random() > 0.3;
 });
 
+// Equipment Pricing Configuration - Platform determines cost automatically
+export const equipmentPricing = {
+  // Mobility Aids
+  'Wheelchair': { price: 2500, category: 'Mobility', nameAr: 'كرسي متحرك' },
+  'Electric Wheelchair': { price: 8500, category: 'Mobility', nameAr: 'كرسي متحرك كهربائي' },
+  'Walking Frame': { price: 450, category: 'Mobility', nameAr: 'إطار المشي' },
+  'Rollator Walker': { price: 650, category: 'Mobility', nameAr: 'مشاية بعجلات' },
+  'Crutches': { price: 150, category: 'Mobility', nameAr: 'عكازات' },
+  'Walking Cane': { price: 80, category: 'Mobility', nameAr: 'عصا المشي' },
+  'Hospital Bed': { price: 4500, category: 'Mobility', nameAr: 'سرير طبي' },
+  'Patient Lift': { price: 6000, category: 'Mobility', nameAr: 'رافعة المريض' },
+
+  // Monitoring Devices
+  'Blood Pressure Monitor': { price: 350, category: 'Monitoring', nameAr: 'جهاز قياس ضغط الدم' },
+  'Glucose Monitor': { price: 450, category: 'Monitoring', nameAr: 'جهاز قياس السكر' },
+  'Pulse Oximeter': { price: 180, category: 'Monitoring', nameAr: 'جهاز قياس الأكسجين' },
+  'Heart Rate Monitor': { price: 280, category: 'Monitoring', nameAr: 'جهاز قياس نبضات القلب' },
+  'Thermometer': { price: 120, category: 'Monitoring', nameAr: 'ميزان حرارة' },
+  'Weight Scale': { price: 200, category: 'Monitoring', nameAr: 'ميزان الوزن' },
+
+  // Respiratory Equipment
+  'Oxygen Concentrator': { price: 5500, category: 'Respiratory', nameAr: 'مكثف الأكسجين' },
+  'Nebulizer': { price: 350, category: 'Respiratory', nameAr: 'جهاز البخار' },
+  'CPAP Machine': { price: 4500, category: 'Respiratory', nameAr: 'جهاز ضغط الهواء الإيجابي' },
+  'Suction Machine': { price: 1800, category: 'Respiratory', nameAr: 'جهاز الشفط' },
+
+  // Safety Equipment
+  'Bed Rails': { price: 400, category: 'Safety', nameAr: 'حواجز السرير' },
+  'Shower Chair': { price: 350, category: 'Safety', nameAr: 'كرسي الاستحمام' },
+  'Toilet Safety Frame': { price: 280, category: 'Safety', nameAr: 'إطار أمان المرحاض' },
+  'Grab Bars': { price: 150, category: 'Safety', nameAr: 'مقابض الأمان' },
+  'Non-Slip Mat': { price: 80, category: 'Safety', nameAr: 'سجادة مانعة للانزلاق' },
+  'Fall Detection Sensor': { price: 1200, category: 'Safety', nameAr: 'جهاز كشف السقوط' },
+
+  // Home Care
+  'Commode Chair': { price: 450, category: 'Home Care', nameAr: 'كرسي المرحاض' },
+  'Overbed Table': { price: 380, category: 'Home Care', nameAr: 'طاولة السرير' },
+  'Pressure Relief Mattress': { price: 2200, category: 'Home Care', nameAr: 'مرتبة تخفيف الضغط' },
+  'IV Stand': { price: 250, category: 'Home Care', nameAr: 'حامل المحاليل' },
+  'Medical Recliner': { price: 3500, category: 'Home Care', nameAr: 'كرسي طبي قابل للإمالة' },
+};
+
+// Helper function to get equipment price
+export const getEquipmentPrice = (equipmentName) => {
+  return equipmentPricing[equipmentName]?.price || 0;
+};
+
+// Helper function to get equipment details
+export const getEquipmentDetails = (equipmentName) => {
+  return equipmentPricing[equipmentName] || null;
+};
+
 // Enhanced equipment requests with Arabic names
 equipmentRequests.forEach(request => {
-  request.equipment_name_ar = {
-    'Wheelchair': 'كرسي متحرك',
-    'Blood Pressure Monitor': 'جهاز قياس ضغط الدم',
-    'Fall Detection Sensor': 'جهاز كشف السقوط',
-    'Walking Frame': 'إطار المشي'
-  }[request.equipment_name] || request.equipment_name;
+  const details = equipmentPricing[request.equipment_name];
+  request.equipment_name_ar = details?.nameAr || request.equipment_name;
+  // Auto-set estimated cost from pricing if not set
+  if (!request.estimated_cost && details) {
+    request.estimated_cost = details.price;
+  }
 });
 
 // Enhanced donations with payment details

@@ -23,8 +23,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
-import { doctors } from '../../data/mockData';
-import { Card, Badge, Button, Modal, Input } from '../shared/UIComponents';
+import { doctors, equipmentPricing } from '../../data/mockData';
+import { Card, Badge, Button, Modal } from '../shared/UIComponents';
 import { RadialBarChart, SparklineChart } from '../shared/Charts';
 import { clsx } from 'clsx';
 
@@ -44,6 +44,8 @@ const InteractivePatientDashboard = ({ user }) => {
 
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showNewEquipment, setShowNewEquipment] = useState(false);
+  const [responseModal, setResponseModal] = useState({ show: false, title: '', message: '', type: 'success' });
+  const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null });
   const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const [newAppointment, setNewAppointment] = useState({
     doctor_id: '',
@@ -61,9 +63,12 @@ const InteractivePatientDashboard = ({ user }) => {
     description: '',
     category: '',
     urgency: '',
-    estimated_cost: '',
     medical_justification: '',
+    request_type: 'request', // 'request' or 'donate'
+    estimated_cost: 0, // Platform-determined cost
   });
+  const [customEquipmentName, setCustomEquipmentName] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // Local state for current readings to force immediate UI updates
   const [currentReadings, setCurrentReadings] = useState({
@@ -289,35 +294,77 @@ const InteractivePatientDashboard = ({ user }) => {
     });
   };
 
+  const submitEquipmentRequest = () => {
+    createEquipmentRequest({
+      ...newEquipmentRequest,
+      patient_id: patientId,
+      patient_name: patient?.name || '',
+    });
+
+    // Success feedback
+    const isDonation = newEquipmentRequest.request_type === 'donate';
+    setShowNewEquipment(false);
+    setResponseModal({
+      show: true,
+      title: isDonation ? 'Donation Submitted!' : 'Request Submitted!',
+      message: isDonation
+        ? `Thank you for your generous donation of "${newEquipmentRequest.equipment_name}"! Your contribution will help patients in need.`
+        : `Equipment request for "${newEquipmentRequest.equipment_name}" submitted successfully. You will be notified once it's reviewed.`,
+      type: isDonation ? 'donation' : 'success'
+    });
+
+    setNewEquipmentRequest({
+      equipment_name: '',
+      description: '',
+      category: '',
+      urgency: '',
+      medical_justification: '',
+      request_type: 'request',
+      estimated_cost: 0,
+    });
+    setShowCustomInput(false);
+    setCustomEquipmentName('');
+  };
+
   const handleCreateEquipment = () => {
     // Comprehensive validation
     if (!newEquipmentRequest.equipment_name || newEquipmentRequest.equipment_name.trim().length < 3) {
-      alert('Equipment name must be at least 3 characters long');
+      setResponseModal({
+        show: true,
+        title: 'Validation Error',
+        message: 'Equipment name must be at least 3 characters long',
+        type: 'error'
+      });
       return;
     }
 
     if (!newEquipmentRequest.category) {
-      alert('Please select an equipment category');
+      setResponseModal({
+        show: true,
+        title: 'Validation Error',
+        message: 'Please select an equipment category',
+        type: 'error'
+      });
       return;
     }
 
     if (!newEquipmentRequest.urgency) {
-      alert('Please select a priority level');
+      setResponseModal({
+        show: true,
+        title: 'Validation Error',
+        message: 'Please select a priority level',
+        type: 'error'
+      });
       return;
     }
 
     if (!newEquipmentRequest.description || newEquipmentRequest.description.trim().length < 10) {
-      alert('Please provide a detailed description (at least 10 characters)');
-      return;
-    }
-
-    if (!newEquipmentRequest.estimated_cost || parseFloat(newEquipmentRequest.estimated_cost) <= 0) {
-      alert('Please enter a valid estimated cost greater than 0 SAR');
-      return;
-    }
-
-    if (parseFloat(newEquipmentRequest.estimated_cost) > 1000000) {
-      alert('Estimated cost cannot exceed 1,000,000 SAR. Please contact support for high-value equipment requests.');
+      setResponseModal({
+        show: true,
+        title: 'Validation Error',
+        message: 'Please provide a detailed description (at least 10 characters)',
+        type: 'error'
+      });
       return;
     }
 
@@ -328,32 +375,16 @@ const InteractivePatientDashboard = ({ user }) => {
     });
 
     if (hasDuplicateRequest) {
-      const confirmDuplicate = window.confirm(
-        `You already have a ${newEquipmentRequest.equipment_name} request that is pending or approved. Do you want to submit another request?`
-      );
-      if (!confirmDuplicate) {
-        return;
-      }
+      setConfirmModal({
+        show: true,
+        title: 'Duplicate Request',
+        message: `You already have a ${newEquipmentRequest.equipment_name} request that is pending or approved. Do you want to submit another request?`,
+        onConfirm: submitEquipmentRequest
+      });
+      return;
     }
 
-    createEquipmentRequest({
-      ...newEquipmentRequest,
-      patient_id: patientId,
-      patient_name: patient?.name || '',
-    });
-
-    // Success feedback
-    alert(`Equipment request for "${newEquipmentRequest.equipment_name}" submitted successfully. You will be notified once it's reviewed.`);
-
-    setShowNewEquipment(false);
-    setNewEquipmentRequest({
-      equipment_name: '',
-      description: '',
-      category: '',
-      urgency: '',
-      estimated_cost: '',
-      medical_justification: '',
-    });
+    submitEquipmentRequest();
   };
 
   if (!patient) {
@@ -827,13 +858,8 @@ const InteractivePatientDashboard = ({ user }) => {
         <Card
           title={t('my_appointments')}
           action={
-            <Button
-              variant="primary"
-              size="sm"
-              icon={Plus}
-              onClick={() => setShowNewAppointment(true)}
-            >
-              {t('add')}
+            <Button variant="ghost" size="sm" onClick={() => { navigate('/patient/appointments'); window.scrollTo(0, 0); }}>
+              {t('view_all')} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           }
         >
@@ -1363,12 +1389,113 @@ const InteractivePatientDashboard = ({ user }) => {
             </p>
           </div>
 
-          <Input
-            label="Equipment Name *"
-            value={newEquipmentRequest.equipment_name}
-            onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, equipment_name: e.target.value})}
-            placeholder="e.g., Wheelchair, Walking Frame, Blood Pressure Monitor"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Equipment Name *</label>
+            <select
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base bg-white"
+              value={showCustomInput ? 'Other' : newEquipmentRequest.equipment_name}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Get price and category from pricing data
+                const equipmentInfo = equipmentPricing[value];
+                if (value === 'Other') {
+                  setShowCustomInput(true);
+                  setCustomEquipmentName('');
+                  setNewEquipmentRequest({
+                    ...newEquipmentRequest,
+                    equipment_name: '',
+                    category: 'Other',
+                    estimated_cost: 0
+                  });
+                } else {
+                  setShowCustomInput(false);
+                  setNewEquipmentRequest({
+                    ...newEquipmentRequest,
+                    equipment_name: value,
+                    category: equipmentInfo?.category || 'Other',
+                    estimated_cost: equipmentInfo?.price || 0
+                  });
+                }
+              }}
+            >
+              <option value="" disabled>Select equipment...</option>
+              <optgroup label="Mobility Aids">
+                <option value="Wheelchair">Wheelchair</option>
+                <option value="Electric Wheelchair">Electric Wheelchair</option>
+                <option value="Walking Frame">Walking Frame</option>
+                <option value="Rollator Walker">Rollator Walker</option>
+                <option value="Crutches">Crutches</option>
+                <option value="Walking Cane">Walking Cane</option>
+                <option value="Hospital Bed">Hospital Bed</option>
+                <option value="Patient Lift">Patient Lift</option>
+              </optgroup>
+              <optgroup label="Monitoring Devices">
+                <option value="Blood Pressure Monitor">Blood Pressure Monitor</option>
+                <option value="Glucose Monitor">Glucose Monitor</option>
+                <option value="Pulse Oximeter">Pulse Oximeter</option>
+                <option value="Heart Rate Monitor">Heart Rate Monitor</option>
+                <option value="Thermometer">Thermometer</option>
+                <option value="Weight Scale">Weight Scale</option>
+              </optgroup>
+              <optgroup label="Respiratory Equipment">
+                <option value="Oxygen Concentrator">Oxygen Concentrator</option>
+                <option value="Nebulizer">Nebulizer</option>
+                <option value="CPAP Machine">CPAP Machine</option>
+                <option value="Suction Machine">Suction Machine</option>
+              </optgroup>
+              <optgroup label="Safety Equipment">
+                <option value="Bed Rails">Bed Rails</option>
+                <option value="Shower Chair">Shower Chair</option>
+                <option value="Toilet Safety Frame">Toilet Safety Frame</option>
+                <option value="Grab Bars">Grab Bars</option>
+                <option value="Non-Slip Mat">Non-Slip Mat</option>
+              </optgroup>
+              <optgroup label="Home Care">
+                <option value="Commode Chair">Commode Chair</option>
+                <option value="Overbed Table">Overbed Table</option>
+                <option value="Pressure Relief Mattress">Pressure Relief Mattress</option>
+                <option value="IV Stand">IV Stand</option>
+                <option value="Medical Recliner">Medical Recliner</option>
+              </optgroup>
+              <option value="Other">Other (specify below)</option>
+            </select>
+            {/* Show text input when "Other" is selected */}
+            {showCustomInput && (
+              <input
+                type="text"
+                className="w-full mt-2 px-4 py-3 border-2 border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 text-base bg-orange-50"
+                placeholder="Enter custom equipment name..."
+                value={customEquipmentName}
+                onChange={(e) => {
+                  setCustomEquipmentName(e.target.value);
+                  setNewEquipmentRequest({...newEquipmentRequest, equipment_name: e.target.value});
+                }}
+              />
+            )}
+            {/* Platform-determined price display */}
+            {newEquipmentRequest.equipment_name && !showCustomInput && newEquipmentRequest.estimated_cost > 0 && (
+              <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-green-100 rounded-lg">
+                      <Package className="w-4 h-4 text-green-600" />
+                    </div>
+                    <span className="text-sm text-green-800 font-medium">Platform Estimated Value</span>
+                  </div>
+                  <span className="text-lg font-bold text-green-700">{newEquipmentRequest.estimated_cost.toLocaleString()} SAR</span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">This value is automatically determined by our platform.</p>
+              </div>
+            )}
+            {showCustomInput && customEquipmentName && (
+              <div className="mt-3 p-3 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-orange-600" />
+                  <span className="text-sm text-orange-800">Custom equipment - value will be assessed after review</span>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
@@ -1380,37 +1507,11 @@ const InteractivePatientDashboard = ({ user }) => {
               <option value="" disabled>Select category...</option>
               <option value="Mobility">🦽 Mobility Aids</option>
               <option value="Monitoring">📊 Health Monitoring</option>
+              <option value="Respiratory">🫁 Respiratory Equipment</option>
               <option value="Safety">🛡️ Safety Equipment</option>
               <option value="Home Care">🏠 Home Care</option>
+              <option value="Other">📦 Other</option>
             </select>
-
-            {/* Category-based suggestions */}
-            {newEquipmentRequest.category && (
-              <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl animate-fadeIn">
-                <p className="text-xs font-semibold text-blue-700 mb-2">Common items in this category:</p>
-                <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    const suggestions = {
-                      'Mobility': ['Wheelchair', 'Walker', 'Walking Cane', 'Crutches', 'Mobility Scooter'],
-                      'Monitoring': ['Blood Pressure Monitor', 'Glucose Meter', 'Pulse Oximeter', 'Thermometer', 'Heart Rate Monitor'],
-                      'Safety': ['Bed Rails', 'Grab Bars', 'Emergency Alert System', 'Fall Detection Device', 'Night Light'],
-                      'Home Care': ['Hospital Bed', 'Bedside Commode', 'Shower Chair', 'Oxygen Concentrator', 'Nebulizer']
-                    };
-                    const items = suggestions[newEquipmentRequest.category] || [];
-                    return items.map(item => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setNewEquipmentRequest({...newEquipmentRequest, equipment_name: item})}
-                        className="px-3 py-1.5 bg-white border border-blue-300 rounded-lg text-xs font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-400 transition-all"
-                      >
-                        {item}
-                      </button>
-                    ));
-                  })()}
-                </div>
-              </div>
-            )}
           </div>
 
           <div>
@@ -1447,28 +1548,56 @@ const InteractivePatientDashboard = ({ user }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Cost (SAR) *</label>
-            <input
-              type="number"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-base"
-              value={newEquipmentRequest.estimated_cost || ''}
-              onChange={(e) => setNewEquipmentRequest({...newEquipmentRequest, estimated_cost: parseFloat(e.target.value) || ''})}
-              placeholder="Enter estimated cost in SAR"
-              min="1"
-              max="1000000"
-              step="1"
-            />
-            {newEquipmentRequest.estimated_cost && (
-              <div className="mt-1">
-                {parseFloat(newEquipmentRequest.estimated_cost) > 0 && parseFloat(newEquipmentRequest.estimated_cost) <= 1000000 ? (
-                  <p className="text-xs text-green-600">✓ Valid cost amount</p>
-                ) : parseFloat(newEquipmentRequest.estimated_cost) > 1000000 ? (
-                  <p className="text-xs text-red-600">⚠ Cost exceeds maximum (1,000,000 SAR)</p>
-                ) : (
-                  <p className="text-xs text-red-600">⚠ Cost must be greater than 0</p>
-                )}
-              </div>
-            )}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Request Type *</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setNewEquipmentRequest({...newEquipmentRequest, request_type: 'request'})}
+                className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                  newEquipmentRequest.request_type === 'request'
+                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${newEquipmentRequest.request_type === 'request' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                    <Package className={`w-5 h-5 ${newEquipmentRequest.request_type === 'request' ? 'text-blue-600' : 'text-gray-500'}`} />
+                  </div>
+                  <div>
+                    <p className={`font-medium ${newEquipmentRequest.request_type === 'request' ? 'text-blue-900' : 'text-gray-700'}`}>
+                      Request Equipment
+                    </p>
+                    <p className="text-xs text-gray-500">I need this equipment</p>
+                  </div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewEquipmentRequest({...newEquipmentRequest, request_type: 'donate'})}
+                className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                  newEquipmentRequest.request_type === 'donate'
+                    ? 'border-green-500 bg-green-50 ring-2 ring-green-200'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${newEquipmentRequest.request_type === 'donate' ? 'bg-green-100' : 'bg-gray-100'}`}>
+                    <Heart className={`w-5 h-5 ${newEquipmentRequest.request_type === 'donate' ? 'text-green-600' : 'text-gray-500'}`} />
+                  </div>
+                  <div>
+                    <p className={`font-medium ${newEquipmentRequest.request_type === 'donate' ? 'text-green-900' : 'text-gray-700'}`}>
+                      Donate Equipment
+                    </p>
+                    <p className="text-xs text-gray-500">I want to help others</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {newEquipmentRequest.request_type === 'donate'
+                ? '💚 Thank you for your generosity! Your donation will help patients in need.'
+                : 'Select "Donate" if you wish to contribute equipment to help other patients.'}
+            </p>
           </div>
 
           <div>
@@ -1488,9 +1617,75 @@ const InteractivePatientDashboard = ({ user }) => {
             <Button
               onClick={handleCreateEquipment}
               className="flex-1"
-              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.category || !newEquipmentRequest.description || !newEquipmentRequest.urgency || !newEquipmentRequest.estimated_cost || newEquipmentRequest.estimated_cost <= 0}
+              disabled={!newEquipmentRequest.equipment_name || !newEquipmentRequest.category || !newEquipmentRequest.description || !newEquipmentRequest.urgency}
             >
-              Submit Request
+              {newEquipmentRequest.request_type === 'donate' ? 'Submit Donation' : 'Submit Request'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Response Modal - for success/error messages */}
+      <Modal
+        isOpen={responseModal.show}
+        onClose={() => setResponseModal({ ...responseModal, show: false })}
+        title={responseModal.title}
+      >
+        <div className="text-center py-4">
+          {responseModal.type === 'success' && (
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+          )}
+          {responseModal.type === 'donation' && (
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Heart className="w-8 h-8 text-green-600" />
+            </div>
+          )}
+          {responseModal.type === 'error' && (
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-600" />
+            </div>
+          )}
+          <p className="text-gray-700 text-lg mb-6">{responseModal.message}</p>
+          <Button
+            onClick={() => setResponseModal({ ...responseModal, show: false })}
+            className="px-8"
+          >
+            OK
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Confirmation Modal - for yes/no questions */}
+      <Modal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal({ ...confirmModal, show: false })}
+        title={confirmModal.title}
+      >
+        <div className="py-4">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            </div>
+            <p className="text-gray-700 text-base pt-2">{confirmModal.message}</p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setConfirmModal({ ...confirmModal, show: false });
+                if (confirmModal.onConfirm) confirmModal.onConfirm();
+              }}
+              className="flex-1"
+            >
+              Yes, Continue
             </Button>
           </div>
         </div>

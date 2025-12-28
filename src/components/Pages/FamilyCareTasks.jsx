@@ -301,12 +301,7 @@ const FamilyCareTasks = ({ user }) => {
 
     try {
       deleteCareTask(taskId);
-      if (showNotification) {
-        showNotification(
-          language === 'ar' ? 'تم حذف المهمة' : 'Task deleted',
-          'success'
-        );
-      }
+      // Note: deleteCareTask already shows notification in AppContext
     } catch (error) {
       console.error('Error deleting task:', error);
     }
@@ -630,75 +625,75 @@ const FamilyCareTasks = ({ user }) => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 text-white">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <Card className="bg-blue-50 border-blue-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Clipboard className="w-5 h-5" />
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Clipboard className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs text-blue-100">{language === 'ar' ? 'الإجمالي' : 'Total'}</p>
-              <p className="text-2xl font-bold">{taskStats.total}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'الإجمالي' : 'Total'}</p>
+              <p className="text-2xl font-bold text-gray-900">{taskStats.total}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-500 to-orange-500 border-0 text-white">
+        <Card className="bg-yellow-50 border-yellow-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Clock className="w-5 h-5" />
+            <div className="p-3 bg-yellow-100 rounded-full">
+              <Clock className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-xs text-yellow-100">{language === 'ar' ? 'قيد الانتظار' : 'Pending'}</p>
-              <p className="text-2xl font-bold">{taskStats.pending}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'قيد الانتظار' : 'Pending'}</p>
+              <p className="text-2xl font-bold text-gray-900">{taskStats.pending}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500 to-emerald-500 border-0 text-white">
+        <Card className="bg-green-50 border-green-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <CheckCircle className="w-5 h-5" />
+            <div className="p-3 bg-green-100 rounded-full">
+              <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-green-100">{language === 'ar' ? 'مكتمل' : 'Completed'}</p>
-              <p className="text-2xl font-bold">{taskStats.completed}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'مكتمل' : 'Completed'}</p>
+              <p className="text-2xl font-bold text-gray-900">{taskStats.completed}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-500 to-rose-500 border-0 text-white">
+        <Card className="bg-red-50 border-red-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <AlertTriangle className="w-5 h-5" />
+            <div className="p-3 bg-red-100 rounded-full">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-xs text-red-100">{language === 'ar' ? 'متأخر' : 'Overdue'}</p>
-              <p className="text-2xl font-bold">{taskStats.overdue}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'متأخر' : 'Overdue'}</p>
+              <p className="text-2xl font-bold text-gray-900">{taskStats.overdue}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-indigo-500 border-0 text-white">
+        <Card className="bg-purple-50 border-purple-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Star className="w-5 h-5" />
+            <div className="p-3 bg-purple-100 rounded-full">
+              <Star className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-xs text-purple-100">{language === 'ar' ? 'أولوية عالية' : 'High Priority'}</p>
-              <p className="text-2xl font-bold">{taskStats.highPriority}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'أولوية عالية' : 'High Priority'}</p>
+              <p className="text-2xl font-bold text-gray-900">{taskStats.highPriority}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-cyan-500 to-blue-500 border-0 text-white">
+        <Card className="bg-cyan-50 border-cyan-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Calendar className="w-5 h-5" />
+            <div className="p-3 bg-cyan-100 rounded-full">
+              <Calendar className="w-5 h-5 text-cyan-600" />
             </div>
             <div>
-              <p className="text-xs text-cyan-100">{language === 'ar' ? 'اليوم' : 'Due Today'}</p>
-              <p className="text-2xl font-bold">{taskStats.dueToday}</p>
+              <p className="text-sm text-gray-600">{language === 'ar' ? 'اليوم' : 'Due Today'}</p>
+              <p className="text-2xl font-bold text-gray-900">{taskStats.dueToday}</p>
             </div>
           </div>
         </Card>

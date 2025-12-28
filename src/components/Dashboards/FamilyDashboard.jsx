@@ -34,12 +34,13 @@ import {
   Shield,
   Video,
   RefreshCw,
-  X
+  X,
+  Eye
 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useApp } from '../../contexts/AppContext';
 import { Card, Badge, Button, Modal, Input } from '../shared/UIComponents';
-import { RadialBarChart, AreaChart, SparklineChart } from '../shared/Charts';
+import { RadialBarChart, AreaChart } from '../shared/Charts';
 import HealthSummaryChart from '../shared/HealthSummaryChart';
 import { clsx } from 'clsx';
 
@@ -269,7 +270,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
 
   const handleDeleteTask = (taskId) => {
     deleteCareTask(taskId);
-    addNotification?.('info', language === 'ar' ? 'تم حذف المهمة' : 'Task deleted');
+    // Note: deleteCareTask already shows notification in AppContext
   };
 
   const handleAddTask = async () => {
@@ -378,43 +379,67 @@ const InteractiveFamilyDashboard = ({ user }) => {
       className={clsx('p-6 max-w-7xl mx-auto', isRTL && 'font-arabic')}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Tabler-Style Welcome Header */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
+      {/* Enhanced Welcome Header */}
+      <div className="mb-6 animate-fadeIn">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  {language === 'ar' ? 'لوحة تحكم العائلة' : 'Family Dashboard'}
-                </h1>
-                <p className="text-gray-600">
-                  {language === 'ar' ? 'رعاية' : 'Caring for'} <span className="font-semibold text-green-600">{patient.nameEn || patient.name}</span>
-                </p>
-              </div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                {(() => {
+                  const hour = new Date().getHours();
+                  if (hour < 12) return language === 'ar' ? 'صباح الخير' : 'Good Morning';
+                  if (hour < 17) return language === 'ar' ? 'مساء الخير' : 'Good Afternoon';
+                  return language === 'ar' ? 'مساء الخير' : 'Good Evening';
+                })()}
+              </h1>
+              <span className="text-2xl">👨‍👩‍👧‍👦</span>
+            </div>
+            <p className="text-gray-600 text-base flex items-center gap-2">
+              <Heart className="w-4 h-4 text-red-400" />
+              {language === 'ar' ? 'رعاية' : 'Caring for'} <span className="font-semibold text-green-600">{patient.nameEn || patient.name}</span>
+            </p>
+            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date().toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}</span>
             </div>
           </div>
 
-          {/* Emergency Quick Actions */}
-          <div className="flex gap-3">
-            <Button
-              variant="danger"
-              onClick={() => setShowEmergencyPanel(true)}
-              className="shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            >
-              <PhoneCall className="w-4 h-4 mr-2" />
-              {language === 'ar' ? 'طوارئ' : 'Emergency'}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => setShowAddTask(true)}
-              className="shadow-lg hover:shadow-xl transition-all"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {language === 'ar' ? 'إضافة مهمة' : 'Add Task'}
-            </Button>
+          {/* Status Badges & Actions */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* Tasks Badge */}
+            <div className="px-4 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-full shadow-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-green-700">
+                  {pendingTasks.length} {language === 'ar' ? 'مهام معلقة' : 'pending tasks'}
+                </span>
+              </div>
+            </div>
+
+            {/* Emergency Quick Actions */}
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                onClick={() => setShowEmergencyPanel(true)}
+                className="shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                <PhoneCall className="w-4 h-4 mr-2" />
+                {language === 'ar' ? 'طوارئ' : 'Emergency'}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => setShowAddTask(true)}
+                className="shadow-lg hover:shadow-xl transition-all"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {language === 'ar' ? 'إضافة مهمة' : 'Add Task'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -588,119 +613,93 @@ const InteractiveFamilyDashboard = ({ user }) => {
         </div>
       </Card>
 
-      {/* Stats Grid - Tabler Style */}
+      {/* Stats Grid - Simple Card Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-100 rounded-xl">
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-full">
               <CheckCircle className="w-6 h-6 text-blue-600" />
             </div>
-            <SparklineChart data={[3, 5, 2, 7, 4, 6, myTasks.length]} height={40} color="#3b82f6" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{myTasks.length}</p>
-          <p className="text-sm text-gray-600">{t('care_tasks')}</p>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant={pendingTasks > 0 ? 'warning' : 'success'} size="sm">
-              {pendingTasks} {language === 'ar' ? 'معلقة' : 'pending'}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className={clsx(
-              'p-3 rounded-xl',
-              unresolvedAlerts > 0 ? 'bg-red-100' : 'bg-green-100'
-            )}>
-              <AlertTriangle className={clsx(
-                'w-6 h-6',
-                unresolvedAlerts > 0 ? 'text-red-600' : 'text-green-600'
-              )} />
-            </div>
-            {unresolvedAlerts > 0 && (
-              <div className="flex items-center gap-1 text-red-500">
-                <Zap className="w-4 h-4" />
-                <span className="text-xs font-medium">{language === 'ar' ? 'نشط' : 'Active'}</span>
-              </div>
-            )}
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{displayAlerts.length}</p>
-          <p className="text-sm text-gray-600">{t('fall_alerts')}</p>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant={unresolvedAlerts > 0 ? 'danger' : 'success'} size="sm">
-              {unresolvedAlerts} {language === 'ar' ? 'غير محلولة' : 'unresolved'}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-100 rounded-xl">
-              <Calendar className="w-6 h-6 text-purple-600" />
-            </div>
-            <Badge variant="info" size="sm">{language === 'ar' ? 'قادمة' : 'Upcoming'}</Badge>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{upcomingAppointments.length}</p>
-          <p className="text-sm text-gray-600">{t('my_appointments')}</p>
-          {upcomingAppointments[0] && (
-            <p className="mt-2 text-xs text-purple-600 font-medium">
-              {language === 'ar' ? 'القادم:' : 'Next:'} {formatAppointmentDate(upcomingAppointments[0].date).label}
-            </p>
-          )}
-        </div>
-
-        <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-3">
-            <div className={clsx(
-              'p-3 rounded-xl',
-              avgAdherence >= 80 ? 'bg-green-100' : avgAdherence >= 60 ? 'bg-yellow-100' : 'bg-red-100'
-            )}>
-              <Pill className={clsx(
-                'w-6 h-6',
-                avgAdherence >= 80 ? 'text-green-600' : avgAdherence >= 60 ? 'text-yellow-600' : 'text-red-600'
-              )} />
-            </div>
-            {/* Circular Progress Ring */}
-            <div className="relative w-14 h-14">
-              <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
-                {/* Background circle */}
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  stroke="#e5e7eb"
-                  strokeWidth="6"
-                  fill="none"
-                />
-                {/* Progress circle */}
-                <circle
-                  cx="28"
-                  cy="28"
-                  r="24"
-                  stroke={avgAdherence >= 80 ? '#22c55e' : avgAdherence >= 60 ? '#f59e0b' : '#ef4444'}
-                  strokeWidth="6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeDasharray={`${(avgAdherence / 100) * 150.8} 150.8`}
-                  className="transition-all duration-500"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className={clsx(
-                  'text-xs font-bold',
-                  avgAdherence >= 80 ? 'text-green-600' : avgAdherence >= 60 ? 'text-yellow-600' : 'text-red-600'
-                )}>
-                  {avgAdherence}%
+            <div>
+              <p className="text-sm text-gray-600">{t('care_tasks')}</p>
+              <p className="text-2xl font-bold text-gray-900">{myTasks.length}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span className="text-xs font-medium text-amber-600">
+                  {pendingTasks} {language === 'ar' ? 'معلقة' : 'pending'}
                 </span>
               </div>
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{avgAdherence}%</p>
-          <p className="text-sm text-gray-600">{t('adherence_rate')}</p>
-          <p className="mt-2 text-xs text-gray-500">
-            {myMedications.length} {language === 'ar' ? 'أدوية نشطة' : 'active medications'}
-          </p>
-        </div>
+        </Card>
+
+        <Card className={unresolvedAlerts > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}>
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-full ${unresolvedAlerts > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
+              <AlertTriangle className={`w-6 h-6 ${unresolvedAlerts > 0 ? 'text-red-600' : 'text-green-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">{t('fall_alerts')}</p>
+              <p className="text-2xl font-bold text-gray-900">{displayAlerts.length}</p>
+              <div className="flex items-center gap-1 mt-1">
+                {unresolvedAlerts > 0 ? (
+                  <>
+                    <Zap className="w-3.5 h-3.5 text-red-600" />
+                    <span className="text-xs font-medium text-red-600">
+                      {unresolvedAlerts} {language === 'ar' ? 'غير محلولة' : 'unresolved'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-xs font-medium text-green-600">
+                      {language === 'ar' ? 'الكل محلول' : 'All resolved'}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="bg-purple-50 border-purple-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-purple-100 rounded-full">
+              <Calendar className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">{t('my_appointments')}</p>
+              <p className="text-2xl font-bold text-gray-900">{upcomingAppointments.length}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <Clock className="w-3.5 h-3.5 text-purple-600" />
+                <span className="text-xs font-medium text-purple-600">
+                  {upcomingAppointments[0]
+                    ? `${language === 'ar' ? 'القادم:' : 'Next:'} ${formatAppointmentDate(upcomingAppointments[0].date).label}`
+                    : (language === 'ar' ? 'لا يوجد' : 'None scheduled')
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className={`${avgAdherence >= 80 ? 'bg-green-50 border-green-200' : avgAdherence >= 60 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-full ${avgAdherence >= 80 ? 'bg-green-100' : avgAdherence >= 60 ? 'bg-yellow-100' : 'bg-red-100'}`}>
+              <Pill className={`w-6 h-6 ${avgAdherence >= 80 ? 'text-green-600' : avgAdherence >= 60 ? 'text-yellow-600' : 'text-red-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">{t('adherence_rate')}</p>
+              <p className="text-2xl font-bold text-gray-900">{avgAdherence}%</p>
+              <div className="flex items-center gap-1 mt-1">
+                <Activity className={`w-3.5 h-3.5 ${avgAdherence >= 80 ? 'text-green-600' : avgAdherence >= 60 ? 'text-yellow-600' : 'text-red-600'}`} />
+                <span className={`text-xs font-medium ${avgAdherence >= 80 ? 'text-green-600' : avgAdherence >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  {myMedications.length} {language === 'ar' ? 'أدوية نشطة' : 'active meds'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Health Summary Chart */}
@@ -996,69 +995,95 @@ const InteractiveFamilyDashboard = ({ user }) => {
           </div>
         </div>
 
-        {/* Quick Vitals Grid */}
+        {/* Quick Vitals Grid - Simple Card Style */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6 pt-6 border-t">
-          <div className="p-4 bg-red-50 rounded-xl border border-red-100">
-            <div className="flex items-center justify-between mb-2">
-              <Heart className="w-5 h-5 text-red-500" />
-              <SparklineChart data={healthTrendData.bloodPressure.systolic} height={30} color="#ef4444" />
+          <Card className="bg-red-50 border-red-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-100 rounded-full">
+                <Heart className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">{language === 'ar' ? 'ضغط الدم' : 'Blood Pressure'}</p>
+                <p className="text-xl font-bold text-gray-900">139/88</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="text-xs font-medium text-amber-600">
+                    {language === 'ar' ? 'مرتفع قليلاً' : 'Slightly High'}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-500">{language === 'ar' ? 'ضغط الدم' : 'Blood Pressure'}</p>
-            <p className="text-lg font-bold text-gray-900">139/88</p>
-            <Badge variant="warning" size="sm" className="mt-1">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              {language === 'ar' ? 'مرتفع قليلاً' : 'Slightly High'}
-            </Badge>
-          </div>
+          </Card>
 
-          <div className="p-4 bg-pink-50 rounded-xl border border-pink-100">
-            <div className="flex items-center justify-between mb-2">
-              <Activity className="w-5 h-5 text-pink-500" />
-              <SparklineChart data={healthTrendData.heartRate} height={30} color="#ec4899" />
+          <Card className="bg-pink-50 border-pink-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-pink-100 rounded-full">
+                <Activity className="w-5 h-5 text-pink-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">{language === 'ar' ? 'معدل النبض' : 'Heart Rate'}</p>
+                <p className="text-xl font-bold text-gray-900">73 bpm</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                  <span className="text-xs font-medium text-green-600">
+                    {language === 'ar' ? 'طبيعي' : 'Normal'}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-500">{language === 'ar' ? 'معدل النبض' : 'Heart Rate'}</p>
-            <p className="text-lg font-bold text-gray-900">73 bpm</p>
-            <Badge variant="success" size="sm" className="mt-1">
-              {language === 'ar' ? 'طبيعي' : 'Normal'}
-            </Badge>
-          </div>
+          </Card>
 
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-            <div className="flex items-center justify-between mb-2">
-              <Droplets className="w-5 h-5 text-amber-500" />
-              <SparklineChart data={healthTrendData.glucose} height={30} color="#f59e0b" />
+          <Card className="bg-amber-50 border-amber-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-amber-100 rounded-full">
+                <Droplets className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">{language === 'ar' ? 'مستوى السكر' : 'Glucose'}</p>
+                <p className="text-xl font-bold text-gray-900">114 mg/dL</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Eye className="w-3.5 h-3.5 text-yellow-600" />
+                  <span className="text-xs font-medium text-yellow-600">
+                    {language === 'ar' ? 'مراقبة' : 'Monitor'}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-500">{language === 'ar' ? 'مستوى السكر' : 'Glucose'}</p>
-            <p className="text-lg font-bold text-gray-900">114 mg/dL</p>
-            <Badge variant="warning" size="sm" className="mt-1">
-              {language === 'ar' ? 'مراقبة' : 'Monitor'}
-            </Badge>
-          </div>
+          </Card>
 
-          <div className="p-4 bg-cyan-50 rounded-xl border border-cyan-100">
-            <div className="flex items-center justify-between mb-2">
-              <Thermometer className="w-5 h-5 text-cyan-500" />
-              <span className="text-xs text-gray-400">Stable</span>
+          <Card className="bg-cyan-50 border-cyan-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-cyan-100 rounded-full">
+                <Thermometer className="w-5 h-5 text-cyan-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">{language === 'ar' ? 'درجة الحرارة' : 'Temperature'}</p>
+                <p className="text-xl font-bold text-gray-900">36.8°C</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                  <span className="text-xs font-medium text-green-600">
+                    {language === 'ar' ? 'طبيعي' : 'Normal'}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-500">{language === 'ar' ? 'درجة الحرارة' : 'Temperature'}</p>
-            <p className="text-lg font-bold text-gray-900">36.8°C</p>
-            <Badge variant="success" size="sm" className="mt-1">
-              {language === 'ar' ? 'طبيعي' : 'Normal'}
-            </Badge>
-          </div>
+          </Card>
 
-          <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
-            <div className="flex items-center justify-between mb-2">
-              <Scale className="w-5 h-5 text-purple-500" />
-              <SparklineChart data={healthTrendData.weight} height={30} color="#8b5cf6" />
+          <Card className="bg-purple-50 border-purple-200">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <Scale className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">{language === 'ar' ? 'الوزن' : 'Weight'}</p>
+                <p className="text-xl font-bold text-gray-900">77.7 kg</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <TrendingDown className="w-3.5 h-3.5 text-green-600" />
+                  <span className="text-xs font-medium text-green-600">-0.3 kg</span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-500">{language === 'ar' ? 'الوزن' : 'Weight'}</p>
-            <p className="text-lg font-bold text-gray-900">77.7 kg</p>
-            <Badge variant="success" size="sm" className="mt-1">
-              <TrendingDown className="w-3 h-3 mr-1" />
-              -0.3 kg
-            </Badge>
-          </div>
+          </Card>
         </div>
       </Card>
 
@@ -1251,7 +1276,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
           </button>
 
           <button
-            onClick={() => navigate('/family/charity')}
+            onClick={() => navigate('/family/equipment')}
             className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-green-100 hover:border-green-300 hover:shadow-md transition-all group"
           >
             <div className="flex items-center gap-3">
@@ -1259,7 +1284,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
                 <Heart className="w-5 h-5 text-green-600" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-900">{language === 'ar' ? 'مركز التبرعات' : 'Charity Centre'}</p>
+                <p className="font-semibold text-gray-900">{language === 'ar' ? 'مركز التبرعات' : 'Equipment Donations'}</p>
                 <p className="text-xs text-gray-500">{language === 'ar' ? 'طلبات المعدات والتبرعات' : 'Equipment & donations'}</p>
               </div>
             </div>

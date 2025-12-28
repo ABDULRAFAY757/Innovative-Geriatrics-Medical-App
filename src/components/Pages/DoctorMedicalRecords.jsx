@@ -11,7 +11,22 @@ import {
   ChevronsRight,
   Building2,
   Stethoscope,
-  Calendar
+  Calendar,
+  Activity,
+  Heart,
+  Pill,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  ArrowLeft,
+  Clipboard,
+  TrendingUp,
+  Thermometer,
+  Weight,
+  Droplets
 } from 'lucide-react';
 import { Card, Badge, Button, Input, Modal, Table, Select } from '../shared/UIComponents';
 import { clsx } from 'clsx';
@@ -32,6 +47,8 @@ const DoctorMedicalRecords = ({ user }) => {
   const [filterType, setFilterType] = useState('all');
   const [filterHospital, setFilterHospital] = useState('all');
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,6 +176,23 @@ const DoctorMedicalRecords = ({ user }) => {
     return { totalRecords, uniquePatients, emergencyCases, admissions };
   }, [myRecords]);
 
+  // Get all records for a specific patient with this doctor
+  const getPatientRecordsWithDoctor = (patientId) => {
+    return myRecords.filter(r => r.patient_id === patientId);
+  };
+
+  // Handle patient row click
+  const handlePatientClick = (record) => {
+    const patientInfo = getPatientInfo(record);
+    const patientRecords = getPatientRecordsWithDoctor(record.patient_id);
+    setSelectedPatient({
+      ...patientInfo,
+      patient_id: record.patient_id,
+      records: patientRecords
+    });
+    setActiveTab('overview');
+  };
+
   const columns = [
     {
       header: language === 'ar' ? 'التاريخ والوقت' : 'Date & Time',
@@ -183,12 +217,15 @@ const DoctorMedicalRecords = ({ user }) => {
       render: (row) => {
         const p = getPatientInfo(row);
         return (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <button
+            onClick={() => handlePatientClick(row)}
+            className="flex items-center gap-2 hover:bg-blue-50 rounded-lg p-1 -m-1 transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
               <User className="w-4 h-4 text-blue-600" />
             </div>
-            <span className="text-sm font-medium text-gray-900">{p.name}</span>
-          </div>
+            <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{p.name}</span>
+          </button>
         );
       }
     },
@@ -643,6 +680,334 @@ const DoctorMedicalRecords = ({ user }) => {
             <Button className="w-full" onClick={() => setSelectedRecord(null)}>
               {language === 'ar' ? 'إغلاق' : 'Close'}
             </Button>
+          </div>
+        )}
+      </Modal>
+
+      {/* Patient Detail Panel */}
+      <Modal
+        isOpen={!!selectedPatient}
+        onClose={() => setSelectedPatient(null)}
+        title=""
+        size="xl"
+      >
+        {selectedPatient && (
+          <div className="space-y-5">
+            {/* Patient Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 text-white">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold">{selectedPatient.name}</h2>
+                  <p className="text-blue-100 text-sm mt-0.5">{language === 'ar' ? 'رقم الملف:' : 'File No:'} {selectedPatient.p_no}</p>
+                  <div className="flex flex-wrap gap-3 mt-3">
+                    {selectedPatient.age && (
+                      <span className="px-2 py-1 bg-white/20 rounded-lg text-xs">{selectedPatient.age} {language === 'ar' ? 'سنة' : 'years'}</span>
+                    )}
+                    {selectedPatient.gender && (
+                      <span className="px-2 py-1 bg-white/20 rounded-lg text-xs">{selectedPatient.gender}</span>
+                    )}
+                    {selectedPatient.blood_type && (
+                      <span className="px-2 py-1 bg-red-500/30 rounded-lg text-xs flex items-center gap-1">
+                        <Droplets className="w-3 h-3" /> {selectedPatient.blood_type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-blue-100 text-xs">{language === 'ar' ? 'عدد الزيارات' : 'Total Visits'}</p>
+                  <p className="text-3xl font-bold">{selectedPatient.records?.length || 0}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+              {[
+                { id: 'overview', label: language === 'ar' ? 'نظرة عامة' : 'Overview', icon: Activity },
+                { id: 'history', label: language === 'ar' ? 'السجل' : 'History', icon: Clock },
+                { id: 'medications', label: language === 'ar' ? 'الأدوية' : 'Medications', icon: Pill }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={clsx(
+                    'flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
+                    activeTab === tab.id
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  )}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="min-h-[300px]">
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                <div className="space-y-4">
+                  {/* Contact Info */}
+                  {(selectedPatient.phone || selectedPatient.email || selectedPatient.address) && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {selectedPatient.phone && (
+                        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                          <Phone className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm">{selectedPatient.phone}</span>
+                        </div>
+                      )}
+                      {selectedPatient.email && (
+                        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                          <Mail className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm truncate">{selectedPatient.email}</span>
+                        </div>
+                      )}
+                      {selectedPatient.address && (
+                        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm truncate">{selectedPatient.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg text-center">
+                      <FileText className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                      <p className="text-lg font-bold text-gray-900">{selectedPatient.records?.length || 0}</p>
+                      <p className="text-xs text-gray-500">{language === 'ar' ? 'سجلات' : 'Records'}</p>
+                    </div>
+                    <div className="p-3 bg-green-50 border border-green-100 rounded-lg text-center">
+                      <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-1" />
+                      <p className="text-lg font-bold text-gray-900">
+                        {selectedPatient.records?.filter(r => r.record_type === 'Follow-up').length || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">{language === 'ar' ? 'متابعات' : 'Follow-ups'}</p>
+                    </div>
+                    <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-center">
+                      <AlertCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
+                      <p className="text-lg font-bold text-gray-900">
+                        {selectedPatient.records?.filter(r => r.record_type === 'Emergency').length || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">{language === 'ar' ? 'طوارئ' : 'Emergency'}</p>
+                    </div>
+                    <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg text-center">
+                      <Building2 className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
+                      <p className="text-lg font-bold text-gray-900">
+                        {selectedPatient.records?.filter(r => r.admission_required).length || 0}
+                      </p>
+                      <p className="text-xs text-gray-500">{language === 'ar' ? 'دخول' : 'Admissions'}</p>
+                    </div>
+                  </div>
+
+                  {/* Latest Vitals */}
+                  {selectedPatient.records?.[0]?.vitals && (
+                    <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-red-500" />
+                        {language === 'ar' ? 'آخر العلامات الحيوية' : 'Latest Vitals'}
+                        <span className="text-xs text-gray-400 font-normal ml-auto">
+                          {formatDate(selectedPatient.records[0].visit_date)}
+                        </span>
+                      </h4>
+                      <div className="grid grid-cols-5 gap-2">
+                        <div className="p-2 bg-white rounded-lg text-center border">
+                          <TrendingUp className="w-4 h-4 text-red-500 mx-auto mb-1" />
+                          <p className="text-xs text-gray-500">BP</p>
+                          <p className="font-bold text-sm">{selectedPatient.records[0].vitals.blood_pressure}</p>
+                        </div>
+                        <div className="p-2 bg-white rounded-lg text-center border">
+                          <Heart className="w-4 h-4 text-pink-500 mx-auto mb-1" />
+                          <p className="text-xs text-gray-500">HR</p>
+                          <p className="font-bold text-sm">{selectedPatient.records[0].vitals.heart_rate}</p>
+                        </div>
+                        <div className="p-2 bg-white rounded-lg text-center border">
+                          <Thermometer className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+                          <p className="text-xs text-gray-500">Temp</p>
+                          <p className="font-bold text-sm">{selectedPatient.records[0].vitals.temperature}°</p>
+                        </div>
+                        <div className="p-2 bg-white rounded-lg text-center border">
+                          <Weight className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                          <p className="text-xs text-gray-500">Weight</p>
+                          <p className="font-bold text-sm">{selectedPatient.records[0].vitals.weight}kg</p>
+                        </div>
+                        <div className="p-2 bg-white rounded-lg text-center border">
+                          <Droplets className="w-4 h-4 text-cyan-500 mx-auto mb-1" />
+                          <p className="text-xs text-gray-500">SpO2</p>
+                          <p className="font-bold text-sm">{selectedPatient.records[0].vitals.oxygen_saturation}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recent Diagnoses */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <Clipboard className="w-4 h-4 text-purple-500" />
+                      {language === 'ar' ? 'التشخيصات الأخيرة' : 'Recent Diagnoses'}
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedPatient.records?.slice(0, 3).map((record, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Badge variant={getTypeBadge(record.record_type)} className="text-xs">
+                              {record.record_type}
+                            </Badge>
+                            <span className="font-medium text-gray-900 text-sm">{record.diagnosis}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">{formatDate(record.visit_date)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* History Tab */}
+              {activeTab === 'history' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500 mb-3">
+                    {language === 'ar' ? 'جميع الاستشارات مع هذا المريض' : 'All consultations with this patient'}
+                  </p>
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                    {selectedPatient.records?.map((record, idx) => (
+                      <div key={idx} className="p-4 bg-white border rounded-xl hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                              <Calendar className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{formatDateTime(record.visit_date)}</p>
+                              <p className="text-xs text-gray-500">{record.hospital}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={getTypeBadge(record.record_type)} className="text-xs">
+                              {record.record_type}
+                            </Badge>
+                            <Badge variant={getStatusBadge(record.status)} className="text-xs">
+                              {record.status}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="pl-11 space-y-2">
+                          <div>
+                            <p className="text-xs text-gray-500">{language === 'ar' ? 'التشخيص' : 'Diagnosis'}</p>
+                            <p className="font-medium text-gray-900">{record.diagnosis}</p>
+                            {record.diagnosis_code && (
+                              <p className="text-xs text-gray-400">ICD-10: {record.diagnosis_code}</p>
+                            )}
+                          </div>
+
+                          {record.chief_complaint && (
+                            <div>
+                              <p className="text-xs text-gray-500">{language === 'ar' ? 'الشكوى' : 'Chief Complaint'}</p>
+                              <p className="text-sm text-gray-700">{record.chief_complaint}</p>
+                            </div>
+                          )}
+
+                          {record.clinical_notes && (
+                            <div className="p-2 bg-gray-50 rounded-lg">
+                              <p className="text-xs text-gray-500 mb-1">{language === 'ar' ? 'ملاحظات' : 'Notes'}</p>
+                              <p className="text-sm text-gray-700">{record.clinical_notes}</p>
+                            </div>
+                          )}
+
+                          {record.prescriptions?.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {record.prescriptions.map((rx, i) => (
+                                <span key={i} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
+                                  {rx.medication}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {record.follow_up_date && (
+                            <div className="flex items-center gap-1 text-xs text-amber-600 mt-2">
+                              <Clock className="w-3 h-3" />
+                              {language === 'ar' ? 'متابعة:' : 'Follow-up:'} {formatDate(record.follow_up_date)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Medications Tab */}
+              {activeTab === 'medications' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500 mb-3">
+                    {language === 'ar' ? 'جميع الأدوية الموصوفة لهذا المريض' : 'All medications prescribed to this patient'}
+                  </p>
+                  {(() => {
+                    // Collect all unique medications from all records
+                    const allMedications = [];
+                    selectedPatient.records?.forEach(record => {
+                      record.prescriptions?.forEach(rx => {
+                        allMedications.push({
+                          ...rx,
+                          date: record.visit_date,
+                          diagnosis: record.diagnosis
+                        });
+                      });
+                    });
+
+                    if (allMedications.length === 0) {
+                      return (
+                        <div className="text-center py-8">
+                          <Pill className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                          <p className="text-gray-500">{language === 'ar' ? 'لا توجد أدوية موصوفة' : 'No medications prescribed'}</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                        {allMedications.map((med, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-white border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-green-100 rounded-lg">
+                                <Pill className="w-4 h-4 text-green-600" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">{med.medication}</p>
+                                <p className="text-xs text-gray-500">{med.dosage} • {med.frequency}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-500">{formatDate(med.date)}</p>
+                              <p className="text-xs text-gray-400 truncate max-w-[150px]">{med.diagnosis}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex gap-3 pt-3 border-t">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setSelectedPatient(null)}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {language === 'ar' ? 'رجوع' : 'Back'}
+              </Button>
+            </div>
           </div>
         )}
       </Modal>

@@ -125,63 +125,56 @@ const PatientMedications = ({ user }) => {
         </div>
       </div>
 
-      {/* Stats Cards - Enhanced with better gradients and hover effects */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 animate-slideUp">
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-blue-50 via-blue-50/50 to-white border-2 border-blue-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <Pill className="w-6 h-6 text-white" />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-blue-50 border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Pill className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Medications</p>
-              <p className="text-3xl font-bold text-gray-900">{myMedications.length}</p>
+              <p className="text-sm text-gray-600">Total Medications</p>
+              <p className="text-2xl font-bold text-gray-900">{myMedications.length}</p>
             </div>
           </div>
-        </div>
-
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-green-50 via-green-50/50 to-white border-2 border-green-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-green-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-green-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <Check className="w-6 h-6 text-white" />
+        </Card>
+        <Card className="bg-green-50 border-green-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-green-100 rounded-full">
+              <Check className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">On Track</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600">On Track</p>
+              <p className="text-2xl font-bold text-gray-900">
                 {myMedications.filter(m => m.adherence_rate >= 80).length}
               </p>
             </div>
           </div>
-        </div>
-
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-purple-50 via-purple-50/50 to-white border-2 border-purple-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-purple-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-purple-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-6 h-6 text-white" />
+        </Card>
+        <Card className="bg-purple-50 border-purple-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-purple-100 rounded-full">
+              <TrendingUp className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Avg. Adherence</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600">Avg. Adherence</p>
+              <p className="text-2xl font-bold text-gray-900">
                 {myMedications.length > 0 ? Math.round(myMedications.reduce((acc, m) => acc + m.adherence_rate, 0) / myMedications.length) : 0}%
               </p>
             </div>
           </div>
-        </div>
-
-        <div className="group relative overflow-hidden p-5 bg-gradient-to-br from-orange-50 via-orange-50/50 to-white border-2 border-orange-200 rounded-2xl shadow-sm hover:shadow-xl hover:scale-105 transition-all duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-orange-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-orange-500/30 transition-all"></div>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform">
-              <Clock className="w-6 h-6 text-white" />
+        </Card>
+        <Card className="bg-orange-50 border-orange-200">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-orange-100 rounded-full">
+              <Clock className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Due Today</p>
-              <p className="text-3xl font-bold text-gray-900">{myMedications.length}</p>
+              <p className="text-sm text-gray-600">Due Today</p>
+              <p className="text-2xl font-bold text-gray-900">{myMedications.length}</p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Filters and Search - Enhanced with better spacing and visual hierarchy */}

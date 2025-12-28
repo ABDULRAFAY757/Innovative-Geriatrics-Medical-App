@@ -425,67 +425,130 @@ const InteractiveDoctorDashboard = ({ user }) => {
       className={clsx('p-6 max-w-7xl mx-auto', isRTL && 'font-arabic')}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {t('welcome')}, {doctor.nameEn}!
-        </h1>
-        <p className="text-gray-600 mt-1">{t('doctor_dashboard_subtitle')}</p>
+      {/* Welcome Header - Enhanced */}
+      <div className="mb-6 animate-fadeIn">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                {(() => {
+                  const hour = new Date().getHours();
+                  if (hour < 12) return language === 'ar' ? 'صباح الخير' : 'Good Morning';
+                  if (hour < 17) return language === 'ar' ? 'مساء الخير' : 'Good Afternoon';
+                  return language === 'ar' ? 'مساء الخير' : 'Good Evening';
+                })()}, Dr. {doctor.nameEn.split(' ').slice(1).join(' ')}
+              </h1>
+              <span className="text-2xl">👨‍⚕️</span>
+            </div>
+            <p className="text-gray-600 text-base flex items-center gap-2">
+              <Stethoscope className="w-4 h-4 text-purple-400" />
+              {language === 'ar' ? 'جاهز لمساعدة المرضى اليوم' : 'Ready to help patients today'}
+            </p>
+            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date().toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Today's Schedule Badge */}
+            <div className="px-4 py-2.5 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-full shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <div className="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
+                  <div className="absolute inset-0 w-2.5 h-2.5 bg-purple-500 rounded-full animate-ping"></div>
+                </div>
+                <span className="text-sm font-semibold text-purple-700">
+                  {todaysAppointments.length} {language === 'ar' ? 'مواعيد اليوم' : 'appointments today'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Doctor Profile Card */}
-      <Card className="mb-8">
+      {/* Doctor Profile Card - Enhanced */}
+      <Card className="mb-8 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50 border-purple-200">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="p-4 bg-purple-100 rounded-xl">
-            <Stethoscope className="w-12 h-12 text-purple-600" />
+          <div className="relative">
+            <div className="p-5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg">
+              <Stethoscope className="w-10 h-10 text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900">
-              {doctor.nameEn}
-            </h2>
-            <p className="text-gray-600">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-xl font-bold text-gray-900">
+                {doctor.nameEn}
+              </h2>
+              <Badge variant="success" size="sm">{language === 'ar' ? 'نشط' : 'Active'}</Badge>
+            </div>
+            <p className="text-purple-600 font-medium">
               {doctor.specialization}
             </p>
-            <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
-              <span>{doctor.hospital}</span>
-              <span>•</span>
-              <span>{doctor.experience}</span>
-              <span>•</span>
-              <span>License: {doctor.license}</span>
+            <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-gray-600">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-white/60 rounded-lg">
+                <Users className="w-4 h-4 text-blue-500" />
+                {patients.length} {language === 'ar' ? 'مرضى' : 'patients'}
+              </span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-white/60 rounded-lg">
+                <Clock className="w-4 h-4 text-green-500" />
+                {doctor.experience}
+              </span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-white/60 rounded-lg">
+                <FileText className="w-4 h-4 text-purple-500" />
+                {doctor.license}
+              </span>
             </div>
+          </div>
+          <div className="hidden md:block text-right">
+            <p className="text-sm text-gray-500">{language === 'ar' ? 'المستشفى' : 'Hospital'}</p>
+            <p className="font-semibold text-gray-900">{doctor.hospital}</p>
+            <p className="text-sm text-purple-600 font-medium mt-1">{doctor.consultationFee} SAR / {language === 'ar' ? 'استشارة' : 'consultation'}</p>
           </div>
         </div>
       </Card>
 
-      {/* Stats Overview */}
+      {/* Stats Overview - Enhanced with Interactions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title={t('my_patients')}
           value={patients.length}
           icon={Users}
           color="blue"
-          subtitle="Total patients"
+          subtitle={language === 'ar' ? 'إجمالي المرضى' : 'Total patients'}
+          trend={12}
+          onClick={() => navigate('/doctor/patients')}
         />
         <StatCard
           title={t('todays_appointments')}
           value={todaysAppointments.length}
           icon={Calendar}
           color="green"
-          subtitle={`${doctorAppointments.length} total`}
+          subtitle={`${upcomingAppointmentsCount} ${language === 'ar' ? 'قادم' : 'upcoming'}`}
+          trend={todaysAppointments.length > 0 ? todaysAppointments.length : undefined}
+          onClick={() => navigate('/doctor/appointments')}
         />
         <StatCard
           title={t('clinical_notes')}
           value={doctorTransactions.length}
           icon={FileText}
           color="purple"
-          subtitle="This month"
+          subtitle={language === 'ar' ? 'هذا الشهر' : 'This month'}
+          trend={8}
+          onClick={() => navigate('/doctor/records')}
         />
         <StatCard
           title={t('prescriptions')}
           value={doctorTransactions.filter(t => t.transaction_type === 'Prescription').length}
           icon={Pill}
           color="orange"
-          subtitle="Active"
+          subtitle={language === 'ar' ? 'نشط' : 'Active'}
+          onClick={() => patients.length > 0 && handleAddPrescription(patients[0])}
         />
       </div>
 

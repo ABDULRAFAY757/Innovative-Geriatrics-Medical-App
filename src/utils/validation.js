@@ -211,13 +211,13 @@ export const validationSchemas = {
       { validator: validators.maxLength(1000), message: errorMessages.maxLength(1000) }
     ],
     medical_justification: [
-      { validator: validators.required, message: errorMessages.required },
       { validator: validators.maxLength(500), message: errorMessages.maxLength(500) }
     ],
-    estimated_cost: [
-      { validator: validators.required, message: errorMessages.required },
-      { validator: validators.positiveNumber, message: 'Cost must be a positive number' },
-      { validator: validators.numberRange(1, 1000000), message: 'Cost must be between 1 and 1,000,000 SAR' }
+    category: [
+      { validator: validators.required, message: errorMessages.required }
+    ],
+    urgency: [
+      { validator: validators.required, message: errorMessages.required }
     ]
   },
 

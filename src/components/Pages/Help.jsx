@@ -22,7 +22,7 @@ import {
   Smartphone,
   CheckCircle
 } from 'lucide-react';
-import { Card, Button, Input, Badge } from '../shared/UIComponents';
+import { Card, Button, Badge } from '../shared/UIComponents';
 import { clsx } from 'clsx';
 
 const Help = ({ user }) => {
@@ -321,23 +321,42 @@ const Help = ({ user }) => {
         </div>
       )}
 
-      {/* Search */}
-      <Card className="mb-6">
-        <div className="relative">
-          <Input
+      {/* Search - Enhanced */}
+      <div className="mb-6 p-6 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-2xl shadow-lg">
+        <div className="text-center mb-4">
+          <h2 className="text-white text-xl font-bold mb-1">
+            {language === 'ar' ? 'كيف يمكننا مساعدتك؟' : 'How can we help you?'}
+          </h2>
+          <p className="text-blue-100 text-sm">
+            {language === 'ar' ? 'اكتب سؤالك أدناه للعثور على إجابة سريعة' : 'Type your question below to find a quick answer'}
+          </p>
+        </div>
+        <div className="relative max-w-xl mx-auto">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="w-5 h-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
             placeholder={language === 'ar' ? 'ابحث عن المساعدة...' : 'Search for help...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            icon={Search}
-            className="w-full"
+            className="w-full pl-12 pr-4 py-4 rounded-xl border-0 shadow-lg focus:ring-4 focus:ring-white/30 transition-all text-gray-800 placeholder-gray-400"
           />
           {searchTerm && (
-            <p className="text-sm text-gray-500 mt-2">
-              {filteredFaqs.length} {language === 'ar' ? 'نتيجة' : 'results'} {language === 'ar' ? 'لـ' : 'for'} &quot;{searchTerm}&quot;
-            </p>
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
           )}
         </div>
-      </Card>
+        {searchTerm && (
+          <p className="text-center text-blue-100 text-sm mt-3">
+            {filteredFaqs.length} {language === 'ar' ? 'نتيجة' : 'results'} {language === 'ar' ? 'لـ' : 'for'} &quot;{searchTerm}&quot;
+          </p>
+        )}
+      </div>
 
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

@@ -2,30 +2,113 @@ import React, { useState, useMemo } from 'react';
 import { clsx } from 'clsx';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-// StatCard Component
-export const StatCard = ({ title, value, icon: Icon, color = 'blue', subtitle }) => {
-  const colorClasses = {
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-green-100 text-green-600',
-    purple: 'bg-purple-100 text-purple-600',
-    orange: 'bg-orange-100 text-orange-600',
-    red: 'bg-red-100 text-red-600',
-    yellow: 'bg-yellow-100 text-yellow-600',
+// StatCard Component - Enhanced with modern design
+export const StatCard = ({ title, value, icon: Icon, color = 'blue', subtitle, trend, onClick }) => {
+  const colorConfig = {
+    blue: {
+      bg: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      iconBg: 'bg-blue-500',
+      iconText: 'text-white',
+      border: 'border-blue-200',
+      accent: 'text-blue-600',
+      hover: 'hover:shadow-blue-100'
+    },
+    green: {
+      bg: 'bg-gradient-to-br from-green-50 to-emerald-100',
+      iconBg: 'bg-green-500',
+      iconText: 'text-white',
+      border: 'border-green-200',
+      accent: 'text-green-600',
+      hover: 'hover:shadow-green-100'
+    },
+    purple: {
+      bg: 'bg-gradient-to-br from-purple-50 to-violet-100',
+      iconBg: 'bg-purple-500',
+      iconText: 'text-white',
+      border: 'border-purple-200',
+      accent: 'text-purple-600',
+      hover: 'hover:shadow-purple-100'
+    },
+    orange: {
+      bg: 'bg-gradient-to-br from-orange-50 to-amber-100',
+      iconBg: 'bg-orange-500',
+      iconText: 'text-white',
+      border: 'border-orange-200',
+      accent: 'text-orange-600',
+      hover: 'hover:shadow-orange-100'
+    },
+    red: {
+      bg: 'bg-gradient-to-br from-red-50 to-rose-100',
+      iconBg: 'bg-red-500',
+      iconText: 'text-white',
+      border: 'border-red-200',
+      accent: 'text-red-600',
+      hover: 'hover:shadow-red-100'
+    },
+    yellow: {
+      bg: 'bg-gradient-to-br from-yellow-50 to-amber-100',
+      iconBg: 'bg-yellow-500',
+      iconText: 'text-white',
+      border: 'border-yellow-200',
+      accent: 'text-yellow-600',
+      hover: 'hover:shadow-yellow-100'
+    },
+    cyan: {
+      bg: 'bg-gradient-to-br from-cyan-50 to-sky-100',
+      iconBg: 'bg-cyan-500',
+      iconText: 'text-white',
+      border: 'border-cyan-200',
+      accent: 'text-cyan-600',
+      hover: 'hover:shadow-cyan-100'
+    },
   };
 
+  const config = colorConfig[color] || colorConfig.blue;
+
+  const CardWrapper = onClick ? 'button' : 'div';
+
   return (
-    <div className="card p-6">
-      <div className="flex items-center justify-between">
+    <CardWrapper
+      onClick={onClick}
+      className={clsx(
+        'relative overflow-hidden rounded-xl border p-5 transition-all duration-300',
+        config.bg,
+        config.border,
+        config.hover,
+        onClick && 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]',
+        'hover:shadow-lg'
+      )}
+    >
+      {/* Background decoration */}
+      <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/30 rounded-full blur-xl"></div>
+
+      <div className="relative flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+          <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 tracking-tight">{value}</p>
+          {subtitle && (
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-xs text-gray-500">{subtitle}</p>
+              {trend && (
+                <span className={clsx(
+                  'text-xs font-medium px-1.5 py-0.5 rounded',
+                  trend > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                )}>
+                  {trend > 0 ? '+' : ''}{trend}%
+                </span>
+              )}
+            </div>
+          )}
         </div>
-        <div className={clsx('p-3 rounded-lg', colorClasses[color])}>
+        <div className={clsx(
+          'p-3 rounded-xl shadow-lg',
+          config.iconBg,
+          config.iconText
+        )}>
           <Icon className="w-6 h-6" />
         </div>
       </div>
-    </div>
+    </CardWrapper>
   );
 };
 
@@ -404,10 +487,11 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   if (!isOpen) return null;
 
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-2xl',
+    '2xl': 'max-w-3xl',
   };
 
   return (
@@ -696,4 +780,124 @@ export const usePagination = (data, initialRowsPerPage = 5) => {
     handleRowsPerPageChange,
     resetPage,
   };
+};
+
+// Loading Spinner Component
+export const Spinner = ({ size = 'md', color = 'blue', className }) => {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+    xl: 'w-12 h-12',
+  };
+
+  const colorClasses = {
+    blue: 'border-blue-600',
+    green: 'border-green-600',
+    purple: 'border-purple-600',
+    gray: 'border-gray-600',
+    white: 'border-white',
+  };
+
+  return (
+    <div
+      className={clsx(
+        'border-2 border-t-transparent rounded-full animate-spin',
+        sizeClasses[size],
+        colorClasses[color],
+        className
+      )}
+      role="status"
+      aria-label="Loading"
+    />
+  );
+};
+
+// Loading Skeleton Component
+export const Skeleton = ({ variant = 'text', width, height, className, count = 1 }) => {
+  const variantClasses = {
+    text: 'h-4 rounded',
+    title: 'h-6 rounded',
+    avatar: 'rounded-full',
+    card: 'rounded-xl',
+    button: 'h-10 rounded-lg',
+  };
+
+  const elements = Array.from({ length: count }, (_, i) => (
+    <div
+      key={i}
+      className={clsx(
+        'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer bg-[length:200%_100%]',
+        variantClasses[variant],
+        className
+      )}
+      style={{
+        width: width || (variant === 'avatar' ? '40px' : '100%'),
+        height: height || (variant === 'avatar' ? '40px' : undefined),
+      }}
+    />
+  ));
+
+  return count === 1 ? elements[0] : <div className="space-y-2">{elements}</div>;
+};
+
+// Loading Overlay Component
+export const LoadingOverlay = ({ isLoading, children, message }) => {
+  if (!isLoading) return children;
+
+  return (
+    <div className="relative">
+      <div className="opacity-50 pointer-events-none">{children}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-xl">
+        <Spinner size="lg" />
+        {message && (
+          <p className="mt-3 text-sm text-gray-600 font-medium">{message}</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Skeleton Card Component - Pre-built skeleton for common card layouts
+export const SkeletonCard = ({ hasHeader = true, lines = 3 }) => {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-fadeIn">
+      {hasHeader && (
+        <div className="flex items-center gap-3 mb-4">
+          <Skeleton variant="avatar" width="40px" height="40px" />
+          <div className="flex-1 space-y-2">
+            <Skeleton variant="title" width="60%" />
+            <Skeleton variant="text" width="40%" />
+          </div>
+        </div>
+      )}
+      <div className="space-y-3">
+        {Array.from({ length: lines }, (_, i) => (
+          <Skeleton
+            key={i}
+            variant="text"
+            width={i === lines - 1 ? '75%' : '100%'}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Empty State Component
+export const EmptyState = ({ icon: Icon, title, description, action, className }) => {
+  return (
+    <div className={clsx('text-center py-12', className)}>
+      {Icon && (
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-2xl flex items-center justify-center">
+          <Icon className="w-8 h-8 text-gray-400" />
+        </div>
+      )}
+      <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
+      {description && (
+        <p className="text-sm text-gray-500 max-w-sm mx-auto">{description}</p>
+      )}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
 };

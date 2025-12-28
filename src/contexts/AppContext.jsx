@@ -400,6 +400,11 @@ export const AppProvider = ({ children }) => {
       return null;
     }
 
+    // Check if this is a donation - handle differently
+    if (requestData.request_type === 'donate') {
+      return createEquipmentDonation(requestData);
+    }
+
     // Validate equipment request data
     const errors = validateForm(requestData, validationSchemas.equipmentRequest);
     if (Object.keys(errors).length > 0) {
@@ -415,6 +420,7 @@ export const AppProvider = ({ children }) => {
       id: `req_${Date.now()}`,
       ...sanitizedData,
       status: 'Pending',
+      request_date: new Date().toISOString(),
       created_at: new Date().toISOString(),
     };
     setEquipmentRequests(prev => [...prev, newRequest]);
@@ -422,6 +428,64 @@ export const AppProvider = ({ children }) => {
     // Dispatch webhook for equipment requested
     dispatchEquipmentEvent(WEBHOOK_EVENTS.EQUIPMENT_REQUESTED, newRequest);
     return newRequest;
+  };
+
+  // Handle equipment donation - tries to fulfill an existing request
+  const createEquipmentDonation = (donationData) => {
+    // Sanitize user input to prevent XSS
+    const sanitizedData = sanitizeObject(donationData);
+
+    // Find a matching pending request for this equipment type
+    const matchingRequest = equipmentRequests.find(req =>
+      req.equipment_name.toLowerCase() === sanitizedData.equipment_name.toLowerCase() &&
+      req.status === 'Pending' &&
+      req.request_type !== 'donate'
+    );
+
+    // Create the donation record
+    const newDonation = {
+      id: `don_${Date.now()}`,
+      donor_id: sanitizedData.patient_id,
+      donor_name: sanitizedData.patient_name,
+      equipment_name: sanitizedData.equipment_name,
+      category: sanitizedData.category,
+      description: sanitizedData.description,
+      estimated_cost: sanitizedData.estimated_cost || 0,
+      donation_type: 'equipment', // Physical equipment donation
+      status: 'Available',
+      created_at: new Date().toISOString(),
+    };
+
+    // If there's a matching request, fulfill it
+    if (matchingRequest) {
+      newDonation.fulfilled_request_id = matchingRequest.id;
+      newDonation.status = 'Matched';
+
+      // Update the matching request to Fulfilled
+      setEquipmentRequests(prev =>
+        prev.map(req =>
+          req.id === matchingRequest.id
+            ? {
+                ...req,
+                status: 'Fulfilled',
+                fulfilled_by_donation_id: newDonation.id,
+                fulfilled_at: new Date().toISOString()
+              }
+            : req
+        )
+      );
+
+      addNotification('success', `Thank you! Your ${sanitizedData.equipment_name} donation has been matched with a patient in need!`);
+    } else {
+      addNotification('success', `Thank you! Your ${sanitizedData.equipment_name} donation is now available for patients in need.`);
+    }
+
+    setDonations(prev => [...prev, newDonation]);
+
+    // Dispatch webhook for equipment donation
+    dispatchDonationEvent(newDonation);
+
+    return newDonation;
   };
 
   const updateEquipmentRequest = (requestId, updates) => {
@@ -785,6 +849,7 @@ export const AppProvider = ({ children }) => {
 
     // Equipment actions
     createEquipmentRequest,
+    createEquipmentDonation,
     updateEquipmentRequest,
 
     // Donation actions
