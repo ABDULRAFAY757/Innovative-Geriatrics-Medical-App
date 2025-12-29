@@ -196,13 +196,25 @@ const PatientAppointments = ({ user }) => {
     }
   };
 
-  // Action handlers
+  // Action handlers - Using modal instead of alert for better UX
+  const [actionModal, setActionModal] = useState({ show: false, title: '', message: '', type: 'info' });
+
   const handleVideoCall = (appointment) => {
-    alert(`Starting video call with ${appointment.doctor_name}...\n\nThis would launch the video consultation interface.`);
+    setActionModal({
+      show: true,
+      title: 'Video Call',
+      message: `Starting video call with ${appointment.doctor_name}...\n\nThis would launch the video consultation interface.`,
+      type: 'info'
+    });
   };
 
   const handlePhoneCall = (appointment) => {
-    alert(`Calling ${appointment.doctor_name}...\n\nThis would initiate a phone call to the doctor's office.`);
+    setActionModal({
+      show: true,
+      title: 'Phone Call',
+      message: `Calling ${appointment.doctor_name}...\n\nThis would initiate a phone call to the doctor's office.`,
+      type: 'info'
+    });
   };
 
   const handleViewDetails = (appointment) => {
@@ -1032,6 +1044,35 @@ const PatientAppointments = ({ user }) => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Action Modal for Video/Phone calls */}
+      <Modal
+        isOpen={actionModal.show}
+        onClose={() => setActionModal({ show: false, title: '', message: '', type: 'info' })}
+        title={actionModal.title}
+        size="sm"
+      >
+        <div className="text-center py-4">
+          <div className={clsx(
+            'mx-auto mb-4 w-12 h-12 rounded-full flex items-center justify-center',
+            actionModal.type === 'info' ? 'bg-blue-100' : 'bg-green-100'
+          )}>
+            {actionModal.title === 'Video Call' ? (
+              <Video className="w-6 h-6 text-blue-600" />
+            ) : (
+              <Phone className="w-6 h-6 text-green-600" />
+            )}
+          </div>
+          <p className="text-gray-600 whitespace-pre-line">{actionModal.message}</p>
+          <Button
+            variant="primary"
+            className="mt-4"
+            onClick={() => setActionModal({ show: false, title: '', message: '', type: 'info' })}
+          >
+            {language === 'ar' ? 'حسناً' : 'OK'}
+          </Button>
+        </div>
       </Modal>
     </div>
   );

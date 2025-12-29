@@ -331,7 +331,7 @@ const EquipmentAssistance = ({ user }) => {
     const { totalDonated } = getRequestDonationsInternal(selectedRequest.id);
     const remainingAmount = (selectedRequest.estimated_cost || 0) - totalDonated;
 
-    if (!amount || amount <= 0) {
+    if (!amount || isNaN(amount) || amount <= 0) {
       addNotification('error', language === 'ar' ? 'يرجى إدخال مبلغ صحيح' : 'Please enter a valid amount');
       return;
     }

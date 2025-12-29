@@ -14,6 +14,7 @@ export const patients = [
     dateOfBirth: "1945-03-15",
     gender: "Male",
     bloodType: "O+",
+    status: "Active",
     emergencyContact: {
       name: "Fatima Ahmed",
       phone: "+966507654321",
@@ -22,7 +23,8 @@ export const patients = [
     medicalConditions: ["Hypertension", "Diabetes Type 2", "Arthritis"],
     allergies: ["Penicillin", "Sulfa drugs"],
     fallRisk: "Medium",
-    lastCheckup: "2024-12-01"
+    lastCheckup: "2024-12-01",
+    insurance: { provider: "Bupa Arabia", policyNumber: "BA-2024-001234", coverage: "80%" }
   },
   {
     id: "2",
@@ -36,6 +38,7 @@ export const patients = [
     dateOfBirth: "1948-07-22",
     gender: "Female",
     bloodType: "A+",
+    status: "At Risk",
     emergencyContact: {
       name: "Mohamed Fatima",
       phone: "+966508765432",
@@ -44,7 +47,8 @@ export const patients = [
     medicalConditions: ["Osteoporosis", "Heart Disease", "Cataracts"],
     allergies: ["None"],
     fallRisk: "High",
-    lastCheckup: "2024-11-28"
+    lastCheckup: "2024-11-28",
+    insurance: { provider: "Tawuniya", policyNumber: "TW-2024-005678", coverage: "90%" }
   },
   {
     id: "3",
@@ -58,6 +62,7 @@ export const patients = [
     dateOfBirth: "1942-11-08",
     gender: "Male",
     bloodType: "B+",
+    status: "At Risk",
     emergencyContact: {
       name: "Sara Abdulrahman",
       phone: "+966509876543",
@@ -66,7 +71,80 @@ export const patients = [
     medicalConditions: ["Stroke Recovery", "Hypertension", "Depression"],
     allergies: ["Aspirin"],
     fallRisk: "High",
-    lastCheckup: "2024-12-05"
+    lastCheckup: "2024-12-05",
+    insurance: { provider: "MedGulf", policyNumber: "MG-2024-009012", coverage: "75%" }
+  },
+  {
+    id: "4",
+    name: "نورة الحربي",
+    nameEn: "Noura Al-Harbi",
+    iqaama: "4567890123",
+    p_no: "P004",
+    phone: "+966504567890",
+    email: "noura.alharbi@email.com",
+    plan: "Professional Plan",
+    dateOfBirth: "1950-05-20",
+    gender: "Female",
+    bloodType: "AB+",
+    status: "Active",
+    emergencyContact: {
+      name: "Khalid Al-Harbi",
+      phone: "+966505678901",
+      relationship: "Husband"
+    },
+    medicalConditions: ["Chronic Kidney Disease", "Anemia"],
+    allergies: ["Ibuprofen"],
+    fallRisk: "Medium",
+    lastCheckup: "2024-12-10",
+    insurance: { provider: "AXA Cooperative", policyNumber: "AXA-2024-003456", coverage: "85%" }
+  },
+  {
+    id: "5",
+    name: "سلمان العتيبي",
+    nameEn: "Salman Al-Otaibi",
+    iqaama: "5678901234",
+    p_no: "P005",
+    phone: "+966505678901",
+    email: "salman.alotaibi@email.com",
+    plan: "Free Plan",
+    dateOfBirth: "1938-09-12",
+    gender: "Male",
+    bloodType: "O-",
+    status: "Active",
+    emergencyContact: {
+      name: "Maryam Salman",
+      phone: "+966506789012",
+      relationship: "Daughter"
+    },
+    medicalConditions: ["COPD", "Parkinson's Disease"],
+    allergies: ["Codeine", "Morphine"],
+    fallRisk: "High",
+    lastCheckup: "2024-12-08",
+    insurance: { provider: "Bupa Arabia", policyNumber: "BA-2024-007890", coverage: "70%" }
+  },
+  {
+    id: "6",
+    name: "هدى القحطاني",
+    nameEn: "Huda Al-Qahtani",
+    iqaama: "6789012345",
+    p_no: "P006",
+    phone: "+966506789012",
+    email: "huda.alqahtani@email.com",
+    plan: "Professional Plan",
+    dateOfBirth: "1952-01-30",
+    gender: "Female",
+    bloodType: "B-",
+    status: "Active",
+    emergencyContact: {
+      name: "Omar Al-Qahtani",
+      phone: "+966507890123",
+      relationship: "Son"
+    },
+    medicalConditions: ["Rheumatoid Arthritis", "Glaucoma"],
+    allergies: ["None"],
+    fallRisk: "Low",
+    lastCheckup: "2024-12-15",
+    insurance: { provider: "Tawuniya", policyNumber: "TW-2024-002345", coverage: "95%" }
   }
 ];
 

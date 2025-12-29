@@ -227,21 +227,45 @@ const InteractivePatientDashboard = ({ user }) => {
   const handleBookAppointment = () => {
     // Comprehensive validation with user feedback
     if (!selectedDoctorId || !newAppointment.date || !newAppointment.time) {
-      alert('Please fill in all required fields: Doctor, Date, and Time');
+      setResponseModal({
+        show: true,
+        title: 'Missing Information',
+        message: 'Please fill in all required fields: Doctor, Date, and Time',
+        type: 'error'
+      });
       return;
     }
 
     // Validate date is not in the past
     const selectedDateTime = new Date(`${newAppointment.date}T${newAppointment.time}`);
+    if (isNaN(selectedDateTime.getTime())) {
+      setResponseModal({
+        show: true,
+        title: 'Invalid Date',
+        message: 'Please select a valid date and time',
+        type: 'error'
+      });
+      return;
+    }
     const now = new Date();
     if (selectedDateTime < now) {
-      alert('Cannot book appointments in the past. Please select a future date and time.');
+      setResponseModal({
+        show: true,
+        title: 'Invalid Date',
+        message: 'Cannot book appointments in the past. Please select a future date and time.',
+        type: 'error'
+      });
       return;
     }
 
     // Validate location type is selected
     if (!newAppointment.locationType) {
-      alert('Please select a location type (In-Person or Online)');
+      setResponseModal({
+        show: true,
+        title: 'Missing Information',
+        message: 'Please select a location type (In-Person or Online)',
+        type: 'error'
+      });
       return;
     }
 
@@ -255,14 +279,22 @@ const InteractivePatientDashboard = ({ user }) => {
     });
 
     if (hasDuplicateAppointment) {
-      const confirmDuplicate = window.confirm(
-        `You already have an appointment with ${newAppointment.doctor_name} on this date. Do you want to book another one?`
-      );
-      if (!confirmDuplicate) {
-        return;
-      }
+      setConfirmModal({
+        show: true,
+        title: 'Duplicate Appointment',
+        message: `You already have an appointment with ${newAppointment.doctor_name} on this date. Do you want to book another one?`,
+        onConfirm: () => {
+          setConfirmModal({ show: false, title: '', message: '', onConfirm: null });
+          processBookAppointment(selectedDateTime);
+        }
+      });
+      return;
     }
 
+    processBookAppointment(selectedDateTime);
+  };
+
+  const processBookAppointment = (selectedDateTime) => {
     const appointmentData = {
       patient_id: patientId,
       doctor_id: newAppointment.doctor_id,
@@ -276,8 +308,13 @@ const InteractivePatientDashboard = ({ user }) => {
 
     bookAppointment(appointmentData);
 
-    // Success feedback
-    alert(`Appointment booked successfully with ${newAppointment.doctor_name} on ${new Date(selectedDateTime).toLocaleDateString()}`);
+    // Success feedback using modal instead of alert
+    setResponseModal({
+      show: true,
+      title: 'Appointment Booked!',
+      message: `Appointment booked successfully with ${newAppointment.doctor_name} on ${selectedDateTime.toLocaleDateString()}`,
+      type: 'success'
+    });
 
     setShowNewAppointment(false);
     setSelectedDoctorId('');
@@ -368,10 +405,11 @@ const InteractivePatientDashboard = ({ user }) => {
       return;
     }
 
-    // Check for duplicate equipment requests
+    // Check for duplicate equipment requests (with null safety)
     const hasDuplicateRequest = myEquipment.some(eq => {
-      return eq.equipment_name.toLowerCase() === newEquipmentRequest.equipment_name.toLowerCase() &&
-             (eq.status === 'Pending' || eq.status === 'Approved');
+      const eqName = (eq.equipment_name || '').toLowerCase();
+      const newName = (newEquipmentRequest.equipment_name || '').toLowerCase();
+      return eqName === newName && (eq.status === 'Pending' || eq.status === 'Approved');
     });
 
     if (hasDuplicateRequest) {

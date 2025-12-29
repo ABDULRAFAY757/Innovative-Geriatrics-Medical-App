@@ -66,33 +66,77 @@ const DoctorMedicalRecords = ({ user }) => {
     return uniqueTypes;
   }, [myRecords]);
 
-  // Filtered records based on search and filters
-  const filteredRecords = useMemo(() => {
-    return myRecords.filter(record => {
-      const recordPatient = patients.find(p => p.id === record.patient_id);
-      const patientName = recordPatient?.name?.toLowerCase() || '';
-      const patientNo = recordPatient?.p_no?.toLowerCase() || '';
+  // Get unique patients with their records
+  const uniquePatients = useMemo(() => {
+    const patientMap = new Map();
+
+    myRecords.forEach(record => {
+      const patientId = record.patient_id;
+      if (!patientMap.has(patientId)) {
+        const patientInfo = patients.find(p => p.id === patientId);
+        patientMap.set(patientId, {
+          ...patientInfo,
+          patient_id: patientId,
+          records: [],
+          latestVisit: null,
+          diagnoses: new Set()
+        });
+      }
+      const patient = patientMap.get(patientId);
+      patient.records.push(record);
+      patient.diagnoses.add(record.diagnosis);
+
+      // Track latest visit
+      const visitDate = new Date(record.visit_date);
+      if (!patient.latestVisit || visitDate > new Date(patient.latestVisit)) {
+        patient.latestVisit = record.visit_date;
+        patient.latestDiagnosis = record.diagnosis;
+        patient.latestType = record.record_type;
+        patient.latestHospital = record.hospital;
+      }
+    });
+
+    // Convert to array and sort by latest visit
+    return Array.from(patientMap.values()).sort((a, b) =>
+      new Date(b.latestVisit) - new Date(a.latestVisit)
+    );
+  }, [myRecords]);
+
+  // Filtered patients based on search and filters
+  const filteredPatients = useMemo(() => {
+    return uniquePatients.filter(patient => {
+      const patientName = patient?.name?.toLowerCase() || '';
+      const patientNo = patient?.p_no?.toLowerCase() || '';
       const search = searchTerm.toLowerCase();
 
-      const matchesSearch = patientName.includes(search) ||
-        patientNo.includes(search) ||
-        record.diagnosis.toLowerCase().includes(search) ||
-        record.hospital.toLowerCase().includes(search);
+      // Check if any diagnosis matches search
+      const diagnosisMatch = Array.from(patient.diagnoses).some(d =>
+        (d || '').toLowerCase().includes(search)
+      );
 
-      const matchesType = filterType === 'all' || record.record_type === filterType;
-      const matchesHospital = filterHospital === 'all' || record.hospital === filterHospital;
+      // Check if any record matches hospital filter
+      const hospitalMatch = filterHospital === 'all' ||
+        patient.records.some(r => r.hospital === filterHospital);
 
-      return matchesSearch && matchesType && matchesHospital;
+      // Check if any record matches type filter
+      const typeMatch = filterType === 'all' ||
+        patient.records.some(r => r.record_type === filterType);
+
+      const matchesSearch = !search || patientName.includes(search) ||
+        patientNo.includes(search) || diagnosisMatch ||
+        patient.records.some(r => (r.hospital || '').toLowerCase().includes(search));
+
+      return matchesSearch && typeMatch && hospitalMatch;
     });
-  }, [myRecords, searchTerm, filterType, filterHospital]);
+  }, [uniquePatients, searchTerm, filterType, filterHospital]);
 
   // Pagination calculations
-  const totalPages = Math.ceil(filteredRecords.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredPatients.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedRecords = useMemo(() =>
-    filteredRecords.slice(startIndex, endIndex),
-    [filteredRecords, startIndex, endIndex]
+  const paginatedPatients = useMemo(() =>
+    filteredPatients.slice(startIndex, endIndex),
+    [filteredPatients, startIndex, endIndex]
   );
 
   // Reset to first page when search/filter changes
@@ -182,83 +226,74 @@ const DoctorMedicalRecords = ({ user }) => {
   };
 
   // Handle patient row click
-  const handlePatientClick = (record) => {
-    const patientInfo = getPatientInfo(record);
-    const patientRecords = getPatientRecordsWithDoctor(record.patient_id);
-    setSelectedPatient({
-      ...patientInfo,
-      patient_id: record.patient_id,
-      records: patientRecords
-    });
+  const handlePatientClick = (patient) => {
+    // If patient already has records attached (from uniquePatients), use it directly
+    if (patient.records && patient.records.length > 0) {
+      setSelectedPatient(patient);
+    } else {
+      // Fallback for old record-based click
+      const patientInfo = getPatientInfo(patient);
+      const patientRecords = getPatientRecordsWithDoctor(patient.patient_id);
+      setSelectedPatient({
+        ...patientInfo,
+        patient_id: patient.patient_id,
+        records: patientRecords
+      });
+    }
     setActiveTab('overview');
   };
 
   const columns = [
     {
-      header: language === 'ar' ? 'التاريخ والوقت' : 'Date & Time',
+      header: language === 'ar' ? 'رقم الملف' : 'Patient ID',
+      render: (row) => (
+        <span className="text-sm font-mono text-blue-600">{row.p_no}</span>
+      )
+    },
+    {
+      header: language === 'ar' ? 'اسم المريض' : 'Patient Name',
+      render: (row) => (
+        <button
+          onClick={() => handlePatientClick(row)}
+          className="flex items-center gap-2 hover:bg-blue-50 rounded-lg p-1 -m-1 transition-colors group"
+        >
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+            <User className="w-4 h-4 text-blue-600" />
+          </div>
+          <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{row.name}</span>
+        </button>
+      )
+    },
+    {
+      header: language === 'ar' ? 'آخر زيارة' : 'Last Visit',
       render: (row) => (
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-400" />
-          <span className="text-sm">{formatDateTime(row.visit_date)}</span>
+          <span className="text-sm">{formatDateTime(row.latestVisit)}</span>
         </div>
       )
     },
     {
-      header: language === 'ar' ? 'رقم الملف' : 'Patient ID',
-      render: (row) => {
-        const p = getPatientInfo(row);
-        return (
-          <span className="text-sm font-mono text-blue-600">{p.p_no}</span>
-        );
-      }
-    },
-    {
-      header: language === 'ar' ? 'اسم المريض' : 'Patient Name',
-      render: (row) => {
-        const p = getPatientInfo(row);
-        return (
-          <button
-            onClick={() => handlePatientClick(row)}
-            className="flex items-center gap-2 hover:bg-blue-50 rounded-lg p-1 -m-1 transition-colors group"
-          >
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-              <User className="w-4 h-4 text-blue-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{p.name}</span>
-          </button>
-        );
-      }
-    },
-    {
-      header: language === 'ar' ? 'النوع' : 'Type',
+      header: language === 'ar' ? 'عدد الزيارات' : 'Total Visits',
       render: (row) => (
-        <Badge variant={getTypeBadge(row.record_type)} className="text-xs">
-          {row.record_type}
+        <Badge variant="info" className="text-xs">
+          {row.records.length} {language === 'ar' ? 'زيارة' : 'visits'}
         </Badge>
       )
     },
     {
-      header: language === 'ar' ? 'التشخيص' : 'Diagnosis',
+      header: language === 'ar' ? 'آخر تشخيص' : 'Latest Diagnosis',
       render: (row) => (
-        <p className="font-medium text-gray-900 text-sm truncate max-w-[200px]" title={row.diagnosis}>
-          {row.diagnosis}
+        <p className="font-medium text-gray-900 text-sm truncate max-w-[200px]" title={row.latestDiagnosis}>
+          {row.latestDiagnosis}
         </p>
-      )
-    },
-    {
-      header: language === 'ar' ? 'المستشفى' : 'Hospital',
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-gray-400" />
-          <span className="text-sm truncate max-w-[150px]" title={row.hospital}>{row.hospital}</span>
-        </div>
       )
     },
     {
       header: language === 'ar' ? 'الحالة' : 'Status',
       render: (row) => (
-        <Badge variant={getStatusBadge(row.status)} className="text-xs">
-          {row.status}
+        <Badge variant={row.status === 'At Risk' ? 'danger' : row.status === 'Active' ? 'success' : 'default'} className="text-xs">
+          {row.status || 'Active'}
         </Badge>
       )
     },
@@ -269,7 +304,7 @@ const DoctorMedicalRecords = ({ user }) => {
           variant="ghost"
           size="sm"
           icon={Eye}
-          onClick={() => setSelectedRecord(row)}
+          onClick={() => handlePatientClick(row)}
         >
           {language === 'ar' ? 'عرض' : 'View'}
         </Button>
@@ -352,8 +387,8 @@ const DoctorMedicalRecords = ({ user }) => {
             <p className="text-xs text-gray-500">{doctor?.specialization || 'Geriatrics'}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-500">{language === 'ar' ? 'النتائج' : 'Results'}</p>
-            <p className="text-2xl font-bold text-blue-600">{filteredRecords.length}</p>
+            <p className="text-sm text-gray-500">{language === 'ar' ? 'المرضى' : 'Patients'}</p>
+            <p className="text-2xl font-bold text-blue-600">{filteredPatients.length}</p>
           </div>
         </div>
       </Card>
@@ -396,11 +431,11 @@ const DoctorMedicalRecords = ({ user }) => {
         </div>
       </Card>
 
-      {/* Records Table */}
+      {/* Patients Table */}
       <Card>
-        {filteredRecords.length > 0 ? (
+        {filteredPatients.length > 0 ? (
           <>
-            <Table columns={columns} data={paginatedRecords} />
+            <Table columns={columns} data={paginatedPatients} />
 
             {/* Pagination Controls */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
@@ -427,8 +462,8 @@ const DoctorMedicalRecords = ({ user }) => {
               {/* Page info */}
               <div className="text-sm text-gray-600">
                 {language === 'ar'
-                  ? `${startIndex + 1}-${Math.min(endIndex, filteredRecords.length)} من ${filteredRecords.length}`
-                  : `${startIndex + 1}-${Math.min(endIndex, filteredRecords.length)} of ${filteredRecords.length}`
+                  ? `${startIndex + 1}-${Math.min(endIndex, filteredPatients.length)} من ${filteredPatients.length}`
+                  : `${startIndex + 1}-${Math.min(endIndex, filteredPatients.length)} of ${filteredPatients.length}`
                 }
               </div>
 

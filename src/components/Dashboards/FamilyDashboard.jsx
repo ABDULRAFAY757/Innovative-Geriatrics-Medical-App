@@ -942,7 +942,7 @@ const InteractiveFamilyDashboard = ({ user }) => {
                 { label: language === 'ar' ? 'الجمعة' : 'Fri', tasks: 3, completed: 3, color: 'green' },
                 { label: language === 'ar' ? 'السبت' : 'Sat', tasks: 4, completed: 2, color: 'red' },
               ].map((day, idx) => {
-                const percentage = Math.round((day.completed / day.tasks) * 100);
+                const percentage = day.tasks > 0 ? Math.round((day.completed / day.tasks) * 100) : 0;
                 const barColor = percentage >= 80 ? 'bg-green-500' : percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500';
                 const bgColor = percentage >= 80 ? 'bg-green-100' : percentage >= 60 ? 'bg-yellow-100' : 'bg-red-100';
                 return (
