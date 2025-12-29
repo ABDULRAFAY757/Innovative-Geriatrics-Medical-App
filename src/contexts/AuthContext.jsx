@@ -405,6 +405,53 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
+   * Update user profile data - syncs everywhere
+   */
+  const updateUser = (updatedData) => {
+    if (!user) return { success: false, error: 'No user logged in' };
+
+    try {
+      // Merge updated data with existing user data
+      const updatedUser = {
+        ...user,
+        ...updatedData,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Update the user state (triggers re-render everywhere)
+      setUser(updatedUser);
+
+      // Update the session in storage
+      const expiresAt = Date.now() + SESSION_DURATION;
+      const session = {
+        user: updatedUser,
+        expiresAt,
+        createdAt: Date.now()
+      };
+
+      // Check which storage was used and update accordingly
+      if (localStorage.getItem('auth_session')) {
+        localStorage.setItem('auth_session', JSON.stringify(session));
+      } else {
+        sessionStorage.setItem('auth_session', JSON.stringify(session));
+      }
+
+      // Also update in USER_DATABASE for consistency
+      if (USER_DATABASE[user.email]) {
+        USER_DATABASE[user.email] = {
+          ...USER_DATABASE[user.email],
+          ...updatedData,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  /**
    * Get user role permissions list
    */
   const getPermissions = () => {
@@ -443,6 +490,9 @@ export const AuthProvider = ({ children }) => {
 
     // Session management
     refreshSession,
+
+    // Profile management
+    updateUser,
 
     // Utility
     getUserRole: () => user?.role,

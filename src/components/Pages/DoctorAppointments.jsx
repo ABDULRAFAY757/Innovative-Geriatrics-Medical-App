@@ -72,8 +72,11 @@ const DoctorAppointments = ({ user }) => {
 
   const filteredAppointments = myAppointments.filter(apt => {
     const patient = patients.find(p => p.id === apt.patient_id);
-    const matchesSearch = patient?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          patient?.nameEn?.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm ||
+                          (patient?.name || '').toLowerCase().includes(searchLower) ||
+                          (patient?.nameEn || '').toLowerCase().includes(searchLower) ||
+                          (apt.type || '').toLowerCase().includes(searchLower);
 
     if (filterStatus === 'today') {
       const aptDate = new Date(apt.date);
@@ -132,8 +135,9 @@ const DoctorAppointments = ({ user }) => {
 
     // Update appointment with clinical details before completing
     if (updateAppointmentDetails) {
-      const followUpDate = completionNotes.follow_up_days
-        ? new Date(Date.now() + parseInt(completionNotes.follow_up_days) * 24 * 60 * 60 * 1000).toISOString()
+      const followUpDays = parseInt(completionNotes.follow_up_days, 10);
+      const followUpDate = completionNotes.follow_up_days && !isNaN(followUpDays) && followUpDays > 0
+        ? new Date(Date.now() + followUpDays * 24 * 60 * 60 * 1000).toISOString()
         : null;
 
       updateAppointmentDetails(selectedAppointment.id, {

@@ -24,6 +24,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import { Card, Button, Modal } from '../shared/UIComponents';
+import { TablerAlert, TablerSelect, TablerBadge } from '../shared/TablerUIComponents';
 import WebhookSettings from '../shared/WebhookSettings';
 import { clsx } from 'clsx';
 
@@ -195,15 +196,18 @@ const Settings = () => {
           <div className="flex-1">
             <h2 className="text-lg font-bold text-gray-900">{user?.name || 'User'}</h2>
             <p className="text-sm text-gray-600 capitalize flex items-center gap-2">
-              <span className={clsx(
-                'px-2 py-0.5 rounded-full text-xs font-medium',
-                user?.role === 'doctor' && 'bg-purple-100 text-purple-700',
-                user?.role === 'patient' && 'bg-blue-100 text-blue-700',
-                user?.role === 'family' && 'bg-green-100 text-green-700',
-                user?.role === 'admin' && 'bg-red-100 text-red-700'
-              )}>
+              <TablerBadge
+                variant={
+                  user?.role === 'doctor' ? 'purple' :
+                  user?.role === 'patient' ? 'primary' :
+                  user?.role === 'family' ? 'success' :
+                  user?.role === 'admin' ? 'danger' : 'secondary'
+                }
+                light
+                pill
+              >
                 {user?.role || 'user'}
-              </span>
+              </TablerBadge>
             </p>
           </div>
           <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
@@ -215,15 +219,15 @@ const Settings = () => {
 
       {/* Save Message */}
       {saveMessage && (
-        <div className={clsx(
-          'mb-6 p-3 rounded-xl border flex items-center gap-2 animate-fadeIn text-sm',
-          saveMessage.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
-        )}>
-          <CheckCircle className="w-4 h-4" />
-          <span>{saveMessage.text}</span>
-        </div>
+        <TablerAlert
+          type={saveMessage.type === 'success' ? 'success' : 'danger'}
+          icon={CheckCircle}
+          dismissible
+          onDismiss={() => setSaveMessage(null)}
+          className="mb-6 animate-fadeIn"
+        >
+          {saveMessage.text}
+        </TablerAlert>
       )}
 
       {/* Tab Navigation - Show Webhooks tab for Doctor and Family roles */}
@@ -289,16 +293,17 @@ const Settings = () => {
                 title={language === 'ar' ? 'تذكير المواعيد' : 'Appointment Reminders'}
                 description={language === 'ar' ? 'إشعار قبل الموعد' : 'Get notified before appointments'}
               >
-                <select
+                <TablerSelect
                   value={settings.appointmentReminderDays}
                   onChange={(e) => updateSetting('appointmentReminderDays', Number(e.target.value))}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value={0}>{language === 'ar' ? 'نفس اليوم' : 'Same day'}</option>
-                  <option value={1}>{language === 'ar' ? 'يوم واحد قبل' : '1 day before'}</option>
-                  <option value={2}>{language === 'ar' ? 'يومين قبل' : '2 days before'}</option>
-                  <option value={3}>{language === 'ar' ? '3 أيام قبل' : '3 days before'}</option>
-                </select>
+                  options={[
+                    { value: 0, label: language === 'ar' ? 'نفس اليوم' : 'Same day' },
+                    { value: 1, label: language === 'ar' ? 'يوم واحد قبل' : '1 day before' },
+                    { value: 2, label: language === 'ar' ? 'يومين قبل' : '2 days before' },
+                    { value: 3, label: language === 'ar' ? '3 أيام قبل' : '3 days before' }
+                  ]}
+                  size="sm"
+                />
               </SettingRow>
 
               <SettingRow

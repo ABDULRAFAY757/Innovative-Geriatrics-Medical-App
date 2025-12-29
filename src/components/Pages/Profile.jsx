@@ -26,8 +26,8 @@ import { clsx } from 'clsx';
 
 const Profile = ({ user }) => {
   const { t, isRTL, language } = useLanguage();
-  const { refreshSession } = useAuth();
-  const { patients, appointments, medicationReminders, equipmentRequests } = useApp();
+  const { updateUser } = useAuth();
+  const { patients, appointments, medicationReminders, equipmentRequests, updatePatient, updateDoctor } = useApp();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -134,10 +134,8 @@ const Profile = ({ user }) => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Save to localStorage
-      const savedUser = JSON.parse(localStorage.getItem('geriatrics_user') || '{}');
-      const updatedUser = {
-        ...savedUser,
+      // Prepare updated user data
+      const updatedData = {
         name: formData.name,
         nameEn: formData.name,
         email: formData.email,
@@ -145,15 +143,46 @@ const Profile = ({ user }) => {
         address: formData.address,
         dateOfBirth: formData.dateOfBirth,
         emergencyContact: formData.emergencyContact,
-        updatedAt: new Date().toISOString()
       };
-      localStorage.setItem('geriatrics_user', JSON.stringify(updatedUser));
 
-      // Refresh session to update user data
-      refreshSession?.();
+      // Update user in AuthContext (this syncs everywhere - Header, Dashboards, etc.)
+      const result = updateUser(updatedData);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+
+      // If user is a patient, also update patient data in AppContext
+      if (user?.role === 'patient' && updatePatient) {
+        updatePatient(user.id, {
+          name: formData.name,
+          nameEn: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          dateOfBirth: formData.dateOfBirth,
+          emergencyContact: {
+            name: formData.emergencyName,
+            phone: formData.emergencyContact,
+            relationship: formData.emergencyRelationship
+          },
+          bloodType: formData.bloodType,
+          medicalConditions: formData.medicalConditions ? formData.medicalConditions.split(',').map(c => c.trim()) : []
+        });
+      }
+
+      // If user is a doctor, also update doctor data in AppContext
+      if (user?.role === 'doctor' && updateDoctor) {
+        updateDoctor(user.id, {
+          name: formData.name,
+          nameEn: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+        });
+      }
 
       setIsEditing(false);
-      setSaveMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setSaveMessage({ type: 'success', text: 'Profile updated successfully! Changes are now visible everywhere.' });
 
       // Clear success message after 3 seconds
       setTimeout(() => setSaveMessage(null), 3000);

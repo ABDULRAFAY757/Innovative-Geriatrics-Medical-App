@@ -22,7 +22,8 @@ import {
   Smartphone,
   CheckCircle
 } from 'lucide-react';
-import { Card, Button, Badge } from '../shared/UIComponents';
+import { Card, Button } from '../shared/UIComponents';
+import { TablerAlert, TablerInput, TablerBadge } from '../shared/TablerUIComponents';
 import { clsx } from 'clsx';
 
 const Help = ({ user }) => {
@@ -283,42 +284,38 @@ const Help = ({ user }) => {
 
       {/* Emergency Notice - Prominent for Patients */}
       {user?.role === 'patient' && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl animate-fadeIn">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-red-100 rounded-xl">
-              <Phone className="w-6 h-6 text-red-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-red-900 text-lg">
-                {language === 'ar' ? 'حالة طوارئ؟' : 'Emergency?'}
-              </p>
-              <p className="text-red-700 text-sm mt-1">
-                {language === 'ar'
-                  ? 'في حالات الطوارئ الطبية، يرجى الاتصال بالرقم 997 (المملكة العربية السعودية) أو رقم الطوارئ المحلي فورًا.'
-                  : 'For medical emergencies, please call 997 (Saudi Arabia) or your local emergency number immediately.'}
-              </p>
-              <div className="flex gap-3 mt-3">
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => window.location.href = 'tel:997'}
-                  className="hover:scale-105 transition-transform"
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  {language === 'ar' ? 'اتصل 997' : 'Call 997'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-300 text-red-700 hover:bg-red-50"
-                >
-                  <Smartphone className="w-4 h-4 mr-2" />
-                  {language === 'ar' ? 'جهة اتصال الطوارئ' : 'Emergency Contact'}
-                </Button>
-              </div>
-            </div>
+        <TablerAlert
+          type="danger"
+          important
+          icon={Phone}
+          title={language === 'ar' ? 'حالة طوارئ؟' : 'Emergency?'}
+          className="mb-6 animate-fadeIn"
+        >
+          <p className="text-sm mb-3">
+            {language === 'ar'
+              ? 'في حالات الطوارئ الطبية، يرجى الاتصال بالرقم 997 (المملكة العربية السعودية) أو رقم الطوارئ المحلي فورًا.'
+              : 'For medical emergencies, please call 997 (Saudi Arabia) or your local emergency number immediately.'}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => window.location.href = 'tel:997'}
+              className="hover:scale-105 transition-transform"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              {language === 'ar' ? 'اتصل 997' : 'Call 997'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              <Smartphone className="w-4 h-4 mr-2" />
+              {language === 'ar' ? 'جهة اتصال الطوارئ' : 'Emergency Contact'}
+            </Button>
           </div>
-        </div>
+        </TablerAlert>
       )}
 
       {/* Search - Enhanced */}
@@ -332,20 +329,18 @@ const Help = ({ user }) => {
           </p>
         </div>
         <div className="relative max-w-xl mx-auto">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="w-5 h-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
+          <TablerInput
+            icon={Search}
             placeholder={language === 'ar' ? 'ابحث عن المساعدة...' : 'Search for help...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-xl border-0 shadow-lg focus:ring-4 focus:ring-white/30 transition-all text-gray-800 placeholder-gray-400"
+            className="shadow-lg"
+            size="lg"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+              className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-400 hover:text-gray-600 text-xl"
             >
               ×
             </button>
@@ -570,9 +565,9 @@ const Help = ({ user }) => {
                 language === 'ar' ? 'تتبع الصحة الإدراكية' : 'Cognitive Health Tracking',
               ].map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                  <Badge variant="success" size="sm" className="px-1.5 py-0.5">
+                  <TablerBadge variant="success" size="sm">
                     <CheckCircle className="w-3 h-3" />
-                  </Badge>
+                  </TablerBadge>
                   {feature}
                 </div>
               ))}

@@ -785,6 +785,55 @@ export const AppProvider = ({ children }) => {
     );
   };
 
+  // ========== PATIENT PROFILE ACTIONS ==========
+
+  const updatePatient = (patientId, updatedData) => {
+    if (!patientId) return null;
+
+    let updatedPatient = null;
+    setPatients(prev =>
+      prev.map(patient => {
+        if (patient.id === patientId) {
+          updatedPatient = {
+            ...patient,
+            ...updatedData,
+            updatedAt: new Date().toISOString()
+          };
+          return updatedPatient;
+        }
+        return patient;
+      })
+    );
+
+    if (updatedPatient) {
+      addNotification('success', 'Patient profile updated successfully!');
+    }
+    return updatedPatient;
+  };
+
+  // ========== DOCTOR PROFILE ACTIONS ==========
+
+  const updateDoctor = (doctorId, updatedData) => {
+    if (!doctorId) return null;
+
+    // Doctors are static in initialDoctors, but we can update via localStorage
+    const savedDoctors = JSON.parse(localStorage.getItem('app_doctors') || 'null') || initialDoctors;
+    const updatedDoctors = savedDoctors.map(doc => {
+      if (doc.id === doctorId) {
+        return {
+          ...doc,
+          ...updatedData,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return doc;
+    });
+
+    localStorage.setItem('app_doctors', JSON.stringify(updatedDoctors));
+    addNotification('success', 'Doctor profile updated successfully!');
+    return updatedDoctors.find(d => d.id === doctorId);
+  };
+
   // ========== RESET DATA ==========
 
   const resetAllData = () => {
@@ -876,6 +925,10 @@ export const AppProvider = ({ children }) => {
     // Webhook service
     webhookService,
     WEBHOOK_EVENTS,
+
+    // Profile actions
+    updatePatient,
+    updateDoctor,
 
     // Utility
     resetAllData,
